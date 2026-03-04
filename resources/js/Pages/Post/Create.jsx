@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import ImageUpload from '@/Components/ImageUpload';
 import ImageGallery from 'react-image-gallery';
-import { useForm } from '@inertiajs/inertia-react';
+import { useForm } from '@inertiajs/react';
 
 export default function Create() {
   const { data, setData, post, reset} = useForm({

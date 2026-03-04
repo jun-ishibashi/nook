@@ -1,0 +1,1 @@
+import{j as t}from"./app-METcUq9R.js";import{L as r}from"./Layout-DdBF1XaY.js";import m from"./Show-BpIGz12Q.js";/* empty css            */import"./Create-BiaP_oTR.js";import"./image-gallery.es-DDcsjl-0.js";function x(o){return t.jsx(t.Fragment,{children:t.jsx(r,{children:t.jsx(m,{...o})})})}export{x as default};

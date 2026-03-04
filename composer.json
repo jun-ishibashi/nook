@@ -5,22 +5,23 @@
     "keywords": ["framework", "laravel"],
     "license": "MIT",
     "require": {
-        "php": "^8.0.2",
-        "guzzlehttp/guzzle": "^7.2",
-        "inertiajs/inertia-laravel": "^0.5.4",
-        "laravel/framework": "^9.2",
-        "laravel/sanctum": "^2.8",
-        "laravel/tinker": "^2.7",
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.8",
+        "inertiajs/inertia-laravel": "^1.0",
+        "laravel/framework": "^11.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^2.9",
         "tightenco/ziggy": "^1.0"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.9.1",
-        "laravel/breeze": "^1.9",
-        "laravel/sail": "^1.0.1",
-        "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^6.1",
-        "phpunit/phpunit": "^9.5.10",
-        "spatie/laravel-ignition": "^1.0"
+        "fakerphp/faker": "^1.23",
+        "laravel/breeze": "^2.0",
+        "laravel/pint": "^1.13",
+        "laravel/sail": "^1.26",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.1",
+        "phpunit/phpunit": "^11.0",
+        "spatie/laravel-ignition": "^2.4"
     },
     "autoload": {
         "psr-4": {
@@ -45,8 +46,8 @@
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi"
+        "post-create-package-cmd": [
+            "@php artisan package:discover --ansi"
         ]
     },
     "extra": {
@@ -57,8 +58,8 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }

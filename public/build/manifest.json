@@ -1,0 +1,108 @@
+{
+  "_Layout-DdBF1XaY.js": {
+    "file": "assets/Layout-DdBF1XaY.js",
+    "name": "Layout",
+    "imports": [
+      "resources/js/app.jsx",
+      "resources/js/Pages/Post/Create.jsx"
+    ]
+  },
+  "_image-gallery.es-DDcsjl-0.js": {
+    "file": "assets/image-gallery.es-DDcsjl-0.js",
+    "name": "image-gallery.es",
+    "imports": [
+      "resources/js/app.jsx"
+    ]
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-2SwV6Mop.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/Pages/Home.jsx": {
+    "file": "assets/Home-BSAXhcYv.js",
+    "name": "Home",
+    "src": "resources/js/Pages/Home.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.jsx",
+      "_Layout-DdBF1XaY.js",
+      "resources/js/Pages/Post/Index.jsx",
+      "resources/js/Pages/Post/Create.jsx",
+      "_image-gallery.es-DDcsjl-0.js"
+    ],
+    "css": [
+      "assets/app-2SwV6Mop.css"
+    ]
+  },
+  "resources/js/Pages/Post/Create.jsx": {
+    "file": "assets/Create-BiaP_oTR.js",
+    "name": "Create",
+    "src": "resources/js/Pages/Post/Create.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.jsx",
+      "_image-gallery.es-DDcsjl-0.js"
+    ],
+    "css": [
+      "assets/app-2SwV6Mop.css"
+    ]
+  },
+  "resources/js/Pages/Post/Index.jsx": {
+    "file": "assets/Index-B0kCAHSO.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Post/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.jsx"
+    ],
+    "css": [
+      "assets/app-2SwV6Mop.css"
+    ]
+  },
+  "resources/js/Pages/Post/Show.jsx": {
+    "file": "assets/Show-BpIGz12Q.js",
+    "name": "Show",
+    "src": "resources/js/Pages/Post/Show.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.jsx",
+      "_image-gallery.es-DDcsjl-0.js"
+    ],
+    "css": [
+      "assets/app-2SwV6Mop.css"
+    ]
+  },
+  "resources/js/Pages/PostContent.jsx": {
+    "file": "assets/PostContent-Dk2e_YL7.js",
+    "name": "PostContent",
+    "src": "resources/js/Pages/PostContent.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.jsx",
+      "_Layout-DdBF1XaY.js",
+      "resources/js/Pages/Post/Show.jsx",
+      "resources/js/Pages/Post/Create.jsx",
+      "_image-gallery.es-DDcsjl-0.js"
+    ],
+    "css": [
+      "assets/app-2SwV6Mop.css"
+    ]
+  },
+  "resources/js/app.jsx": {
+    "file": "assets/app-METcUq9R.js",
+    "name": "app",
+    "src": "resources/js/app.jsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/Pages/Home.jsx",
+      "resources/js/Pages/Post/Create.jsx",
+      "resources/js/Pages/Post/Index.jsx",
+      "resources/js/Pages/Post/Show.jsx",
+      "resources/js/Pages/PostContent.jsx"
+    ],
+    "css": [
+      "assets/app-2SwV6Mop.css"
+    ]
+  }
+}

@@ -1,64 +1,184 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Interior App
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+インテリア画像の投稿・閲覧ができる Web アプリケーションです。Laravel（PHP）と React（Inertia.js）で構築されています。
 
-## About Laravel
+## 技術スタック
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| 分類 | 技術 |
+|------|------|
+| バックエンド | Laravel 11, PHP 8.2+ |
+| フロントエンド | React 18, Inertia.js 1.x |
+| スタイル | Tailwind CSS, DaisyUI |
+| ビルド | Vite 5 |
+| 認証 | Laravel Breeze |
 
--   [Simple, fast routing engine](https://laravel.com/docs/routing).
--   [Powerful dependency injection container](https://laravel.com/docs/container).
--   Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
--   Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
--   Database agnostic [schema migrations](https://laravel.com/docs/migrations).
--   [Robust background job processing](https://laravel.com/docs/queues).
--   [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 主な機能
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **投稿一覧** … サムネイル付きの投稿グリッド表示
+- **投稿作成** … タイトルと複数画像のアップロード（モーダルから作成）
+- **投稿詳細** … 画像ギャラリーとタイトルの表示
+- **認証** … 登録・ログイン・パスワードリセット・メール認証（Laravel Breeze）
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 必要環境
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **PHP** 8.2 以上
+- **Composer** 2.x
+- **Node.js** 18 以上（推奨: 20 LTS）
+- **npm** または **yarn**
+- **MySQL** 8.0 または **MariaDB** 10.3+（または SQLite で簡易開発）
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## ローカル開発手順
 
-### Premium Partners
+### 1. リポジトリのクローンとディレクトリ移動
 
--   **[Vehikl](https://vehikl.com/)**
--   **[Tighten Co.](https://tighten.co)**
--   **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
--   **[64 Robots](https://64robots.com)**
--   **[Cubet Techno Labs](https://cubettech.com)**
--   **[Cyber-Duck](https://cyber-duck.co.uk)**
--   **[Many](https://www.many.co.uk)**
--   **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
--   **[DevSquad](https://devsquad.com)**
--   **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
--   **[OP.GG](https://op.gg)**
--   **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
--   **[Lendio](https://lendio.com)**
+```bash
+git clone <リポジトリURL>
+cd interior-app0320
+```
 
-## Contributing
+### 2. 環境変数の設定
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+`.env` を編集し、少なくとも以下を設定します。
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- `APP_NAME` … アプリ名（任意）
+- `APP_URL` … 開発時の URL（例: `http://localhost:8000`）
+- `DB_*` … 使用するデータベースの接続情報
 
-## Security Vulnerabilities
+**SQLite で手軽に試す場合:**
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```env
+DB_CONNECTION=sqlite
+# DB_HOST, DB_DATABASE 等はコメントアウトまたは削除可
+```
 
-## License
+その後、SQLite の DB ファイルを作成します。
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+touch database/database.sqlite
+```
+
+### 3. PHP 依存関係のインストール
+
+```bash
+composer install
+```
+
+### 4. データベースの準備
+
+```bash
+php artisan migrate
+```
+
+必要に応じてシーダーでテストデータを投入します。
+
+```bash
+php artisan db:seed
+```
+
+### 5. ストレージリンクの作成（画像表示用）
+
+アップロード画像を `public/storage` から参照するためにシンボリックリンクを作成します。
+
+```bash
+php artisan storage:link
+```
+
+### 6. フロントエンドのセットアップ
+
+```bash
+npm install
+npm run build
+```
+
+開発中はビルドではなく Vite の開発サーバを使う場合は、次の「7. 開発サーバの起動」で `npm run dev` を実行します。
+
+### 7. 開発サーバの起動
+
+**ターミナル 1: Laravel**
+
+```bash
+php artisan serve
+```
+
+`http://localhost:8000` でアプリにアクセスできます。
+
+**ターミナル 2: Vite（フロントのホットリロード用）**
+
+```bash
+npm run dev
+```
+
+Vite が有効な間は、JS/CSS の変更が自動でブラウザに反映されます。  
+本番ビルドのみでよい場合は `npm run dev` は不要で、`npm run build` 済みなら `php artisan serve` だけで動作します。
+
+### 8. 動作確認
+
+- ブラウザで `http://localhost:8000` を開く
+- 投稿一覧が表示され、ナビバーから「post」で投稿作成モーダルを開けることを確認
+
+---
+
+## よく使うコマンド
+
+| 用途 | コマンド |
+|------|----------|
+| フロント開発サーバ（HMR） | `npm run dev` |
+| フロント本番ビルド | `npm run build` |
+| Laravel 開発サーバ | `php artisan serve` |
+| マイグレーション実行 | `php artisan migrate` |
+| マイグレーションロールバック | `php artisan migrate:rollback` |
+| キャッシュクリア | `php artisan config:clear && php artisan cache:clear` |
+
+---
+
+## Docker（Laravel Sail）で開発する場合
+
+PHP や Node をローカルに入れたくない場合は、Docker と Laravel Sail が利用できます。
+
+**前提:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) など、Docker が利用できること。
+
+```bash
+# 初回: Sail のインストール（composer が使える場合）
+composer require laravel/sail --dev
+php artisan sail:install
+# 対話で「mysql」などを選択
+
+# コンテナの起動
+./vendor/bin/sail up -d
+
+# コンテナ内でマイグレーション・ストレージリンク
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan storage:link
+
+# コンテナ内で npm
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run build
+# 開発時は ./vendor/bin/sail npm run dev を別ターミナルで
+```
+
+`docker-compose.yml` のポートに従い、ブラウザでアプリにアクセスします（例: `http://localhost`）。
+
+> 注意: 既存の `docker-compose.yml` は Sail 用です。PHP 8.2 以上を使う場合は、Sail の再インストールまたは `docker-compose.yml` の PHP イメージを 8.2 以上に変更してください。
+
+---
+
+## ドキュメント
+
+- [アップグレードメモ](docs/UPGRADE_NOTES.md) … 実施した Vite / Inertia / React / Laravel の更新内容
+- [技術スタック評価](docs/TECH_STACK_EVALUATION.md) … 技術選定の理由と推奨事項
+- [ホスティング・デプロイ](docs/HOSTING.md) … 本番環境の候補とデプロイの考慮点
+
+---
+
+## ライセンス
+
+[MIT License](https://opensource.org/licenses/MIT)
