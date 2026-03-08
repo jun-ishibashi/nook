@@ -1,184 +1,67 @@
-# Interior App
+# Interior Share
 
-インテリア画像の投稿・閲覧ができる Web アプリケーションです。Laravel（PHP）と React（Inertia.js）で構築されています。
+**お部屋の写真で、暮らしを共有** — インテリア写真を投稿し、写っている家具・雑貨を実際の購入ページに紐付けできる Web アプリです。
 
-## 技術スタック
+## 機能
 
-| 分類 | 技術 |
-|------|------|
-| バックエンド | Laravel 11, PHP 8.2+ |
-| フロントエンド | React 18, Inertia.js 1.x |
-| スタイル | Tailwind CSS, DaisyUI |
-| ビルド | Vite 5 |
-| 認証 | Laravel Breeze |
+- **投稿一覧** … お部屋写真のサムネイルをグリッド表示。紐付けられたアイテム数も表示
+- **投稿作成** … ログイン後「投稿する」から
+  1. タイトル + 部屋の写真を追加
+  2. 家具・雑貨の「名前」と「購入ページのURL」を任意で複数登録
+  3. 確認して投稿
+- **投稿詳細** … 写真ギャラリー + **このお部屋のアイテム**一覧。各アイテムの「購入ページへ」ボタンから外部サイトへ
+- **認証** … Google アカウントでのみログイン（SSO）
 
-## 主な機能
+## 想定ユース
 
-- **投稿一覧** … サムネイル付きの投稿グリッド表示
-- **投稿作成** … タイトルと複数画像のアップロード（モーダルから作成）
-- **投稿詳細** … 画像ギャラリーとタイトルの表示
-- **認証** … 登録・ログイン・パスワードリセット・メール認証（Laravel Breeze）
-
----
+- 投稿者: リビングや寝室などの写真を上げ、ソファやテーブルなどに IKEA・Amazon などの商品URLを紐付ける
+- 閲覧者: 気になる部屋の写真を開き、欲しい家具の「購入ページへ」から購入サイトに遷移する
 
 ## 必要環境
 
-- **PHP** 8.2 以上
-- **Composer** 2.x
-- **Node.js** 18 以上（推奨: 20 LTS）
-- **npm** または **yarn**
-- **MySQL** 8.0 または **MariaDB** 10.3+（または SQLite で簡易開発）
+- Node.js 18+
+- npm
 
----
+## セットアップ
 
-## ローカル開発手順
-
-### 1. リポジトリのクローンとディレクトリ移動
+**ターミナルを新しく開き**、プロジェクトのルートに移動してから実行してください。
 
 ```bash
-git clone <リポジトリURL>
-cd interior-app0320
-```
+cd /Users/junishibashi/Development/Projects/interior-app0320
 
-### 2. 環境変数の設定
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-`.env` を編集し、少なくとも以下を設定します。
-
-- `APP_NAME` … アプリ名（任意）
-- `APP_URL` … 開発時の URL（例: `http://localhost:8000`）
-- `DB_*` … 使用するデータベースの接続情報
-
-**SQLite で手軽に試す場合:**
-
-```env
-DB_CONNECTION=sqlite
-# DB_HOST, DB_DATABASE 等はコメントアウトまたは削除可
-```
-
-その後、SQLite の DB ファイルを作成します。
-
-```bash
-touch database/database.sqlite
-```
-
-### 3. PHP 依存関係のインストール
-
-```bash
-composer install
-```
-
-### 4. データベースの準備
-
-```bash
-php artisan migrate
-```
-
-必要に応じてシーダーでテストデータを投入します。
-
-```bash
-php artisan db:seed
-```
-
-### 5. ストレージリンクの作成（画像表示用）
-
-アップロード画像を `public/storage` から参照するためにシンボリックリンクを作成します。
-
-```bash
-php artisan storage:link
-```
-
-### 6. フロントエンドのセットアップ
-
-```bash
 npm install
-npm run build
-```
-
-開発中はビルドではなく Vite の開発サーバを使う場合は、次の「7. 開発サーバの起動」で `npm run dev` を実行します。
-
-### 7. 開発サーバの起動
-
-**ターミナル 1: Laravel**
-
-```bash
-php artisan serve
-```
-
-`http://localhost:8000` でアプリにアクセスできます。
-
-**ターミナル 2: Vite（フロントのホットリロード用）**
-
-```bash
+cp .env.example .env   # 編集: DATABASE_URL, NEXTAUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+npm run db:push        # 初回のみ
 npm run dev
 ```
 
-Vite が有効な間は、JS/CSS の変更が自動でブラウザに反映されます。  
-本番ビルドのみでよい場合は `npm run dev` は不要で、`npm run build` 済みなら `php artisan serve` だけで動作します。
+ブラウザで http://localhost:3000 を開く。
 
-### 8. 動作確認
+1. **Google でログイン**（Google Cloud Console で OAuth クライアント ID を作成し、`.env` に `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` を設定）
+2. ナビバーの **投稿する** から、タイトル・写真・アイテム（名前 + 購入URL）を入力して投稿
 
-- ブラウザで `http://localhost:8000` を開く
-- 投稿一覧が表示され、ナビバーから「post」で投稿作成モーダルを開けることを確認
+> **`ENOENT: uv_cwd` が出る場合** … 新しいターミナルを開き、上のように `cd` でプロジェクトのフルパスを指定してから実行してください。
 
----
+## スクリプト
 
-## よく使うコマンド
+| コマンド | 説明 |
+|----------|------|
+| `npm run dev` | 開発サーバー |
+| `npm run build` | 本番ビルド |
+| `npm run start` | 本番サーバー |
+| `npm run db:push` | DB スキーマ反映 |
 
-| 用途 | コマンド |
-|------|----------|
-| フロント開発サーバ（HMR） | `npm run dev` |
-| フロント本番ビルド | `npm run build` |
-| Laravel 開発サーバ | `php artisan serve` |
-| マイグレーション実行 | `php artisan migrate` |
-| マイグレーションロールバック | `php artisan migrate:rollback` |
-| キャッシュクリア | `php artisan config:clear && php artisan cache:clear` |
+## 技術スタック
 
----
+- Next.js 14 (App Router)
+- React 18
+- NextAuth.js / Prisma 6 (SQLite)
+- Tailwind CSS（ストーン・アンバー系のインテリア風テーマ）
+- react-dropzone / react-image-gallery
 
-## Docker（Laravel Sail）で開発する場合
+## 本番デプロイ（Vercel など）
 
-PHP や Node をローカルに入れたくない場合は、Docker と Laravel Sail が利用できます。
-
-**前提:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) など、Docker が利用できること。
-
-```bash
-# 初回: Sail のインストール（composer が使える場合）
-composer require laravel/sail --dev
-php artisan sail:install
-# 対話で「mysql」などを選択
-
-# コンテナの起動
-./vendor/bin/sail up -d
-
-# コンテナ内でマイグレーション・ストレージリンク
-./vendor/bin/sail artisan migrate
-./vendor/bin/sail artisan storage:link
-
-# コンテナ内で npm
-./vendor/bin/sail npm install
-./vendor/bin/sail npm run build
-# 開発時は ./vendor/bin/sail npm run dev を別ターミナルで
-```
-
-`docker-compose.yml` のポートに従い、ブラウザでアプリにアクセスします（例: `http://localhost`）。
-
-> 注意: 既存の `docker-compose.yml` は Sail 用です。PHP 8.2 以上を使う場合は、Sail の再インストールまたは `docker-compose.yml` の PHP イメージを 8.2 以上に変更してください。
-
----
-
-## ドキュメント
-
-- [アップグレードメモ](docs/UPGRADE_NOTES.md) … 実施した Vite / Inertia / React / Laravel の更新内容
-- [技術スタック評価](docs/TECH_STACK_EVALUATION.md) … 技術選定の理由と推奨事項
-- [ホスティング・デプロイ](docs/HOSTING.md) … 本番環境の候補とデプロイの考慮点
-
----
-
-## ライセンス
-
-[MIT License](https://opensource.org/licenses/MIT)
+- **DB**: 本番では Vercel Postgres や Neon などに切り替え
+- **画像**: Vercel Blob や S3 を推奨
+- **NEXTAUTH_URL**: 本番の URL を設定
+- **GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET**: 本番ドメインを承認済みの OAuth クライアントを設定

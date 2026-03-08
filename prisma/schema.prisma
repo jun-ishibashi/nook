@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String?
+  image     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  posts     Post[]
+  likes     Like[]
+  bookmarks Bookmark[]
+}
+
+model Post {
+  id             String         @id @default(cuid())
+  title          String
+  description    String         @default("")
+  category       String         @default("other")
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medias         Media[]
+  furnitureItems FurnitureItem[]
+  likes          Like[]
+  bookmarks      Bookmark[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Media {
+  id     String @id @default(cuid())
+  postId String
+  path   String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model FurnitureItem {
+  id         String @id @default(cuid())
+  postId     String
+  post       Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  name       String
+  productUrl String
+  sortOrder  Int    @default(0)
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}

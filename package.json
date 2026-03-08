@@ -1,31 +1,39 @@
 {
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "watch": "vite build --watch",
-        "preview": "vite preview"
-    },
-    "devDependencies": {
-        "@inertiajs/react": "^1.0.0",
-        "@tailwindcss/forms": "^0.5.7",
-        "@vitejs/plugin-react": "^4.2.1",
-        "autoprefixer": "^10.4.16",
-        "axios": "^1.6.2",
-        "laravel-vite-plugin": "^1.0.0",
-        "postcss": "^8.4.32",
-        "tailwindcss": "^3.4.0",
-        "vite": "^5.0.0"
-    },
-    "dependencies": {
-        "@headlessui/react": "^1.7.17",
-        "daisyui": "^4.4.19",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "react-dropzone": "^14.2.3",
-        "react-icons": "^5.0.1",
-        "react-image-gallery": "^1.2.11",
-        "ziggy-js": "^1.6.0"
-    }
+  "name": "interior-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "npx prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "npx prisma generate",
+    "db:push": "npx prisma db push"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.2",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
+    "dotenv": "^17.3.1",
+    "framer-motion": "^12.35.0",
+    "next": "^14.2.35",
+    "next-auth": "^4.24.13",
+    "prisma": "^6.19.2",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-dropzone": "^15.0.0",
+    "react-image-gallery": "^2.1.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/react-image-gallery": "^1.2.4",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
 }
