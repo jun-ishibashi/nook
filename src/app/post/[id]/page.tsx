@@ -21,14 +21,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     where: { id },
     include: { medias: { take: 1, orderBy: { id: "asc" } }, user: { select: { name: true } } },
   });
-  if (!post) return { title: "投稿が見つかりません | Interior Share" };
+  if (!post) return { title: "投稿が見つかりません | NOOK" };
   const thumbnail = post.medias[0]?.path;
   const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const ogImage = thumbnail?.startsWith("http") ? thumbnail : thumbnail ? `${baseUrl}${thumbnail}` : `${baseUrl}/og-default.png`;
   return {
-    title: `${post.title} | Interior Share`,
-    description: post.description || `${post.user.name} さんのお部屋 - Interior Share`,
-    openGraph: { title: post.title, description: post.description || `${post.user.name} さんのお部屋`, images: [{ url: ogImage, width: 1200, height: 630 }], type: "article", siteName: "Interior Share" },
+    title: `${post.title} | NOOK`,
+    description: post.description || `${post.user.name} さんのお部屋 - NOOK`,
+    openGraph: { title: post.title, description: post.description || `${post.user.name} さんのお部屋`, images: [{ url: ogImage, width: 1200, height: 630 }], type: "article", siteName: "NOOK" },
     twitter: { card: "summary_large_image", title: post.title, description: post.description || `${post.user.name} さんのお部屋`, images: [ogImage] },
   };
 }

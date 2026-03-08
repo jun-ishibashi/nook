@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import Logo from "@/components/logo";
 
 const ERROR_MESSAGES: Record<string, string> = {
   OAuthSignin: "認証の準備に失敗しました。",
@@ -28,8 +29,11 @@ function LoginForm() {
   return (
     <div className="mx-auto flex min-h-[80vh] max-w-sm items-center justify-center px-4 py-12">
       <div className="w-full text-center">
+        <div className="mb-4 flex justify-center" style={{ color: "var(--text)" }}>
+          <Logo size={48} />
+        </div>
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
-          Interior Share
+          NOOK
         </h1>
         <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
           お部屋のインテリアをシェアしよう

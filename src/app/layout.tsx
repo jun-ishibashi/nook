@@ -19,8 +19,23 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "Interior Share - みんなの部屋をのぞいてみよう",
-  description: "お部屋のインテリア写真を共有して、使っている家具の購入先もわかる。",
+  title: {
+    default: "NOOK - みんなの部屋をのぞいてみよう",
+    template: "%s | NOOK",
+  },
+  description: "お部屋のインテリア写真をシェアして、使っている家具の購入先もわかる。",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon",
+  },
+  openGraph: {
+    siteName: "NOOK",
+    locale: "ja_JP",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 const POST_MODAL_ID = "post_modal";

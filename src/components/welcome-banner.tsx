@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import Logo from "./logo";
 
 export default function WelcomeBanner() {
   const { data: session } = useSession();
@@ -15,9 +16,10 @@ export default function WelcomeBanner() {
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-            Interior Share
-          </p>
+          <div className="flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
+            <Logo size={14} />
+            <span className="text-[11px] font-bold uppercase tracking-widest">NOOK</span>
+          </div>
           <h2 className="mt-2 text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
             みんなの部屋を
             <br className="sm:hidden" />

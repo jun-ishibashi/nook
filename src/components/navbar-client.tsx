@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
+import Logo from "./logo";
 
 export default function NavbarClient({ postModalId }: { postModalId: string }) {
   const { data: session, status } = useSession();
@@ -37,10 +38,11 @@ export default function NavbarClient({ postModalId }: { postModalId: string }) {
       <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
         <Link
           href="/"
-          className="text-lg font-extrabold tracking-tight transition hover:opacity-70"
+          className="flex items-center gap-1.5 text-lg font-extrabold tracking-tight transition hover:opacity-70"
           style={{ color: "var(--text)" }}
         >
-          Interior Share
+          <Logo size={20} />
+          NOOK
         </Link>
 
         <div className="hidden items-center gap-2 sm:flex">
