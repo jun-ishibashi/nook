@@ -1,0 +1,275 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import FollowButton from "@/components/follow-button";
+import HomePostGrid from "@/components/home-post-grid";
+import { getCategoryLabel } from "@/lib/categories";
+import { getStyleTagLabel } from "@/lib/style-tags";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const user = await prisma.user.findUnique({ where: { id }, select: { name: true, bio: true } });
+  if (!user) return { title: "プロフィールが見つかりません | NOOK" };
+  const desc = user.bio?.trim()
+    ? `${user.bio.trim()}・${user.name} | NOOK`
+    : `${user.name} の部屋・プロフィール | NOOK`;
+  return { title: `${user.name}・プロフィール`, description: desc };
+}
+
+export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const session = await getServerSession(authOptions);
+  const currentUserId = session?.user?.email
+    ? await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } }).then((u) => u?.id)
+    : undefined;
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      bio: true,
+      profileLink: true,
+      createdAt: true,
+      _count: { select: { posts: true, followsReceived: true, followsInitiated: true } },
+    },
+  });
+  if (!user) notFound();
+
+  const followerCount = user._count.followsReceived;
+  const followingCount = user._count.followsInitiated;
+
+  let isFollowing = false;
+  if (currentUserId && currentUserId !== user.id) {
+    const row = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId: currentUserId, followingId: user.id } },
+      select: { id: true },
+    });
+    isFollowing = !!row;
+  }
+
+  const posts = await prisma.post.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    include: {
+      medias: { take: 1, orderBy: { id: "asc" } },
+      user: { select: { id: true, name: true, image: true } },
+      styleTags: { select: { tagSlug: true } },
+      _count: { select: { furnitureItems: true, likes: true } },
+      likes: currentUserId ? { where: { userId: currentUserId }, select: { id: true } } : false,
+      bookmarks: currentUserId ? { where: { userId: currentUserId }, select: { id: true } } : false,
+    },
+  });
+
+  const postList = posts.map((p) => ({
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    category: p.category,
+    thumbnail: p.medias[0]?.path ?? null,
+    user: p.user,
+    itemCount: p._count.furnitureItems,
+    likeCount: p._count.likes,
+    liked: currentUserId ? p.likes.length > 0 : false,
+    bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
+    styleTags: p.styleTags.map((t) => t.tagSlug),
+    createdAt: p.createdAt.toISOString(),
+  }));
+
+  const isOwn = currentUserId === user.id;
+
+  const styleSlugCounts = new Map<string, number>();
+  const categoryValueCounts = new Map<string, number>();
+  for (const p of posts) {
+    for (const t of p.styleTags) {
+      styleSlugCounts.set(t.tagSlug, (styleSlugCounts.get(t.tagSlug) ?? 0) + 1);
+    }
+    if (p.category && p.category !== "other") {
+      categoryValueCounts.set(p.category, (categoryValueCounts.get(p.category) ?? 0) + 1);
+    }
+  }
+  const discoverStyleSlugs = [...styleSlugCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([slug]) => slug);
+  const discoverCategories = [...categoryValueCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([value]) => value);
+  const hasDiscovery = discoverStyleSlugs.length > 0 || discoverCategories.length > 0;
+
+  return (
+    <div className="nook-app-canvas min-h-screen">
+      <div className="nook-page pb-16 pt-6 sm:pt-8">
+        <header className="user-profile-header mb-8 border-b pb-7 sm:mb-9 sm:pb-8" style={{ borderColor: "var(--hairline)" }}>
+          <p className="nook-section-label mb-2">プロフィール</p>
+
+          <div className="mt-1 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <div
+                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-semibold"
+                style={{
+                  background: "var(--bg-raised)",
+                  border: "1px solid var(--hairline)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                {(user.name && user.name.trim()[0]) || "?"}
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg font-semibold tracking-tight sm:text-xl" style={{ color: "var(--text)" }}>
+                  {user.name}
+                </h1>
+                <p className="mt-1.5 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  NOOK 利用開始 {user.createdAt.toLocaleDateString("ja-JP", { year: "numeric", month: "long" })}
+                </p>
+                {user.bio?.trim() ? (
+                  <p className="mt-3 max-w-md text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                    {user.bio.trim()}
+                  </p>
+                ) : null}
+                {user.profileLink?.trim() ? (
+                  <a
+                    href={user.profileLink.trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-85"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    プロフィールのリンク
+                    <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden>
+                      <path d="M5 2h7v7M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </a>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-2 sm:pt-0">
+              {!isOwn && (
+                <FollowButton
+                  userId={user.id}
+                  initialFollowing={isFollowing}
+                  initialFollowerCount={followerCount}
+                />
+              )}
+              {isOwn && (
+                <Link href="/dashboard" className="btn-secondary text-xs">
+                  マイページ
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div
+            className="mt-5 flex w-full overflow-x-auto scrollbar-hide border-t border-b py-3.5 sm:justify-start"
+            style={{ borderColor: "var(--hairline)" }}
+            aria-label="集計"
+          >
+            {(
+              [
+                { n: user._count.posts, l: "部屋" },
+                { n: followerCount, l: "フォロワー" },
+                { n: followingCount, l: "フォロー中" },
+              ] as const
+            ).map((s, i) => (
+              <div
+                key={s.l}
+                className={`min-w-[3.5rem] shrink-0 px-3 text-center first:pl-0 sm:min-w-[4rem] sm:px-4 ${i > 0 ? "border-l" : ""}`}
+                style={{ borderColor: "var(--hairline)" }}
+              >
+                <p className="text-base font-semibold tabular-nums" style={{ color: "var(--text)" }}>
+                  {s.n}
+                </p>
+                <p className="text-[10px] font-medium sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
+                  {s.l}
+                </p>
+              </div>
+            ))}
+          </div>
+        </header>
+
+        {hasDiscovery && (
+          <section
+            className="mb-8 border-t border-b py-6 sm:py-7"
+            style={{ borderColor: "var(--hairline)" }}
+            aria-labelledby="discover-heading"
+          >
+            <h2 id="discover-heading" className="nook-section-label mb-2">
+              ほかの部屋をさがす
+            </h2>
+            <div className="flex flex-col gap-3">
+              {discoverStyleSlugs.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-[10px] font-medium" style={{ color: "var(--text-faint)" }}>
+                    スタイル
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {discoverStyleSlugs.map((slug) => (
+                      <Link
+                        key={slug}
+                        href={`/?styles=${encodeURIComponent(slug)}`}
+                        className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition hover:opacity-85"
+                        style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)" }}
+                      >
+                        {getStyleTagLabel(slug)}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {discoverCategories.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-[10px] font-medium" style={{ color: "var(--text-faint)" }}>
+                    カテゴリ
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {discoverCategories.map((value) => (
+                      <Link
+                        key={value}
+                        href={`/?category=${encodeURIComponent(value)}`}
+                        className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition hover:opacity-85"
+                        style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)" }}
+                      >
+                        {getCategoryLabel(value)}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        <section className="mt-6 border-t pt-6 sm:mt-8" style={{ borderColor: "var(--hairline)" }} aria-labelledby="user-posts-heading">
+          <h2 id="user-posts-heading" className="nook-section-label mb-3">
+            部屋
+          </h2>
+          {postList.length > 0 ? (
+            <HomePostGrid posts={postList} ariaLabelledBy="user-posts-heading" />
+          ) : (
+            <div
+              className="flex flex-col items-center rounded-[var(--radius-card)] border py-12 text-center sm:py-14"
+              style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
+            >
+              <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+                まだ部屋がありません
+              </p>
+              <p className="mt-1 max-w-xs px-4 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                {isOwn ? "写真を載せるとここに並びます。" : "まだ部屋がありません。"}
+              </p>
+              {isOwn ? (
+                <Link href="/dashboard" className="btn-secondary mt-5 text-xs">
+                  マイページへ
+                </Link>
+              ) : null}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}

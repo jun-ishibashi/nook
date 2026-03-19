@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "NOOK - みんなの部屋をのぞいてみよう";
+export const alt = "NOOK — みんなの部屋を写真で発見";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -56,7 +56,7 @@ export default function OGImage() {
             color: "#a39e98",
           }}
         >
-          みんなの部屋をのぞいてみよう
+          みんなの部屋を写真で発見
         </div>
       </div>
     ),

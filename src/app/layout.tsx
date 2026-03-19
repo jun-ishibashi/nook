@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -18,12 +19,15 @@ const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto",
 });
 
+const siteUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3001";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "NOOK - みんなの部屋をのぞいてみよう",
+    default: "NOOK — みんなの部屋をさがす",
     template: "%s | NOOK",
   },
-  description: "お部屋のインテリア写真をシェアして、使っている家具の購入先もわかる。",
+  description: "リアルな部屋の写真と、家具・雑貨をどこで買えるかをまとめてさがす。",
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon",
@@ -32,20 +36,45 @@ export const metadata: Metadata = {
     siteName: "NOOK",
     locale: "ja_JP",
     type: "website",
+    title: "NOOK — みんなの部屋をさがす",
+    description: "リアルな部屋の写真と、家具・雑貨をどこで買えるかをまとめてさがす。",
   },
   twitter: {
     card: "summary_large_image",
+    title: "NOOK — みんなの部屋をさがす",
+    description: "リアルな部屋の写真と、家具・雑貨をどこで買えるかをまとめてさがす。",
   },
 };
 
 const POST_MODAL_ID = "post_modal";
 
+/** FOUC 防止: 初回ペイント前に data-theme を適用（既定: dark） */
+const THEME_INIT_SCRIPT = `
+(function(){
+  try {
+    var k = "nook-theme";
+    var t = localStorage.getItem(k);
+    if (t !== "light" && t !== "dark") t = "dark";
+    document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
+})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
-      <body className={`min-h-screen antialiased ${notoSansJP.className}`} style={{ background: "var(--bg)", color: "var(--text)" }}>
+    <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`} suppressHydrationWarning>
+      <body
+        className={`flex min-h-screen flex-col antialiased ${notoSansJP.className}`}
+        style={{
+          background: "var(--bg)",
+          color: "var(--text)",
+          fontFeatureSettings: '"palt" 1',
+        }}
+      >
+        <Script id="nook-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <Providers>
           <a
             href="#main"
@@ -58,7 +87,9 @@ export default function RootLayout({
           <Modal id={POST_MODAL_ID}>
             <CreatePost />
           </Modal>
-          <main id="main">{children}</main>
+          <main id="main" className="min-h-0 w-full flex-1">
+            {children}
+          </main>
           <Footer />
         </Providers>
       </body>

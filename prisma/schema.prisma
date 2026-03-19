@@ -4,35 +4,73 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String     @id @default(cuid())
-  name      String
-  email     String     @unique
-  password  String?
-  image     String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  posts     Post[]
-  likes     Like[]
-  bookmarks Bookmark[]
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  password       String?
+  image          String?
+  /// 公開プロフィール用（任意・短文）
+  bio            String         @default("")
+  /// Instagram 等（https:// 推奨、空で未設定）
+  profileLink    String         @default("")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  /// フォロー中フィードを最後に開いた時刻（これより新しい投稿数をバッジ表示）
+  followFeedLastViewedAt DateTime?
+  posts          Post[]
+  likes          Like[]
+  bookmarks      Bookmark[]
+  itemWishlists  ItemWishlist[]
+  followsInitiated Follow[]     @relation("FollowsInitiated")
+  followsReceived  Follow[]     @relation("FollowsReceived")
+}
+
+/// ユーザーが別ユーザーをフォロー（follower → following）
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("FollowsInitiated", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("FollowsReceived", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model Post {
-  id             String         @id @default(cuid())
+  id             String          @id @default(cuid())
   title          String
-  description    String         @default("")
-  category       String         @default("other")
+  description    String          @default("")
+  category       String          @default("other")
+  /// 住まい種別（賃貸・持ち家など）任意、空文字は未設定
+  housingType    String          @default("")
+  /// 間取いおおよその区分、空文字は未設定
+  layoutType     String          @default("")
+  /// 一文メモ（角部屋・築年など）任意
+  roomContextNote String         @default("")
   userId         String
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   medias         Media[]
   furnitureItems FurnitureItem[]
+  styleTags      PostStyleTag[]
   likes          Like[]
   bookmarks      Bookmark[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model PostStyleTag {
+  postId  String
+  tagSlug String
+  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagSlug])
+  @@index([tagSlug])
 }
 
 model Media {
@@ -48,7 +86,30 @@ model FurnitureItem {
   post       Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   name       String
   productUrl String
+  /// 購入URLから正規化したホスト（www. なし・小文字）。ショップ別一覧用
+  productHost String?
+  note       String @default("")
   sortOrder  Int    @default(0)
+  /// 写っている写真の並び（0 = 1枚目）。投稿の枚数を超えないよう UI で制限
+  mediaIndex Int    @default(0)
+
+  @@index([productUrl])
+  @@index([productHost])
+}
+
+/// 家具アイテム単位の「欲しいリスト」（URLスナップショットで保持）
+model ItemWishlist {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  productUrl   String
+  note         String   @default("")
+  sourcePostId String?
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, productUrl])
+  @@index([userId])
 }
 
 model Like {

@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import NookImage from "@/components/nook-image";
 import LikeButton from "./like-button";
 import BookmarkButton from "./bookmark-button";
-import CategoryIcon from "./category-icon";
-import { getCategoryLabel } from "@/lib/categories";
 
-type Post = {
+export type HomePostGridItem = {
   id: string;
   title: string;
   description: string;
@@ -17,6 +16,7 @@ type Post = {
   likeCount: number;
   liked: boolean;
   bookmarked: boolean;
+  styleTags: string[];
   createdAt: string;
 };
 
@@ -27,76 +27,117 @@ function formatDate(dateStr: string) {
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
-  if (diffMins < 1) return "now";
-  if (diffMins < 60) return `${diffMins}m`;
-  if (diffHours < 24) return `${diffHours}h`;
-  if (diffDays < 7) return `${diffDays}d`;
+  if (diffMins < 1) return "たった今";
+  if (diffMins < 60) return `${diffMins}分`;
+  if (diffHours < 24) return `${diffHours}時間`;
+  if (diffDays < 7) return `${diffDays}日`;
   return date.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" });
 }
 
-export default function HomePostGrid({ posts }: { posts: Post[] }) {
+export default function HomePostGrid({
+  posts,
+  ariaLabelledBy,
+}: {
+  posts: HomePostGridItem[];
+  /** ページ上部の見出し id（スクリーンリーダで一覧のラベルに紐づける） */
+  ariaLabelledBy?: string;
+}) {
   if (posts.length === 0) return null;
 
-  return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+  const grid = (
+    <div className="home-post-grid grid grid-cols-2 gap-3 sm:gap-4">
       {posts.map((post) => (
-        <Link key={post.id} href={`/post/${post.id}`} className="group block">
-          {/* Image */}
-          <div className="relative aspect-[3/4] overflow-hidden rounded-xl" style={{ background: "var(--bg-wash)" }}>
-            {post.thumbnail ? (
-              <img
-                src={post.thumbnail}
-                alt=""
-                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                loading="lazy"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                  <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-                  <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </div>
-            )}
-            {/* Bookmark */}
-            <div className="absolute right-1.5 top-1.5"><BookmarkButton postId={post.id} initialBookmarked={post.bookmarked} size="sm" /></div>
-            {/* Category pill */}
-            {post.category && post.category !== "other" && (
-              <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm" style={{ background: "rgba(247,246,244,0.85)", color: "var(--text-secondary)" }}>
-                <CategoryIcon value={post.category} size={10} />
-                {getCategoryLabel(post.category)}
-              </span>
-            )}
-            {/* Item count */}
-            {post.itemCount > 0 && (
-              <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm" style={{ background: "rgba(44,40,37,0.6)" }}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                  <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                </svg>
-                {post.itemCount}
-              </span>
-            )}
-          </div>
-          {/* Info */}
-          <div className="mt-2 px-0.5">
-            <div className="flex items-center gap-1.5">
-              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold" style={{ background: "var(--bg-wash)", color: "var(--text-secondary)" }}>
-                {post.user.name[0]}
-              </div>
-              <span className="truncate text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{post.user.name}</span>
-              <span className="shrink-0 text-[10px]" style={{ color: "var(--text-muted)" }}>{formatDate(post.createdAt)}</span>
-            </div>
-            <p className="mt-1 text-[13px] font-bold leading-tight line-clamp-2 group-hover:underline" style={{ color: "var(--text)" }}>
-              {post.title}
-            </p>
-            <div className="mt-1 flex items-center">
-              <LikeButton postId={post.id} initialLiked={post.liked} initialCount={post.likeCount} size="sm" />
+        <article key={post.id} className="group flex flex-col">
+          {/* Image — 単体リンク（保存はオーバーレイ） */}
+          <div
+            className="home-post-tile__media relative aspect-[3/4] overflow-hidden"
+            style={{ background: "var(--bg-wash)" }}
+          >
+            <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 block">
+              {post.thumbnail ? (
+                <NookImage
+                  src={post.thumbnail}
+                  alt={post.title ? `${post.title}の写真` : "部屋の写真"}
+                  fill
+                  className="object-cover transition duration-300 group-hover:opacity-[0.96]"
+                  sizes="(max-width: 640px) 50vw, 400px"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                    <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                    <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+              )}
+            </Link>
+            <div className="absolute right-0 top-0 z-10 p-0.5 opacity-80 transition group-hover:opacity-100">
+              <BookmarkButton postId={post.id} initialBookmarked={post.bookmarked} size="sm" />
             </div>
           </div>
-        </Link>
+
+          <div className="mt-1.5 px-0">
+            <Link href={`/post/${post.id}`}>
+              <p
+                className="text-[13px] font-medium leading-snug line-clamp-2 transition group-hover:underline"
+                style={{ color: "var(--text)" }}
+              >
+                {post.title}
+              </p>
+            </Link>
+            {post.itemCount > 0 ? (
+              <p className="mt-0.5 text-[10px] font-medium tabular-nums" style={{ color: "var(--text-faint)" }}>
+                家具・雑貨 {post.itemCount}
+              </p>
+            ) : null}
+            <div className="mt-1 flex items-center justify-between gap-1">
+              <Link
+                href={`/user/${post.user.id}`}
+                className="flex min-h-9 min-w-0 flex-1 items-center gap-1 rounded-md py-0.5 transition hover:opacity-80"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold"
+                  style={{ background: "var(--bg-sunken)", color: "var(--text-secondary)" }}
+                >
+                  {(post.user.name && post.user.name.trim()[0]) || "?"}
+                </div>
+                <span className="truncate text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>
+                  {post.user.name}
+                </span>
+              </Link>
+              <div className="flex shrink-0 items-center gap-0">
+                <LikeButton
+                  postId={post.id}
+                  initialLiked={post.liked}
+                  initialCount={post.likeCount}
+                  size="sm"
+                  showCount={false}
+                />
+                <Link
+                  href={`/post/${post.id}`}
+                  className="-mr-1 inline-flex min-h-9 min-w-9 items-center justify-center rounded-md px-1 text-[10px] tabular-nums transition hover:opacity-80"
+                  style={{ color: "var(--text-faint)" }}
+                  title={formatDate(post.createdAt)}
+                >
+                  {formatDate(post.createdAt)}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </article>
       ))}
     </div>
   );
+
+  if (ariaLabelledBy) {
+    return (
+      <div role="region" aria-labelledby={ariaLabelledBy}>
+        {grid}
+      </div>
+    );
+  }
+
+  return grid;
 }

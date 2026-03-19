@@ -1,22 +1,34 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import HomePostGrid from "@/components/home-post-grid";
-import SearchBar from "@/components/search-bar";
-import CategoryFilter from "@/components/category-filter";
+import HomeTopSearch from "@/components/home-top-search";
 import WelcomeBanner from "@/components/welcome-banner";
-import CategoryShowcase from "@/components/category-showcase";
+import HomeFeedTabs from "@/components/home-feed-tabs";
+import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
+import { postSearchOrConditions } from "@/lib/post-search";
+import { breakConsecutiveSameAuthor } from "@/lib/feed-mix";
+import HomeRevisitStrip from "@/components/home-revisit-strip";
+import HomeTrendingStyles from "@/components/home-trending-styles";
+import HomeFilterPanel from "@/components/home-filter-panel";
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; style?: string; styles?: string; feed?: string }>;
 }) {
-  const { q, category } = await searchParams;
+  const sp = await searchParams;
+  const { q, category, feed: feedRaw } = sp;
   const query = q?.trim() ?? "";
   const activeCategory = category?.trim() ?? "";
+  const activeStyles = parseStyleSlugsFromSearchParams({
+    styles: sp.styles,
+    style: sp.style,
+  });
+  const followingFeed = feedRaw?.trim() === "following";
 
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.email
@@ -25,23 +37,41 @@ export default async function HomePage({
         .then((u) => u?.id)
     : undefined;
 
+  if (followingFeed && !currentUserId) {
+    redirect("/login?callbackUrl=" + encodeURIComponent("/?feed=following"));
+  }
+
   const where: Record<string, unknown> = {};
+  if (followingFeed && currentUserId) {
+    const rows = await prisma.follow.findMany({
+      where: { followerId: currentUserId },
+      select: { followingId: true },
+    });
+    const ids = rows.map((r) => r.followingId);
+    where.userId = ids.length > 0 ? { in: ids } : { in: ["__none__"] };
+  }
   if (query) {
-    where.OR = [
-      { title: { contains: query } },
-      { description: { contains: query } },
-    ];
+    where.OR = postSearchOrConditions(query);
   }
   if (activeCategory) {
     where.category = activeCategory;
   }
+  if (activeStyles.length > 0) {
+    where.AND = activeStyles.map((tagSlug) => ({
+      styleTags: { some: { tagSlug } },
+    }));
+  }
 
-  const posts = await prisma.post.findMany({
+  const isFiltered =
+    !!query || !!activeCategory || activeStyles.length > 0 || followingFeed;
+
+  const postsRaw = await prisma.post.findMany({
     where,
     orderBy: { createdAt: "desc" },
     include: {
       medias: { take: 1, orderBy: { id: "asc" } },
       user: { select: { id: true, name: true, image: true } },
+      styleTags: { select: { tagSlug: true } },
       _count: { select: { furnitureItems: true, likes: true } },
       likes: currentUserId
         ? { where: { userId: currentUserId }, select: { id: true } }
@@ -51,6 +81,20 @@ export default async function HomePage({
         : false,
     },
   });
+
+  const posts =
+    !isFiltered && !followingFeed
+      ? breakConsecutiveSameAuthor(postsRaw)
+      : postsRaw;
+
+  let bookmarkCount = 0;
+  let wishlistCount = 0;
+  if (currentUserId) {
+    [bookmarkCount, wishlistCount] = await Promise.all([
+      prisma.bookmark.count({ where: { userId: currentUserId } }),
+      prisma.itemWishlist.count({ where: { userId: currentUserId } }),
+    ]);
+  }
 
   const postList = posts.map((p) => ({
     id: p.id,
@@ -63,47 +107,104 @@ export default async function HomePage({
     likeCount: p._count.likes,
     liked: currentUserId ? p.likes.length > 0 : false,
     bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
+    styleTags: p.styleTags.map((t) => t.tagSlug),
     createdAt: p.createdAt.toISOString(),
   }));
 
-  const isFiltered = !!query || !!activeCategory;
-  const showEnrichment = !isFiltered && postList.length < 6;
+  const showWelcome = !currentUserId && !isFiltered && !followingFeed;
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      {/* Sticky search + filter */}
-      <div className="sticky top-14 z-30 backdrop-blur-md" style={{ background: "rgba(247,246,244,0.95)", borderBottom: "1px solid var(--border-subtle)" }}>
-        <div className="mx-auto max-w-2xl px-4 py-3">
-          <Suspense><SearchBar /></Suspense>
-        </div>
-        <div className="mx-auto max-w-2xl px-4 pb-3">
-          <Suspense><CategoryFilter /></Suspense>
+    <div className="nook-app-canvas min-h-screen">
+      {/* Sticky: 検索・フィード */}
+      <div
+        className="home-sticky-feed sticky top-14 z-30 backdrop-blur-md"
+        style={{ background: "var(--sticky-surface)" }}
+      >
+        <div className="nook-page">
+          <div className="pt-1 pb-0.5 sm:pt-1.5 sm:pb-1">
+            <Suspense
+              fallback={
+                <div className="space-y-2.5 pb-0.5" aria-hidden>
+                  <div className="h-2.5 w-28 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+                  <div
+                    className="h-11 w-full animate-pulse rounded-none border-b"
+                    style={{ borderColor: "var(--border-subtle)", background: "var(--bg-sunken)" }}
+                  />
+                </div>
+              }
+            >
+              <HomeTopSearch />
+            </Suspense>
+          </div>
+          {currentUserId ? (
+            <Suspense
+              fallback={
+                <div className="nook-hairline-top" aria-hidden>
+                  <div className="py-1 sm:py-1.5">
+                    <div
+                      className="flex h-[2.125rem] items-end gap-5 border-b"
+                      style={{ borderColor: "var(--hairline)" }}
+                    >
+                      <span className="mb-1.5 h-2.5 w-16 rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+                      <span className="mb-1.5 h-2.5 w-14 rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+                    </div>
+                  </div>
+                  <div className="h-6" />
+                </div>
+              }
+            >
+              <div className="nook-hairline-top">
+                <div className="py-0.5 sm:py-1">
+                  <HomeFeedTabs />
+                </div>
+                <HomeRevisitStrip bookmarkCount={bookmarkCount} wishlistCount={wishlistCount} />
+              </div>
+            </Suspense>
+          ) : null}
         </div>
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 pt-4 pb-16">
-        {showEnrichment && <WelcomeBanner />}
-        {showEnrichment && <CategoryShowcase />}
+      <div className="nook-page pb-16 pt-2.5 sm:pt-4">
+        {showWelcome ? <WelcomeBanner /> : null}
 
-        {isFiltered && (
-          <div className="mb-4">
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              {query && <span>「<strong style={{ color: "var(--text)" }}>{query}</strong>」の検索結果 · </span>}
-              {postList.length}件
-            </p>
-          </div>
-        )}
+        <Suspense
+          fallback={
+            <section
+              className="home-filter-panel mb-6 border-t pt-5 sm:mb-7 sm:pt-6"
+              style={{ borderColor: "var(--hairline)" }}
+              aria-hidden
+            >
+              <div className="h-4 w-32 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+              <div
+                className="mt-3 h-28 animate-pulse rounded-xl"
+                style={{ background: "var(--bg-wash)" }}
+              />
+            </section>
+          }
+        >
+          <HomeFilterPanel />
+        </Suspense>
 
-        {postList.length > 0 && (
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-bold" style={{ color: "var(--text)" }}>
-              {isFiltered ? "検索結果" : "新着投稿"}
-            </h3>
-            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>{postList.length}件</span>
-          </div>
-        )}
+        {postList.length > 0 ? (
+          <header className="mb-2.5 sm:mb-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="nook-section-label" id="home-feed-heading">
+                {followingFeed ? "フォロー中の部屋" : isFiltered ? "該当する部屋" : "みんなの部屋"}
+              </h2>
+              {isFiltered ? (
+                <span
+                  className="text-[11px] font-medium tabular-nums tracking-wide"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {postList.length}
+                  <span className="ml-0.5 font-normal opacity-80">件</span>
+                </span>
+              ) : null}
+            </div>
+          </header>
+        ) : null}
 
-        <HomePostGrid posts={postList} />
+        <HomePostGrid posts={postList} ariaLabelledBy={postList.length > 0 ? "home-feed-heading" : undefined} />
 
         {postList.length === 0 && (
           <div className="flex flex-col items-center py-20 text-center">
@@ -114,18 +215,52 @@ export default async function HomePage({
                 <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
             </div>
-            <p className="text-base font-bold" style={{ color: "var(--text)" }}>
-              {isFiltered ? "投稿が見つかりません" : "まだ投稿がないよ"}
+            <p className="text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+              {isFiltered ? "該当する部屋がありません" : "まだ部屋がありません"}
             </p>
             <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-              {isFiltered ? "条件を変えて検索してみよう" : "最初の投稿をしてみよう"}
+              {followingFeed
+                ? "フォロー中の部屋がまだありません。"
+                : isFiltered
+                  ? "条件を変えると見つかるかもしれません。"
+                  : currentUserId
+                    ? "写真を載せるとここに並びます。"
+                    : "ログインすると写真を載せられます。"}
             </p>
-            {isFiltered ? (
-              <Link href="/" className="btn-secondary mt-6 text-xs">すべて表示</Link>
+            {followingFeed ? (
+              <Link href="/" scroll={false} className="btn-secondary mt-6 text-xs">
+                みんなの部屋へ
+              </Link>
+            ) : isFiltered ? (
+              <Link href="/" scroll={false} className="btn-secondary mt-6 text-xs">
+                条件をクリア
+              </Link>
+            ) : currentUserId ? (
+              <label htmlFor="post_modal" className="btn-primary mt-6 cursor-pointer text-xs">
+                写真を載せる
+              </label>
             ) : (
-              <Link href="/login" className="btn-primary mt-6 text-xs">ログインして投稿する</Link>
+              <Link href="/login" className="btn-primary mt-6 text-xs">
+                ログインして写真を載せる
+              </Link>
             )}
           </div>
+        )}
+
+        {!isFiltered && !followingFeed && (
+          <Suspense
+            fallback={
+              <div
+                className="mt-8 h-12 animate-pulse rounded-lg"
+                style={{ background: "var(--bg-sunken)" }}
+                aria-hidden
+              />
+            }
+          >
+            <div className="mt-8">
+              <HomeTrendingStyles />
+            </div>
+          </Suspense>
         )}
       </div>
     </div>

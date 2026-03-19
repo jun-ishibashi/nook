@@ -4,7 +4,15 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-type Post = { id: string; title: string; thumbnail: string | null; itemCount: number; likeCount: number; createdAt: string };
+type Post = {
+  id: string;
+  title: string;
+  category?: string;
+  thumbnail: string | null;
+  itemCount: number;
+  likeCount: number;
+  createdAt: string;
+};
 
 export default function DashboardPosts({ posts }: { posts: Post[] }) {
   const router = useRouter();
@@ -21,16 +29,35 @@ export default function DashboardPosts({ posts }: { posts: Post[] }) {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-1">
+    <div className="dashboard-tile-grid grid grid-cols-3 gap-2 sm:gap-2.5">
       {posts.map((post) => (
-        <div key={post.id} className="group relative aspect-square overflow-hidden" style={{ background: "var(--bg-sunken)" }}>
-          <Link href={`/post/${post.id}`}>
-            {post.thumbnail ? <img src={post.thumbnail} alt="" className="h-full w-full object-cover" loading="lazy" /> : (
-              <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/></svg></div>
+        <div
+          key={post.id}
+          className="relative aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)]"
+          style={{ background: "var(--bg-sunken)" }}
+        >
+          <Link href={`/post/${post.id}`} className="block h-full w-full">
+            {post.thumbnail ? (
+              <img
+                src={post.thumbnail}
+                alt={post.title ? `${post.title}の写真` : "自分の部屋の写真"}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+              </div>
             )}
           </Link>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 transition group-hover:opacity-100" style={{ background: "rgba(44,40,37,0.45)" }}>
-            <div className="flex items-center gap-3 text-sm font-bold text-white">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 p-2">
+            <div
+              className="flex items-center justify-between gap-2 rounded-[var(--radius-sm)] px-2 py-1.5"
+              style={{ background: "rgba(14, 16, 18, 0.66)", backdropFilter: "blur(6px)" }}
+            >
+              <div className="flex items-center gap-2 text-[10px] font-semibold text-white">
               <span className="flex items-center gap-1">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
                 {post.likeCount}
@@ -41,15 +68,51 @@ export default function DashboardPosts({ posts }: { posts: Post[] }) {
                   {post.itemCount}
                 </span>
               )}
-            </div>
-            {confirmId === post.id ? (
-              <div className="mt-1 flex gap-1">
-                <button type="button" onClick={() => handleDelete(post.id)} disabled={!!deleting} className="rounded-full bg-red-500 px-3 py-1 text-[10px] font-bold text-white">{deleting === post.id ? "..." : "削除"}</button>
-                <button type="button" onClick={() => setConfirmId(null)} className="rounded-full px-3 py-1 text-[10px] font-bold" style={{ background: "rgba(255,255,255,0.8)", color: "var(--text)" }}>取消</button>
               </div>
-            ) : (
-              <button type="button" onClick={(e) => { e.preventDefault(); setConfirmId(post.id); }} className="mt-1 rounded-full px-3 py-1 text-[10px] font-bold text-white backdrop-blur-sm transition" style={{ background: "rgba(255,255,255,0.2)" }}>削除</button>
-            )}
+              {confirmId === post.id ? (
+                <div className="pointer-events-auto flex flex-wrap justify-end gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmId(null)}
+                    className="rounded-full border px-3 py-1.5 text-[10px] font-semibold text-white transition"
+                    style={{ borderColor: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.08)" }}
+                  >
+                    戻る
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(post.id)}
+                    disabled={!!deleting}
+                    className="rounded-full px-3 py-1.5 text-[10px] font-semibold text-white transition disabled:opacity-50"
+                    style={{ background: "color-mix(in srgb, var(--like-active) 82%, transparent)" }}
+                  >
+                    {deleting === post.id ? "…" : "削除する"}
+                  </button>
+                </div>
+              ) : (
+                <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-1.5">
+                  <Link
+                    href={`/post/${post.id}/edit`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="rounded-full border px-3 py-1.5 text-[10px] font-semibold text-white transition"
+                    style={{ borderColor: "rgba(255,255,255,0.45)", background: "rgba(255,255,255,0.12)" }}
+                  >
+                    編集
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setConfirmId(post.id);
+                    }}
+                    className="rounded-full px-3 py-1.5 text-[10px] font-semibold text-white transition"
+                    style={{ background: "rgba(255,255,255,0.14)" }}
+                  >
+                    削除
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ))}

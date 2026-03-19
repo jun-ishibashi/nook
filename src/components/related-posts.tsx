@@ -1,0 +1,89 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import NookImage from "@/components/nook-image";
+
+/**
+ * 同じカテゴリまたはスタイルが重なる部屋を、**タグの重なり優先**で並べ替え（最大6件）
+ */
+export default async function RelatedPosts({
+  postId,
+  category,
+  styleTagSlugs,
+}: {
+  postId: string;
+  category: string;
+  styleTagSlugs: string[];
+}) {
+  const or: { category?: string; styleTags?: { some: { tagSlug: string } } }[] = [];
+  if (category && category !== "other") {
+    or.push({ category });
+  }
+  for (const slug of styleTagSlugs.slice(0, 6)) {
+    or.push({ styleTags: { some: { tagSlug: slug } } });
+  }
+  if (or.length === 0) return null;
+
+  const candidates = await prisma.post.findMany({
+    where: {
+      id: { not: postId },
+      OR: or,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 24,
+    include: {
+      medias: { take: 1, orderBy: { id: "asc" } },
+      styleTags: { select: { tagSlug: true } },
+    },
+  });
+
+  if (candidates.length === 0) return null;
+
+  const tagSet = new Set(styleTagSlugs);
+  const scored = candidates.map((p) => {
+    let score = 0;
+    if (category && category !== "other" && p.category === category) score += 2;
+    for (const t of p.styleTags) {
+      if (tagSet.has(t.tagSlug)) score += 3;
+    }
+    return { p, score };
+  });
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return b.p.createdAt.getTime() - a.p.createdAt.getTime();
+  });
+  const related = scored.slice(0, 6).map((x) => x.p);
+
+  return (
+    <section className="mt-10 border-t pt-6" style={{ borderColor: "var(--hairline)" }} aria-labelledby="related-heading">
+      <h2 id="related-heading" className="nook-section-label mb-3">
+        似た部屋
+      </h2>
+      <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+        {related.map((p) => (
+          <Link
+            key={p.id}
+            href={`/post/${p.id}`}
+            className="relative block aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)] transition hover:opacity-92"
+            style={{ background: "var(--bg-sunken)" }}
+          >
+            {p.medias[0]?.path ? (
+              <NookImage
+                src={p.medias[0].path}
+                alt={p.title ? `${p.title}の写真` : "似た部屋の写真"}
+                fill
+                className="object-cover"
+                sizes="120px"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}

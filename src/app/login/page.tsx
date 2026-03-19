@@ -7,16 +7,16 @@ import { useSearchParams } from "next/navigation";
 import Logo from "@/components/logo";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  OAuthSignin: "認証の準備に失敗しました。",
-  OAuthCallback: "認証コールバックでエラーが発生しました。",
-  OAuthCreateAccount: "アカウント作成に失敗しました。",
-  EmailCreateAccount: "アカウント作成に失敗しました。",
-  Callback: "コールバックでエラーが発生しました。",
-  OAuthAccountNotLinked: "このメールアドレスは別のログイン方法で登録されています。",
-  EmailSignin: "メール送信に失敗しました。",
-  CredentialsSignin: "ログインに失敗しました。",
-  SessionRequired: "このページはログインが必要です。",
-  Default: "ログインに失敗しました。しばらくしてからお試しください。",
+  OAuthSignin: "ログインの準備に失敗しました。もう一度お試しください。",
+  OAuthCallback: "認証でエラーが発生しました。もう一度お試しください。",
+  OAuthCreateAccount: "アカウントを作成できませんでした。もう一度お試しください。",
+  EmailCreateAccount: "アカウントを作成できませんでした。もう一度お試しください。",
+  Callback: "認証でエラーが発生しました。もう一度お試しください。",
+  OAuthAccountNotLinked: "このメールは、ほかのログイン方法で登録済みです。",
+  EmailSignin: "メールを送信できませんでした。もう一度お試しください。",
+  CredentialsSignin: "ログインできませんでした。もう一度お試しください。",
+  SessionRequired: "ログインが必要です。",
+  Default: "ログインできませんでした。もう一度お試しください。",
 };
 
 function LoginForm() {
@@ -27,29 +27,49 @@ function LoginForm() {
   const error = errorCode ? (ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES.Default) : "";
 
   return (
-    <div className="mx-auto flex min-h-[80vh] max-w-sm items-center justify-center px-4 py-12">
-      <div className="w-full text-center">
-        <div className="mb-4 flex justify-center" style={{ color: "var(--text)" }}>
-          <Logo size={48} />
+    <div className="login-page mx-auto flex min-h-[85vh] w-full max-w-md flex-col justify-center px-4 py-10 sm:min-h-[80vh] sm:py-14">
+      {/* §5.1 入口層：温度は出すがチラシ感は出さない。§6 賃貸リアル・モノトーンの語彙でムードのみ */}
+      <header
+        className="login-entry-header mb-8 border-b pb-8 sm:mb-10 sm:pb-9"
+        style={{ borderColor: "var(--hairline)" }}
+      >
+        <div className="mb-5 flex items-center gap-3">
+          <span style={{ color: "var(--text)" }} aria-hidden>
+            <Logo size={40} />
+          </span>
+          <p className="nook-section-label">NOOK</p>
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
-          NOOK
+        <h1 className="text-pretty text-xl font-semibold leading-snug tracking-tight sm:text-2xl" style={{ color: "var(--text)" }}>
+          ログインして続ける
         </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-          お部屋のインテリアをシェアしよう
+        <p className="mt-3 max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          気になる部屋を保存して、家具・雑貨をどこで買えるかまで見返せます。
         </p>
+      </header>
 
-        {error && (
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 text-left" role="alert">{error}</div>
-        )}
+      {error ? (
+        <div className="nook-form-error mb-6" role="alert">
+          {error}
+        </div>
+      ) : null}
 
+      <div className="flex flex-col gap-5">
         <button
           type="button"
-          onClick={() => { setLoading(true); signIn("google", { callbackUrl }); }}
+          onClick={() => {
+            setLoading(true);
+            signIn("google", { callbackUrl });
+          }}
           disabled={loading}
-          className="mt-8 flex min-h-[var(--touch)] w-full items-center justify-center gap-3 rounded-full px-4 py-3 text-sm font-semibold transition active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none"
-          style={{ background: "var(--bg-raised)", color: "var(--text)", border: "1px solid var(--border)" }}
+          className="login-google-btn flex min-h-[var(--touch)] w-full items-center justify-center gap-3 rounded-full px-4 py-3 text-sm font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+          style={{
+            background: "var(--bg-raised)",
+            color: "var(--text)",
+            border: "1px solid var(--hairline)",
+            boxShadow: "var(--home-tile-shadow)",
+          }}
           aria-busy={loading}
+          aria-label={loading ? "Google との接続中" : "Google アカウントでログイン"}
         >
           <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden>
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -59,36 +79,60 @@ function LoginForm() {
           </svg>
           {loading ? (
             <span className="flex items-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--text-muted)", borderTopColor: "transparent" }} />
-              ログイン中...
+              <span
+                className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"
+                style={{ borderColor: "var(--text-muted)", borderTopColor: "transparent" }}
+                aria-hidden
+              />
+              接続中です
             </span>
-          ) : "Google でログイン"}
+          ) : (
+            "Google で続行"
+          )}
         </button>
 
-        <p className="mt-6 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          ログインすると写真の投稿・保存ができます
-        </p>
-
-        <div className="mt-8">
-          <Link href="/" className="text-xs font-medium transition hover:opacity-70" style={{ color: "var(--text-muted)" }}>
-            ← ホームに戻る
-          </Link>
-        </div>
       </div>
+
+      <nav
+        className="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t pt-8 text-xs font-medium"
+        style={{ borderColor: "var(--hairline)" }}
+        aria-label="ほかのページ"
+      >
+        <Link href="/" className="transition hover:opacity-70" style={{ color: "var(--text-muted)" }}>
+          みんなの部屋へ
+        </Link>
+        <Link href="/terms" className="transition hover:opacity-70" style={{ color: "var(--text-faint)" }}>
+          利用規約
+        </Link>
+        <Link href="/privacy" className="transition hover:opacity-70" style={{ color: "var(--text-faint)" }}>
+          プライバシー
+        </Link>
+      </nav>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-[80vh] items-center justify-center" aria-busy="true">
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--text-muted)", borderTopColor: "transparent" }} />
-        </div>
-      }
-    >
-      <LoginForm />
-    </Suspense>
+    <div className="nook-app-canvas min-h-screen">
+      <Suspense
+        fallback={
+          <div className="login-page-skeleton mx-auto flex min-h-[85vh] max-w-md flex-col justify-center px-4 py-10 sm:py-14" aria-busy="true">
+            <div className="mb-8 space-y-3 border-b pb-8" style={{ borderColor: "var(--hairline)" }}>
+              <div className="flex gap-3">
+                <div className="h-10 w-10 animate-pulse rounded-lg" style={{ background: "var(--bg-sunken)" }} />
+                <div className="h-3 w-16 animate-pulse rounded-sm self-center" style={{ background: "var(--bg-sunken)" }} />
+              </div>
+              <div className="h-6 w-32 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+              <div className="h-10 w-full animate-pulse rounded-md" style={{ background: "var(--bg-sunken)" }} />
+            </div>
+            <div className="h-12 w-full animate-pulse rounded-full" style={{ background: "var(--bg-sunken)" }} />
+            <span className="sr-only">読み込み中</span>
+          </div>
+        }
+      >
+        <LoginForm />
+      </Suspense>
+    </div>
   );
 }

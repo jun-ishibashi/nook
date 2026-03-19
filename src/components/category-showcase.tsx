@@ -1,46 +1,36 @@
-"use client";
-
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/categories";
 import CategoryIcon from "./category-icon";
 
-const TONES: Record<string, { bg: string; icon: string }> = {
-  living:   { bg: "#eee9e2", icon: "#8a7e72" },
-  bedroom:  { bg: "#e8e5ec", icon: "#7d7588" },
-  kitchen:  { bg: "#ece5e2", icon: "#8a736e" },
-  dining:   { bg: "#ebe8df", icon: "#857e6e" },
-  study:    { bg: "#e3e8e2", icon: "#6e7d68" },
-  oneroom:  { bg: "#e2e6ea", icon: "#6e7a84" },
-  bathroom: { bg: "#e2eaeb", icon: "#6e8486" },
-  entrance: { bg: "#e8e6e3", icon: "#7d7a74" },
-  balcony:  { bg: "#e6e9e2", icon: "#7a836e" },
-};
-
 const displayCategories = CATEGORIES.filter((c) => c.value !== "other");
 
+/** §6 モノトーン・コンクリムード：カテゴリは色面より線と余白で揃える */
 export default function CategoryShowcase() {
   return (
-    <div className="mb-6">
-      <div className="mb-3">
-        <h3 className="text-sm font-bold" style={{ color: "var(--text)" }}>カテゴリから探す</h3>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {displayCategories.map((cat) => {
-          const tone = TONES[cat.value] ?? { bg: "var(--bg-sunken)", icon: "var(--text-muted)" };
-          return (
-            <Link
-              key={cat.value}
-              href={`/?category=${cat.value}`}
-              className="group flex flex-col items-center gap-2 rounded-2xl px-3 py-4 transition hover:shadow-md active:scale-[0.97]"
-              style={{ background: tone.bg }}
-            >
-              <div className="transition group-hover:scale-110" style={{ color: tone.icon }}>
-                <CategoryIcon value={cat.value} size={28} />
-              </div>
-              <span className="text-[11px] font-bold" style={{ color: "var(--text-secondary)" }}>{cat.label}</span>
-            </Link>
-          );
-        })}
+    <div className="mb-7 sm:mb-8">
+      <p className="nook-section-label mb-2">スペースからさがす</p>
+      <div
+        className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border sm:grid-cols-3"
+        style={{ borderColor: "var(--hairline)", background: "var(--hairline)" }}
+        role="navigation"
+        aria-label="カテゴリで部屋をさがす"
+      >
+        {displayCategories.map((cat) => (
+          <Link
+            key={cat.value}
+            href={`/?category=${cat.value}`}
+            scroll={false}
+            className="category-showcase-tile group flex min-h-[4.5rem] flex-col items-center justify-center gap-1.5 px-2 py-3 transition active:scale-[0.98] sm:min-h-[4.75rem]"
+            style={{ background: "var(--bg-raised)" }}
+          >
+            <span className="transition group-hover:opacity-90" style={{ color: "var(--text-muted)" }}>
+              <CategoryIcon value={cat.value} size={22} />
+            </span>
+            <span className="text-center text-[10px] font-medium leading-tight" style={{ color: "var(--text-secondary)" }}>
+              {cat.label}
+            </span>
+          </Link>
+        ))}
       </div>
     </div>
   );

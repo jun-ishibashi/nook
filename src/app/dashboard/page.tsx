@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardContent from "@/components/dashboard-content";
+import type { WishlistRow } from "@/components/dashboard-wishlist";
+import ProfileSettings from "@/components/profile-settings";
+
+export const metadata: Metadata = {
+  title: "マイページ",
+  description: "自分の部屋・保存・欲しい・プロフィール",
+};
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -11,7 +20,15 @@ export default async function DashboardPage() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, name: true, email: true, createdAt: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      bio: true,
+      profileLink: true,
+      createdAt: true,
+      _count: { select: { followsReceived: true, followsInitiated: true } },
+    },
   });
   if (!user) redirect("/login");
 
@@ -26,9 +43,18 @@ export default async function DashboardPage() {
     orderBy: { createdAt: "desc" },
     include: {
       post: {
-        include: { medias: { take: 1, orderBy: { id: "asc" } }, user: { select: { id: true, name: true } }, _count: { select: { furnitureItems: true, likes: true } } },
+        include: {
+          medias: { take: 1, orderBy: { id: "asc" } },
+          user: { select: { id: true, name: true } },
+          _count: { select: { furnitureItems: true, likes: true } },
+        },
       },
     },
+  });
+
+  const wishlistItems = await prisma.itemWishlist.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
   });
 
   const stats = {
@@ -36,57 +62,139 @@ export default async function DashboardPage() {
     totalLikes: posts.reduce((sum, p) => sum + p._count.likes, 0),
     totalItems: posts.reduce((sum, p) => sum + p._count.furnitureItems, 0),
     bookmarkCount: bookmarks.length,
+    wishlistCount: wishlistItems.length,
   };
 
   const postList = posts.map((p) => ({
-    id: p.id, title: p.title, thumbnail: p.medias[0]?.path ?? null,
-    itemCount: p._count.furnitureItems, likeCount: p._count.likes, createdAt: p.createdAt.toISOString(),
+    id: p.id,
+    title: p.title,
+    category: p.category,
+    thumbnail: p.medias[0]?.path ?? null,
+    itemCount: p._count.furnitureItems,
+    likeCount: p._count.likes,
+    createdAt: p.createdAt.toISOString(),
   }));
 
   const bookmarkList = bookmarks.map((b) => ({
-    id: b.post.id, title: b.post.title, thumbnail: b.post.medias[0]?.path ?? null,
-    userName: b.post.user.name, itemCount: b.post._count.furnitureItems, likeCount: b.post._count.likes, createdAt: b.post.createdAt.toISOString(),
+    id: b.post.id,
+    title: b.post.title,
+    thumbnail: b.post.medias[0]?.path ?? null,
+    userName: b.post.user.name,
+    itemCount: b.post._count.furnitureItems,
+    likeCount: b.post._count.likes,
+    createdAt: b.post.createdAt.toISOString(),
   }));
 
+  const wishlistList: WishlistRow[] = wishlistItems.map((w) => ({
+    id: w.id,
+    name: w.name,
+    productUrl: w.productUrl,
+    note: w.note,
+    sourcePostId: w.sourcePostId,
+    createdAt: w.createdAt.toISOString(),
+  }));
+
+  const statItems = [
+    { n: stats.postCount, l: "部屋" },
+    { n: user._count.followsReceived, l: "フォロワー" },
+    { n: user._count.followsInitiated, l: "フォロー中" },
+    { n: stats.totalLikes, l: "いいね" },
+    { n: stats.totalItems, l: "家具・雑貨" },
+    { n: stats.bookmarkCount, l: "保存" },
+    { n: stats.wishlistCount, l: "欲しい" },
+  ];
+
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        {/* Profile */}
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold" style={{ background: "var(--bg-inverse)", color: "var(--text-inverse)" }}>
-            {user.name[0]}
-          </div>
-          <div>
-            <h1 className="text-lg font-extrabold" style={{ color: "var(--text)" }}>{user.name}</h1>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>{user.email}</p>
-          </div>
-        </div>
+    <div className="nook-app-canvas min-h-screen">
+      <div className="nook-page py-8 sm:py-10">
+        <header className="dashboard-page-header mb-8 border-b pb-8 sm:mb-10 sm:pb-9" style={{ borderColor: "var(--hairline)" }}>
+          <p className="nook-section-label mb-3">マイページ</p>
 
-        {/* Stats */}
-        <div className="mt-6 flex gap-6 pb-6" style={{ borderBottom: "1px solid var(--border)" }}>
-          {[
-            { n: stats.postCount, l: "投稿" },
-            { n: stats.totalLikes, l: "いいね" },
-            { n: stats.totalItems, l: "アイテム" },
-            { n: stats.bookmarkCount, l: "保存" },
-          ].map((s) => (
-            <div key={s.l} className="text-center">
-              <p className="text-lg font-extrabold" style={{ color: "var(--text)" }}>{s.n}</p>
-              <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{s.l}</p>
+          <div className="flex items-start gap-4">
+            <div
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-semibold"
+              style={{
+                background: "var(--bg-raised)",
+                border: "1px solid var(--hairline)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              {(user.name && user.name.trim()[0]) || "?"}
             </div>
-          ))}
-        </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+                {user.name}
+              </h1>
+              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                {user.email}
+              </p>
+              {user.bio?.trim() ? (
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                  {user.bio.trim()}
+                </p>
+              ) : null}
+              <p className="mt-2 text-[10px]" style={{ color: "var(--text-faint)" }}>
+                NOOK 利用開始 {user.createdAt.toLocaleDateString("ja-JP", { year: "numeric", month: "long" })}
+              </p>
+            </div>
+          </div>
 
-        {/* Quick actions */}
-        <div className="mt-5 flex gap-2">
-          <label htmlFor="post_modal" className="btn-primary cursor-pointer text-xs">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
-            新規投稿
-          </label>
-          <Link href="/" className="btn-secondary text-xs">みんなの投稿</Link>
-        </div>
+          <div
+            className="dashboard-stats-row mt-6 flex overflow-x-auto scrollbar-hide border-t border-b py-4 sm:justify-center sm:overflow-visible"
+            style={{ borderColor: "var(--hairline)" }}
+            aria-label="集計"
+          >
+            {statItems.map((s, i) => (
+              <div
+                key={s.l}
+                className={`min-w-[3.75rem] shrink-0 px-2.5 text-center sm:min-w-[4rem] sm:px-4 ${i > 0 ? "border-l" : ""}`}
+                style={{ borderColor: "var(--hairline)" }}
+              >
+                <p className="text-lg font-semibold tabular-nums" style={{ color: "var(--text)" }}>
+                  {s.n}
+                </p>
+                <p className="text-[10px] font-medium sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
+                  {s.l}
+                </p>
+              </div>
+            ))}
+          </div>
 
-        <DashboardContent posts={postList} bookmarks={bookmarkList} />
+          <div className="mt-5 flex flex-wrap gap-2">
+            <label htmlFor="post_modal" className="btn-primary cursor-pointer text-xs">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+              写真を載せる
+            </label>
+            <Link href="/" className="btn-secondary text-xs">
+              みんなの部屋
+            </Link>
+            <Link href="/?feed=following" className="btn-secondary text-xs">
+              フォロー中
+            </Link>
+            <Link href={`/user/${user.id}`} className="btn-secondary text-xs">
+              プロフィールを見る
+            </Link>
+          </div>
+        </header>
+
+        {/* §5 写真・一覧を先に。プロフィール編集は下へ */}
+        <Suspense
+          fallback={
+            <div
+              className="mb-8 h-40 animate-pulse rounded-xl border"
+              style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
+              aria-hidden
+            />
+          }
+        >
+          <DashboardContent posts={postList} bookmarks={bookmarkList} wishlist={wishlistList} />
+        </Suspense>
+
+        <div className="mt-10 border-t pt-2 sm:mt-12" style={{ borderColor: "var(--hairline)" }}>
+          <ProfileSettings initialBio={user.bio} initialProfileLink={user.profileLink} />
+        </div>
       </div>
     </div>
   );
