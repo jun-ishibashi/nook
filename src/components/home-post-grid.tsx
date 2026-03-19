@@ -47,7 +47,7 @@ export default function HomePostGrid({
   const grid = (
     <div className="home-post-grid grid grid-cols-2 gap-3 sm:gap-4">
       {posts.map((post) => (
-        <article key={post.id} className="group flex flex-col">
+        <article key={post.id} className="stagger-item group flex flex-col">
           {/* Image — 単体リンク（保存はオーバーレイ） */}
           <div
             className="home-post-tile__media relative aspect-[3/4] overflow-hidden"

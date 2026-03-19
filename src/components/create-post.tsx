@@ -353,13 +353,13 @@ export default function CreatePost() {
 
   if (step === 2) {
     return (
-      <div className="create-post-flow">
+      <div className="create-post-flow animate-fade-in">
         {stepBar}
         <p className="nook-section-label mb-1">確認</p>
         <h2 id="modal-title" className="mb-1 text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
           送信前の確認
         </h2>
-        <PostModalDesc>内容を確認してから載せてください。</PostModalDesc>
+        <PostModalDesc>問題なければ載せてください。</PostModalDesc>
         <div
           className="min-h-[168px] overflow-hidden rounded-[var(--radius-card)] border"
           style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
@@ -449,13 +449,13 @@ export default function CreatePost() {
 
   if (step === 1) {
     return (
-      <div className="create-post-flow">
+      <div className="create-post-flow animate-fade-in">
         {stepBar}
         <p className="nook-section-label mb-1">家具・雑貨</p>
         <h2 id="modal-title" className="mb-1 text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
           家具・雑貨のリンク（任意）
         </h2>
-        <PostModalDesc>商品ページのURLがあると、買い場所までそのままたどれます。任意で、あとから編集でも追加できます。</PostModalDesc>
+        <PostModalDesc>商品ページのURLがあると、みんながショップまでたどれます。なくても進められます。あとから編集で足せます。</PostModalDesc>
         <div className="space-y-3">
           <div
             className="rounded-[var(--radius-card)] border p-4"
@@ -563,7 +563,7 @@ export default function CreatePost() {
                 スキップして次へ
               </p>
               <p className="text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>
-                リンクを足すと、気になった人がショップまで行きやすくなります。
+                リンクを足すと、気になった人が商品ページまでたどれます。
               </p>
             </div>
           ) : null}
@@ -581,14 +581,14 @@ export default function CreatePost() {
   }
 
   return (
-    <div className="create-post-flow">
+    <div className="create-post-flow animate-fade-in">
       {draftBanner}
       {stepBar}
       <p className="nook-section-label mb-1">載せる</p>
       <h2 id="modal-title" className="mb-1 text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
         写真を載せる
       </h2>
-      <PostModalDesc>写真とタイトルがあればOK。</PostModalDesc>
+      <PostModalDesc>写真とタイトルがあれば大丈夫です。</PostModalDesc>
       <div className="space-y-5">
         <div>
           <span className="nook-overline nook-overline--sentence mb-1.5 block">写真（必須）</span>

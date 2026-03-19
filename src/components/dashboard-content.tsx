@@ -58,7 +58,7 @@ export default function DashboardContent({
   return (
     <section className="dashboard-main-section" aria-labelledby="dashboard-main-heading">
       <p id="dashboard-main-heading" className="nook-section-label mb-2">
-        自分の一覧
+        部屋・保存・欲しい
       </p>
 
       <div
@@ -150,7 +150,7 @@ export default function DashboardContent({
               </p>
             )
           ) : (
-            <EmptyState icon="camera" title="まだ写真を載せていません" description="写真を載せるとここに並びます。" />
+            <EmptyState icon="camera" title="まだ写真を載せていません" description="写真を載せると、自分の部屋がここに並びます。" />
           )
         )}
         {tab === "bookmarks" && (
@@ -181,14 +181,14 @@ export default function DashboardContent({
               ))}
             </div>
           ) : (
-            <EmptyState icon="bookmark" title="保存した部屋はまだありません" description="部屋の詳細から保存できます。" />
+            <EmptyState icon="bookmark" title="保存した部屋はまだありません" description="気になった部屋の詳細から保存できます。" />
           )
         )}
         {tab === "wishlist" && (
           wishlist.length > 0 ? (
             <DashboardWishlist items={wishlist} />
           ) : (
-            <EmptyState icon="wish" title="欲しいはまだ空です" description="家具・雑貨の一覧から欲しいに入れられます。" />
+            <EmptyState icon="wish" title="欲しいはまだありません" description="部屋の詳細から、気になった家具・雑貨を欲しいに入れられます。" />
           )
         )}
       </div>

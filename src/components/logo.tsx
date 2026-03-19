@@ -9,19 +9,19 @@ export default function Logo({ size = 20, className = "" }: { size?: number; cla
       aria-hidden
     >
       <path
-        d="M6 9 L6 23 L20 23"
+        d="M6 8V24H22"
         stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeWidth="3.5"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
       />
       <path
-        d="M10.5 15 L10.5 18 L13.5 18"
+        d="M11 15V19H15"
         stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.5"
+        strokeWidth="2.5"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+        opacity="0.6"
       />
     </svg>
   );

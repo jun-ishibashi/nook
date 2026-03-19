@@ -8,7 +8,7 @@ const displayCategories = CATEGORIES.filter((c) => c.value !== "other");
 export default function CategoryShowcase() {
   return (
     <div className="mb-7 sm:mb-8">
-      <p className="nook-section-label mb-2">スペースからさがす</p>
+      <p className="nook-section-label mb-2">カテゴリからさがす</p>
       <div
         className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border sm:grid-cols-3"
         style={{ borderColor: "var(--hairline)", background: "var(--hairline)" }}

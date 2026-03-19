@@ -179,9 +179,9 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
           enterKeyHint="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="キーワード"
+          placeholder="デスク、間接照明、コンクリ調…"
           className="input-feed"
-          aria-label="キーワードでみんなの部屋をさがす"
+          aria-label="キーワードで部屋をさがす"
           aria-describedby={helpId}
           disabled={isPending}
           autoComplete="off"
@@ -270,7 +270,7 @@ export default function HomeTopSearch() {
       </p>
       <header className="mb-2 flex items-center justify-between gap-2">
         <p id="home-search-label" className="nook-section-label">
-          キーワードでさがす
+          部屋をさがす
         </p>
         {hasFilter ? <ClearFiltersButton /> : null}
       </header>

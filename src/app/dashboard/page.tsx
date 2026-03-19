@@ -11,7 +11,7 @@ import ProfileSettings from "@/components/profile-settings";
 
 export const metadata: Metadata = {
   title: "マイページ",
-  description: "自分の部屋・保存・欲しい・プロフィール",
+  description: "載せた部屋・保存・欲しい・プロフィール",
 };
 
 export default async function DashboardPage() {

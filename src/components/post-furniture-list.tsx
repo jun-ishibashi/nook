@@ -19,43 +19,39 @@ function clampIdx(idx: number, n: number) {
 
 function PurchaseLink({ name, productUrl }: { name: string; productUrl: string }) {
   const meta = getProductUrlMeta(productUrl);
-  if (!meta) {
-    return (
-      <p className="text-[11px] leading-snug" style={{ color: "var(--text-muted)" }}>
-        商品ページのURLを認識できませんでした
-      </p>
-    );
-  }
+  if (!meta) return null;
+
   return (
-    <div className="flex min-w-0 flex-col items-stretch gap-1 sm:items-end">
+    <div className="mt-4 flex flex-col items-stretch gap-2 sm:mt-0 sm:items-end">
       <a
         href={meta.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="btn-secondary inline-flex min-h-9 justify-center gap-1 px-4 text-center text-xs font-semibold"
+        className="btn-primary inline-flex min-h-[2.5rem] items-center justify-center gap-1.5 px-5 text-[11px] font-bold tracking-tight shadow-sm transition active:scale-[0.97]"
         aria-label={`${name} の商品ページ（${meta.displayHost}）を別のタブで開く`}
       >
-        商品ページを開く
-        <svg width="10" height="10" viewBox="0 0 14 14" fill="none" className="shrink-0" aria-hidden>
+        <span>ショップを見る</span>
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none" className="shrink-0" aria-hidden>
           <path
             d="M5 2h7v7M12 2L2 12"
             stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeWidth="2"
+            strokeLinecap="square"
+            strokeLinejoin="miter"
           />
         </svg>
       </a>
-      <span className="block max-w-[12rem] truncate text-center text-[10px] sm:text-right" style={{ color: "var(--text-faint)" }} title={meta.displayHost}>
-        {meta.displayHost}
-      </span>
-      {meta.isSecure ? (
-        <span className="sr-only">暗号化された接続（https）</span>
-      ) : (
-        <p className="max-w-[12rem] text-center text-[9px] leading-snug sm:text-right" style={{ color: "var(--text-faint)" }} role="note">
-          http の接続です。入力はご注意ください。
-        </p>
-      )}
+      <div className="flex items-center justify-center gap-1.5 sm:justify-end">
+        <span className="max-w-[10rem] truncate text-[10px] font-medium tracking-wide uppercase" style={{ color: "var(--text-faint)" }}>
+          {meta.displayHost}
+        </span>
+        {meta.isSecure && (
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }} aria-hidden>
+            <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+            <path d="M8 11V7a4 4 0 118 0v4" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        )}
+      </div>
     </div>
   );
 }
@@ -77,27 +73,29 @@ export default function PostFurnitureList({
     return (
       <li
         key={item.id}
-        className="flex items-start justify-between gap-3 rounded-[var(--radius-sm)] border px-3 py-3.5 sm:px-4"
+        className="group relative flex flex-col gap-4 overflow-hidden rounded-[var(--radius-card)] border p-4 transition-all duration-300 sm:flex-row sm:items-center sm:justify-between sm:p-5 hover:border-[var(--text-muted)] hover:shadow-lg"
         style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
       >
-        <div className="min-w-0 flex-1">
-          <span className="text-sm font-medium" style={{ color: "var(--text)" }}>
-            {item.name}
-          </span>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-center gap-2">
+            <span className="text-[15px] font-bold tracking-tight" style={{ color: "var(--text)" }}>
+              {item.name}
+            </span>
+            <WishlistItemButton
+              productUrl={item.productUrl}
+              name={item.name}
+              note={item.note ?? ""}
+              postId={postId}
+              initialSaved={wishlistedUrls.has(item.productUrl)}
+            />
+          </div>
           {item.note ? (
-            <p className="mt-1 text-xs leading-relaxed whitespace-pre-line" style={{ color: "var(--text-secondary)" }}>
+            <p className="mt-1.5 text-[12px] leading-relaxed italic" style={{ color: "var(--text-secondary)" }}>
               {item.note}
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:items-start">
-          <WishlistItemButton
-            productUrl={item.productUrl}
-            name={item.name}
-            note={item.note ?? ""}
-            postId={postId}
-            initialSaved={wishlistedUrls.has(item.productUrl)}
-          />
+        <div className="flex shrink-0">
           <PurchaseLink name={item.name} productUrl={item.productUrl} />
         </div>
       </li>

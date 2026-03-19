@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
   if (categoryLabel) descParts.push(categoryLabel);
   if (styleBits.length > 0) descParts.push(styleBits.join("・"));
-  descParts.push("リアルな部屋と家具・雑貨の行き先 NOOK");
+  descParts.push("部屋の写真と家具・雑貨の商品ページまで｜NOOK");
   const description = truncateMetaDescription(descParts.join("・"));
 
   return {
@@ -307,8 +307,8 @@ export default async function PostPage({
               <h2 id="furniture-heading" className="nook-section-label mb-1">
                 家具・雑貨
               </h2>
-              <p className="mb-1 text-sm font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-                気になる家具・雑貨（{post.furnitureItems.length}）
+              <p className="mb-3 text-[12px] leading-snug" style={{ color: "var(--text-secondary)" }}>
+                商品ページまでひと続き（{post.furnitureItems.length}）
               </p>
               {shopHosts.length > 0 ? (
                 <p className="mb-4 text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>

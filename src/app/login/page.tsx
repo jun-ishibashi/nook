@@ -43,7 +43,7 @@ function LoginForm() {
           ログインして続ける
         </h1>
         <p className="mt-3 max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          気になる部屋を保存して、家具・雑貨をどこで買えるかまで見返せます。
+          保存した部屋と、家具・雑貨の商品ページまで、あとからすぐ見返せます。
         </p>
       </header>
 

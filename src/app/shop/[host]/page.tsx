@@ -25,7 +25,7 @@ export async function generateMetadata({
     : "ショップ | NOOK";
   return {
     title,
-    description: `${decoded} の商品リンクが載っている部屋`,
+    description: `${decoded} の商品ページが載っている、みんなの部屋`,
   };
 }
 
@@ -77,7 +77,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
         <header className="shop-page-header mb-8 border-b pb-7 sm:mb-9 sm:pb-8" style={{ borderColor: "var(--hairline)" }}>
           <p className="nook-section-label mb-2">ショップ別の部屋</p>
           <p className="mb-4 max-w-lg text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            このドメインのリンクが家具・雑貨に載っている部屋だけ。
+            このショップの商品ページが載っている、みんなの部屋です。
           </p>
           <h1 className="text-lg font-semibold tracking-tight sm:text-xl" style={{ color: "var(--text)" }}>
             <span

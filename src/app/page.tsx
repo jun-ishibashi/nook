@@ -167,6 +167,7 @@ export default async function HomePage({
       <div className="nook-page pb-16 pt-2.5 sm:pt-4">
         {showWelcome ? <WelcomeBanner /> : null}
 
+        <div id="home-feed-anchor" className="scroll-mt-28">
         <Suspense
           fallback={
             <section
@@ -207,41 +208,37 @@ export default async function HomePage({
         <HomePostGrid posts={postList} ariaLabelledBy={postList.length > 0 ? "home-feed-heading" : undefined} />
 
         {postList.length === 0 && (
-          <div className="flex flex-col items-center py-20 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "var(--bg-sunken)" }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }}>
-                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-                <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
+          <div className="stagger-item flex flex-col items-center py-20 text-center animate-fade-in">
+            <div className="mb-8 relative h-48 w-48 opacity-80 mix-blend-multiply dark:mix-blend-screen overflow-hidden rounded-2xl grayscale transition duration-700 hover:grayscale-0">
+               <img src="/empty-state.png" alt="" className="object-cover w-full h-full" aria-hidden />
             </div>
-            <p className="text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-              {isFiltered ? "該当する部屋がありません" : "まだ部屋がありません"}
+            <p className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>
+              {isFiltered ? "まだ、見つからないようです" : "静かなはじまり"}
             </p>
-            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="mt-2 text-[13px] max-w-[240px] leading-relaxed mx-auto italic" style={{ color: "var(--text-muted)" }}>
               {followingFeed
-                ? "フォロー中の部屋がまだありません。"
+                ? "フォロー中の部屋がまだありません。気になる人を探してみましょう。"
                 : isFiltered
-                  ? "条件を変えると見つかるかもしれません。"
+                  ? "条件を少し広げてみると、新しいインスピレーションに出会えるかもしれません。"
                   : currentUserId
-                    ? "写真を載せるとここに並びます。"
-                    : "ログインすると写真を載せられます。"}
+                    ? "あなたのこだわりを、最初の一枚として載せてみませんか。"
+                    : "ログインすると、自分だけの「好き」をストックしたり、部屋を載せたりできます。"}
             </p>
             {followingFeed ? (
-              <Link href="/" scroll={false} className="btn-secondary mt-6 text-xs">
-                みんなの部屋へ
+              <Link href="/" scroll={false} className="btn-primary mt-8 text-[11px] px-6">
+                みんなの部屋を探す
               </Link>
             ) : isFiltered ? (
-              <Link href="/" scroll={false} className="btn-secondary mt-6 text-xs">
-                条件をクリア
+              <Link href="/" scroll={false} className="btn-secondary mt-8 text-[11px] px-6">
+                条件をすべてクリア
               </Link>
             ) : currentUserId ? (
-              <label htmlFor="post_modal" className="btn-primary mt-6 cursor-pointer text-xs">
+              <label htmlFor="post_modal" className="btn-primary mt-8 cursor-pointer text-[11px] px-8">
                 写真を載せる
               </label>
             ) : (
-              <Link href="/login" className="btn-primary mt-6 text-xs">
-                ログインして写真を載せる
+              <Link href="/login" className="btn-primary mt-8 text-[11px] px-8">
+                NOOK をはじめる
               </Link>
             )}
           </div>
@@ -262,6 +259,7 @@ export default async function HomePage({
             </div>
           </Suspense>
         )}
+        </div>
       </div>
     </div>
   );

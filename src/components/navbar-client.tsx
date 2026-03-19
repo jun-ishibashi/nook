@@ -38,14 +38,13 @@ export default function NavbarClient({
 
   return (
     <nav
-      className="sticky top-0 z-40 backdrop-blur-lg"
-      style={{ background: "var(--nav-surface)", borderBottom: "1px solid var(--hairline)" }}
+      className="glass-surface sticky top-0 z-40"
       aria-label="メインナビゲーション"
     >
       <div className="nook-page flex h-14 items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-1.5 text-base font-semibold tracking-tight transition hover:opacity-70"
+          className="hover-glow flex items-center gap-1.5 px-2 py-1 text-base font-semibold tracking-tight transition hover:opacity-70"
           style={{ color: "var(--text)" }}
         >
           <Logo size={20} />
@@ -106,15 +105,15 @@ export default function NavbarClient({
               </button>
               {open && (
                 <ul
-                  className="absolute right-0 top-full z-50 mt-1.5 w-52 rounded-[var(--radius-card)] py-1 shadow-[var(--home-tile-shadow)] animate-fade-in"
+                  className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-[var(--radius-card)] shadow-[var(--home-tile-shadow)] animate-fade-in"
                   style={{ background: "var(--bg-raised)", border: "1px solid var(--hairline)" }}
                   role="menu"
                 >
-                  <li className="px-4 py-3" style={{ borderBottom: "1px solid var(--hairline)" }}>
-                    <p className="truncate text-sm font-semibold" style={{ color: "var(--text)" }}>
+                  <li className="px-4 py-3.5" style={{ background: "var(--bg-sunken)", borderBottom: "1px solid var(--hairline)" }}>
+                    <p className="truncate text-sm font-bold" style={{ color: "var(--text)" }}>
                       {session.user?.name}
                     </p>
-                    <p className="truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
+                    <p className="truncate text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                       {session.user?.email}
                     </p>
                   </li>
@@ -122,7 +121,7 @@ export default function NavbarClient({
                     <Link
                       href="/dashboard"
                       role="menuitem"
-                      className="flex items-center gap-3 px-4 py-3 text-sm transition"
+                      className="flex items-center gap-3 px-4 py-3 text-[13px] font-medium transition duration-200"
                       style={{ color: "var(--text-secondary)" }}
                       onClick={() => setOpen(false)}
                       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-sunken)")}
@@ -135,7 +134,7 @@ export default function NavbarClient({
                     <button
                       type="button"
                       role="menuitem"
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-[13px] font-medium transition duration-200"
                       style={{ color: "var(--text-secondary)" }}
                       onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }}
                       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-sunken)")}
