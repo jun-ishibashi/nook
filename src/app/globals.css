@@ -50,8 +50,14 @@ html[data-theme="light"] {
   --home-tile-shadow: 0 2px 10px rgba(44, 40, 37, 0.05);
 
   --touch: 44px;
-  --radius-card: 12px;
-  --radius-sm: 8px;
+  --radius-card: 16px; /* Slightly larger for premium feel */
+  --radius-sm: 10px;
+  --radius-full: 9999px;
+
+  /* 微細な動き（§6：反応の速さと情緒） */
+  --transition-fast: 120ms cubic-bezier(0.2, 0, 0.2, 1);
+  --transition-base: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-relaxed: 400ms cubic-bezier(0.4, 0, 0, 1);
 }
 
 /* 既定: §6 コンクリート感ダーク（無機質＋わずかなウォーム。冷たい純黒は避ける） */
@@ -85,13 +91,13 @@ html[data-theme="dark"] {
   --hairline: rgba(255, 255, 255, 0.07);
 
   --home-ambient-bg:
-    radial-gradient(ellipse 118% 54% at 50% -38%, rgba(58, 52, 46, 0.55) 0%, transparent 52%),
-    radial-gradient(ellipse 82% 44% at 0% 4%, rgba(72, 62, 52, 0.22) 0%, transparent 50%),
-    radial-gradient(ellipse 55% 36% at 100% 12%, rgba(48, 44, 40, 0.35) 0%, transparent 48%),
-    var(--bg);
-  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 4px 32px rgba(0, 0, 0, 0.42);
-  --home-card-lift: 0 16px 48px rgba(0, 0, 0, 0.5);
-  --home-tile-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    radial-gradient(ellipse 118% 54% at 50% -38%, rgba(58, 52, 46, 0.65) 0%, transparent 55%),
+    radial-gradient(ellipse 82% 44% at 0% 4%, rgba(72, 62, 52, 0.28) 0%, transparent 52%),
+    radial-gradient(ellipse 55% 36% at 100% 12%, rgba(48, 44, 40, 0.45) 0%, transparent 50%),
+    linear-gradient(180deg, #131211 0%, #0d0c0b 100%);
+  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 32px rgba(0, 0, 0, 0.5);
+  --home-card-lift: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --home-tile-shadow: 0 4px 24px rgba(0, 0, 0, 0.38);
 }
 
 *:focus-visible {
@@ -142,6 +148,7 @@ body {
   .input-base:focus {
     border-color: var(--text-muted);
     background: var(--bg-raised);
+    box-shadow: 0 0 0 2px var(--hairline);
   }
   .textarea-base {
     @apply w-full rounded-2xl px-4 py-3 text-sm transition duration-150 focus:outline-none focus:ring-0 resize-none;
@@ -285,7 +292,7 @@ body {
   }
 
   /**
-   * ホーム・ウェルカム（§6）：面より下線。写真のフィードに視線を渡す。
+   * ホーム・ウェルカム（§5.1 入口層）：左アクセントはごく弱く。写真フィードへ視線を渡す。
    */
   .home-welcome-editorial {
     padding-top: 0.125rem;
@@ -348,26 +355,28 @@ body {
   }
   .group:hover .home-post-tile__media {
     box-shadow: var(--home-card-lift);
-    transform: translateY(-2px);
+    transform: translateY(-4px) scale(1.01);
   }
 
   /** 適用中条件チップ：塗りより細い輪郭＋字重（§3.3・§5.2） */
   .nook-active-filter-chip {
     border-radius: 9999px;
-    border: 1px solid var(--hairline);
-    background: color-mix(in srgb, var(--bg-raised) 88%, transparent);
-    color: var(--text-secondary);
+    border: 1px solid var(--text-faint);
+    background: var(--bg-sunken);
+    color: var(--text);
     font-size: 11px;
-    font-weight: 600;
-    box-shadow: none;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-fast);
   }
   .nook-active-filter-chip:hover {
-    color: var(--text);
-    border-color: var(--text-faint);
-    background: var(--bg-sunken);
+    border-color: var(--text-muted);
+    transform: translateY(-1px);
   }
   html[data-theme="dark"] .nook-active-filter-chip {
-    background: rgba(28, 27, 25, 0.55);
+    background: rgba(45, 43, 40, 0.85);
+    border-color: rgba(255, 255, 255, 0.15);
   }
 
   /** アラート（ログイン等）：テーマ追随 */
@@ -404,8 +413,29 @@ body {
    */
   .home-filter-panel .filter-chip {
     min-height: 2.5rem;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid var(--hairline);
+    background: var(--bg-raised);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+  }
+  .home-filter-panel .filter-chip:hover {
+    background: var(--bg-sunken);
+    border-color: var(--text-faint);
+    color: var(--text);
+  }
+  .home-filter-panel .filter-chip[aria-selected="true"] {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+    font-weight: 700;
+  }
+  html[data-theme="dark"] .home-filter-panel .filter-chip[aria-selected="true"] {
+    background: var(--text);
+    color: var(--bg);
   }
   @media (min-width: 640px) {
     .home-filter-panel .filter-chip {
@@ -605,5 +635,60 @@ body.modal-open { overflow: hidden; }
 }
 html[data-theme="dark"] .category-showcase-tile:hover {
   background: color-mix(in srgb, var(--bg-wash) 35%, var(--bg-raised)) !important;
+}
+
+/** アニメーション階層：§6 時間差によるスキャンのしやすさ（Staggered appearance） */
+.stagger-item {
+  opacity: 0;
+  animation: fadeInUp var(--transition-relaxed) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 12枚までの時間差（nth-child で制御し、コンポーネント側で class を付けるだけで機能） */
+.stagger-item:nth-child(1) { animation-delay: 40ms; }
+.stagger-item:nth-child(2) { animation-delay: 80ms; }
+.stagger-item:nth-child(3) { animation-delay: 120ms; }
+.stagger-item:nth-child(4) { animation-delay: 160ms; }
+.stagger-item:nth-child(5) { animation-delay: 200ms; }
+.stagger-item:nth-child(6) { animation-delay: 240ms; }
+.stagger-item:nth-child(7) { animation-delay: 280ms; }
+.stagger-item:nth-child(8) { animation-delay: 320ms; }
+.stagger-item:nth-child(9) { animation-delay: 360ms; }
+.stagger-item:nth-child(10) { animation-delay: 400ms; }
+.stagger-item:nth-child(11) { animation-delay: 440ms; }
+.stagger-item:nth-child(12) { animation-delay: 480ms; }
+
+.glass-surface {
+  background: var(--nav-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.hover-glow {
+  position: relative;
+}
+.hover-glow::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: radial-gradient(circle at center, var(--accent-warm-muted), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+  border-radius: inherit;
+}
+.hover-glow:hover::after {
+  opacity: 1;
 }
 

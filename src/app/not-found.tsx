@@ -7,8 +7,8 @@ export default function NotFound() {
       <h1 className="text-center text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
         ページが見つかりません
       </h1>
-      <p className="mt-2 text-center text-xs" style={{ color: "var(--text-muted)" }}>
-        URL を確認するか、トップへ。
+      <p className="mt-2 max-w-xs text-center text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+        アドレスが違うか、移動した可能性があります。
       </p>
       <Link href="/" className="btn-primary mt-8 text-xs">
         みんなの部屋へ

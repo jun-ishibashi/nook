@@ -37,7 +37,7 @@ export default async function SameUrlRooms({
   return (
     <section className="mt-8 border-t pt-6" style={{ borderColor: "var(--hairline)" }} aria-labelledby="same-url-heading">
       <h2 id="same-url-heading" className="nook-section-label mb-2">
-        同じリンクの部屋
+        同じ商品ページの部屋
       </h2>
       <div className="mt-2 grid grid-cols-3 gap-2 sm:gap-2.5">
         {posts.map((p) => (
@@ -50,7 +50,7 @@ export default async function SameUrlRooms({
             {p.medias[0]?.path ? (
               <NookImage
                 src={p.medias[0].path}
-                alt={p.title ? `${p.title}の写真` : "同じリンクの部屋の写真"}
+                alt={p.title ? `${p.title}の写真` : "同じ商品ページの部屋の写真"}
                 fill
                 className="object-cover"
                 sizes="120px"

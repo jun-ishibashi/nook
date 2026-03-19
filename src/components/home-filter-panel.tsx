@@ -35,7 +35,7 @@ export default function HomeFilterPanel() {
       </p>
       <div className="flex items-baseline justify-between gap-3">
         <h2 id="home-filters-heading" className="nook-section-label">
-          カテゴリ・スタイル
+          カテゴリとスタイル
         </h2>
         {!hasActive ? (
           <button

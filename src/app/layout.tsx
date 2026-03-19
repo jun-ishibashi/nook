@@ -7,6 +7,7 @@ import Navbar from "@/components/navbar";
 import Modal from "@/components/modal";
 import CreatePost from "@/components/create-post";
 import Footer from "@/components/footer";
+import BackToTop from "@/components/back-to-top";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,10 +25,11 @@ const siteUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3001";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "NOOK — みんなの部屋をさがす",
+    default: "NOOK — 男一人暮らし、写真から家具まで",
     template: "%s | NOOK",
   },
-  description: "リアルな部屋の写真と、家具・雑貨をどこで買えるかをまとめてさがす。",
+  description:
+    "男一人暮らしの部屋づくりを中心の想像に。モノトーンや無機質ベース、デスク・照明・ガジェットのこだわりを、写真から家具・雑貨の商品ページまでひと続きで。インスピレーションと買うあいだを短くします。",
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon",
@@ -36,13 +38,15 @@ export const metadata: Metadata = {
     siteName: "NOOK",
     locale: "ja_JP",
     type: "website",
-    title: "NOOK — みんなの部屋をさがす",
-    description: "リアルな部屋の写真と、家具・雑貨をどこで買えるかをまとめてさがす。",
+    title: "NOOK — 男一人暮らし、写真から家具まで",
+    description:
+      "男一人暮らしの部屋づくりを中心の想像に。モノトーンや無機質ベース、デスク・照明・ガジェットのこだわりを、写真から家具・雑貨の商品ページまでひと続きで。インスピレーションと買うあいだを短くします。",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NOOK — みんなの部屋をさがす",
-    description: "リアルな部屋の写真と、家具・雑貨をどこで買えるかをまとめてさがす。",
+    title: "NOOK — 男一人暮らし、写真から家具まで",
+    description:
+      "男一人暮らしの部屋づくりを中心の想像に。モノトーンや無機質ベース、デスク・照明・ガジェットのこだわりを、写真から家具・雑貨の商品ページまでひと続きで。インスピレーションと買うあいだを短くします。",
   },
 };
 
@@ -91,6 +95,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <BackToTop />
         </Providers>
       </body>
     </html>
