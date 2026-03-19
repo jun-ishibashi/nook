@@ -9,11 +9,13 @@ type Props = {
 
 export default function PostGallery({ items }: Props) {
   return (
-    <ImageGallery
-      items={items}
-      showThumbnails={items.length > 1}
-      showPlayButton={false}
-      showFullscreenButton={items.length > 1}
-    />
+    <div className="post-detail-gallery">
+      <ImageGallery
+        items={items}
+        showThumbnails={items.length > 1}
+        showPlayButton={false}
+        showFullscreenButton={items.length > 1}
+      />
+    </div>
   );
 }

@@ -4,12 +4,25 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadImage } from "@/lib/upload";
 import { CATEGORIES } from "@/lib/categories";
+import { normalizeStyleTagSlugs } from "@/lib/style-tags";
+import {
+  normalizeHousingType,
+  normalizeLayoutType,
+  normalizeRoomContextNote,
+} from "@/lib/room-context";
+import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
+import { postSearchOrConditions } from "@/lib/post-search";
+import { getProductUrlHost } from "@/lib/product-url";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const q = searchParams.get("q")?.trim() ?? "";
   const userId = searchParams.get("userId") ?? "";
   const category = searchParams.get("category") ?? "";
+  const activeStyles = parseStyleSlugsFromSearchParams({
+    styles: searchParams.get("styles") ?? undefined,
+    style: searchParams.get("style") ?? undefined,
+  });
 
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user
@@ -20,16 +33,18 @@ export async function GET(request: NextRequest) {
 
   const where: Record<string, unknown> = {};
   if (q) {
-    where.OR = [
-      { title: { contains: q } },
-      { description: { contains: q } },
-    ];
+    where.OR = postSearchOrConditions(q);
   }
   if (userId) {
     where.userId = userId;
   }
   if (category) {
     where.category = category;
+  }
+  if (activeStyles.length > 0) {
+    where.AND = activeStyles.map((tagSlug) => ({
+      styleTags: { some: { tagSlug } },
+    }));
   }
 
   const posts = await prisma.post.findMany({
@@ -38,6 +53,7 @@ export async function GET(request: NextRequest) {
     include: {
       medias: { take: 1, orderBy: { id: "asc" } },
       user: { select: { id: true, name: true, image: true } },
+      styleTags: { select: { tagSlug: true } },
       _count: { select: { furnitureItems: true, likes: true } },
       likes: currentUserId
         ? { where: { userId: currentUserId }, select: { id: true } }
@@ -59,6 +75,7 @@ export async function GET(request: NextRequest) {
     likeCount: p._count.likes,
     liked: currentUserId ? p.likes.length > 0 : false,
     bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
+    styleTags: p.styleTags.map((t) => t.tagSlug),
     createdAt: p.createdAt.toISOString(),
   }));
 
@@ -81,23 +98,52 @@ export async function POST(request: Request) {
   const category = (formData.get("category") as string) ?? "other";
   const files = formData.getAll("images") as File[];
   const furnitureJson = formData.get("furniture") as string | null;
+  const styleTagsJson = formData.get("styleTags") as string | null;
+  const housingType = normalizeHousingType(formData.get("housingType"));
+  const layoutType = normalizeLayoutType(formData.get("layoutType"));
+  const roomContextNote = normalizeRoomContextNote(formData.get("roomContextNote"));
 
   const validCategories = CATEGORIES.map((c) => c.value as string);
   const safeCategory = validCategories.includes(category) ? category : "other";
 
-  let furniture: { name: string; productUrl: string }[] = [];
+  let furniture: { name: string; productUrl: string; note: string; mediaIndex: number }[] = [];
   if (furnitureJson) {
     try {
-      const parsed = JSON.parse(furnitureJson) as { name: string; productUrl: string }[];
-      furniture = (Array.isArray(parsed) ? parsed : []).filter(
-        (f) =>
-          f &&
-          typeof f.name === "string" &&
-          typeof f.productUrl === "string" &&
-          f.productUrl.startsWith("http")
-      );
+      const parsed = JSON.parse(furnitureJson) as {
+        name: string;
+        productUrl: string;
+        note?: string;
+        mediaIndex?: number;
+      }[];
+      furniture = (Array.isArray(parsed) ? parsed : [])
+        .filter(
+          (f) =>
+            f &&
+            typeof f.name === "string" &&
+            typeof f.productUrl === "string" &&
+            f.productUrl.startsWith("http")
+        )
+        .map((f) => ({
+          name: f.name,
+          productUrl: f.productUrl,
+          note: typeof f.note === "string" ? f.note.trim().slice(0, 500) : "",
+          mediaIndex:
+            typeof f.mediaIndex === "number" && Number.isFinite(f.mediaIndex)
+              ? Math.max(0, Math.floor(f.mediaIndex))
+              : 0,
+        }));
     } catch {
       furniture = [];
+    }
+  }
+
+  let styleTagSlugs = normalizeStyleTagSlugs([]);
+  if (styleTagsJson) {
+    try {
+      const parsed = JSON.parse(styleTagsJson) as unknown;
+      styleTagSlugs = normalizeStyleTagSlugs(parsed);
+    } catch {
+      styleTagSlugs = [];
     }
   }
 
@@ -119,16 +165,28 @@ export async function POST(request: Request) {
       title: title.trim(),
       description: description.trim(),
       category: safeCategory,
+      housingType,
+      layoutType,
+      roomContextNote,
       userId: user.id,
       medias: {
         create: paths.map((p) => ({ path: p })),
       },
       furnitureItems: {
-        create: furniture.map((f, i) => ({
-          name: f.name.trim().slice(0, 200),
-          productUrl: f.productUrl.trim().slice(0, 2000),
-          sortOrder: i,
-        })),
+        create: furniture.map((f, i) => {
+          const url = f.productUrl.trim().slice(0, 2000);
+          return {
+            name: f.name.trim().slice(0, 200),
+            productUrl: url,
+            productHost: getProductUrlHost(url),
+            note: f.note.slice(0, 500),
+            sortOrder: i,
+            mediaIndex: Math.min(f.mediaIndex ?? 0, Math.max(0, files.length - 1)),
+          };
+        }),
+      },
+      styleTags: {
+        create: styleTagSlugs.map((tagSlug) => ({ tagSlug })),
       },
     },
   });

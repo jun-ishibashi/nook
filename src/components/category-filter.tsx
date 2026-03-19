@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { CATEGORIES } from "@/lib/categories";
+import { buildHomeHref } from "@/lib/home-href";
 import CategoryIcon from "@/components/category-icon";
 
 export default function CategoryFilter() {
@@ -13,30 +14,25 @@ export default function CategoryFilter() {
 
   function select(value: string) {
     startTransition(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) { params.set("category", value); } else { params.delete("category"); }
-      params.delete("q");
-      router.push(`/?${params.toString()}`);
+      router.push(
+        buildHomeHref(searchParams, (p) => {
+          if (value) p.set("category", value);
+          else p.delete("category");
+        })
+      );
     });
   }
 
   return (
-    <div
-      className={`flex gap-1.5 overflow-x-auto scrollbar-hide ${isPending ? "opacity-60" : ""}`}
-      role="tablist"
-      aria-label="カテゴリ"
-    >
+    <div className={`flex flex-col gap-1 ${isPending ? "opacity-60" : ""}`}>
+      <p className="nook-overline nook-overline--sentence mb-0">カテゴリ</p>
+      <div className="flex gap-0 overflow-x-auto scrollbar-hide" role="tablist" aria-label="カテゴリ">
       <button
         type="button"
         role="tab"
         aria-selected={!current}
         onClick={() => select("")}
-        className="shrink-0 rounded-full px-3.5 py-1.5 text-[12px] font-bold transition"
-        style={
-          !current
-            ? { background: "var(--bg-inverse)", color: "var(--text-inverse)" }
-            : { background: "var(--bg-sunken)", color: "var(--text-muted)" }
-        }
+        className="filter-chip"
       >
         すべて
       </button>
@@ -47,17 +43,13 @@ export default function CategoryFilter() {
           role="tab"
           aria-selected={current === cat.value}
           onClick={() => select(cat.value)}
-          className="flex shrink-0 items-center gap-1 rounded-full px-3.5 py-1.5 text-[12px] font-bold transition"
-          style={
-            current === cat.value
-              ? { background: "var(--bg-inverse)", color: "var(--text-inverse)" }
-              : { background: "var(--bg-sunken)", color: "var(--text-muted)" }
-          }
+          className="filter-chip flex items-center gap-1"
         >
           <CategoryIcon value={cat.value} size={12} />
           {cat.label}
         </button>
       ))}
+      </div>
     </div>
   );
 }

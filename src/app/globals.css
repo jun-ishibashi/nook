@@ -1,28 +1,97 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
-:root {
-  /* Concrete warm grey palette */
-  --bg:          #f7f6f4;
-  --bg-raised:   #ffffff;
-  --bg-sunken:   #eeecea;
-  --bg-wash:     #e5e2de;
-  --bg-inverse:  #2c2825;
+/* 固定ナビ＋ホームのスティッキー帯の下に見え隠れしないよう、アンカー・スキップリンク時のオフセット */
+html {
+  scroll-padding-top: 5rem;
+}
 
-  --border:        #e5e2de;
-  --border-subtle: #eeece9;
+:root,
+html[data-theme="light"] {
+  /* §6 賃貸リアル・モノトーン：紙とコンクリのあいだのライトグレー（ややウォーム） */
+  --bg:          #f5f3f0;
+  --bg-raised:   #fffcf9;
+  --bg-sunken:   #ebe8e4;
+  --bg-wash:     #e3e0db;
+  --bg-inverse:  #2a2623;
 
-  --text:           #2c2825;
-  --text-secondary: #6b6560;
-  --text-muted:     #a39e98;
-  --text-faint:     #c8c3bd;
-  --text-inverse:   #f7f6f4;
+  --border:        #e0ddd7;
+  --border-subtle: #ebe8e4;
 
-  --accent:       #2c2825;
-  --accent-hover: #3a3632;
+  --text:           #2a2623;
+  --text-secondary: #65605b;
+  --text-muted:     #9c9791;
+  --text-faint:     #c4bfba;
+  --text-inverse:   #f5f3f0;
+
+  --accent:       #2a2623;
+  --accent-hover: #383430;
+
+  /* 生活の温度（§6：コーヒー・光）— 派手なグラデは避け、アクセントに限定 */
+  --accent-warm:    #8f7a62;
+  --accent-warm-muted: rgba(143, 122, 98, 0.22);
+  --signal-soft:    #a6896c;
+  /* いいねON：彩度を抑えたアクセント（§6.3 多色はアクセントに限定） */
+  --like-active:    #9a5558;
+
+  --nav-surface:   rgba(245, 243, 240, 0.92);
+  --sticky-surface: rgba(245, 243, 240, 0.95);
+  --pill-overlay:  rgba(255, 252, 249, 0.9);
+  --hairline: rgba(42, 38, 35, 0.1);
+
+  /* ホーム発見（§5.2：ごく弱い環境光・上から差す光） */
+  --home-ambient-bg:
+    radial-gradient(ellipse 125% 62% at 50% -34%, rgba(255, 248, 238, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 50% at 100% 0%, rgba(232, 226, 216, 0.5) 0%, transparent 52%),
+    radial-gradient(ellipse 70% 40% at 0% 18%, rgba(220, 214, 206, 0.35) 0%, transparent 45%),
+    var(--bg);
+  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 2px 14px rgba(44, 40, 37, 0.06);
+  --home-card-lift: 0 10px 36px rgba(44, 40, 37, 0.08);
+  --home-tile-shadow: 0 2px 10px rgba(44, 40, 37, 0.05);
 
   --touch: 44px;
+  --radius-card: 12px;
+  --radius-sm: 8px;
+}
+
+/* 既定: §6 コンクリート感ダーク（無機質＋わずかなウォーム。冷たい純黒は避ける） */
+html[data-theme="dark"] {
+  --bg:          #131211;
+  --bg-raised:   #1c1b19;
+  --bg-sunken:   #171615;
+  --bg-wash:     #252320;
+  --bg-inverse:  #ebe8e4;
+
+  --border:        #2f2c29;
+  --border-subtle: #252220;
+
+  --text:           #ebe8e4;
+  --text-secondary: #a8a39d;
+  --text-muted:     #6e6a65;
+  --text-faint:     #4a4743;
+  --text-inverse:   #131211;
+
+  --accent:       #ebe8e4;
+  --accent-hover: #d8d5d0;
+
+  --accent-warm:    #c4b09a;
+  --accent-warm-muted: rgba(196, 176, 154, 0.14);
+  --signal-soft:    #b89a7a;
+  --like-active:    #c97a7e;
+
+  --nav-surface:   rgba(19, 18, 17, 0.88);
+  --sticky-surface: rgba(19, 18, 17, 0.93);
+  --pill-overlay:  rgba(28, 27, 25, 0.82);
+  --hairline: rgba(255, 255, 255, 0.07);
+
+  --home-ambient-bg:
+    radial-gradient(ellipse 118% 54% at 50% -38%, rgba(58, 52, 46, 0.55) 0%, transparent 52%),
+    radial-gradient(ellipse 82% 44% at 0% 4%, rgba(72, 62, 52, 0.22) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 36% at 100% 12%, rgba(48, 44, 40, 0.35) 0%, transparent 48%),
+    var(--bg);
+  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 4px 32px rgba(0, 0, 0, 0.42);
+  --home-card-lift: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --home-tile-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 *:focus-visible {
@@ -35,11 +104,12 @@ body {
   background: var(--bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex min-h-[var(--touch)] items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition duration-150 active:scale-[0.97];
+    @apply inline-flex min-h-[var(--touch)] items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition duration-150 active:scale-[0.98];
     background: var(--bg-inverse);
     color: var(--text-inverse);
   }
@@ -47,16 +117,16 @@ body {
     background: var(--accent-hover);
   }
   .btn-secondary {
-    @apply inline-flex min-h-[var(--touch)] items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition duration-150 active:scale-[0.97];
+    @apply inline-flex min-h-[var(--touch)] items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition duration-150 active:scale-[0.98];
     background: var(--bg-raised);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1px solid var(--hairline);
   }
   .btn-secondary:hover {
     background: var(--bg-sunken);
   }
   .btn-ghost {
-    @apply inline-flex min-h-[var(--touch)] items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition duration-150 active:scale-[0.97];
+    @apply inline-flex min-h-[var(--touch)] items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition duration-150 active:scale-[0.98];
     color: var(--text-muted);
   }
   .btn-ghost:hover {
@@ -66,7 +136,7 @@ body {
     @apply min-h-[var(--touch)] w-full rounded-full px-4 py-2.5 text-sm transition duration-150 focus:outline-none focus:ring-0 resize-none;
     background: var(--bg-sunken);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1px solid var(--hairline);
   }
   .input-base::placeholder { color: var(--text-muted); }
   .input-base:focus {
@@ -77,7 +147,7 @@ body {
     @apply w-full rounded-2xl px-4 py-3 text-sm transition duration-150 focus:outline-none focus:ring-0 resize-none;
     background: var(--bg-sunken);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1px solid var(--hairline);
   }
   .textarea-base::placeholder { color: var(--text-muted); }
   .textarea-base:focus {
@@ -85,18 +155,415 @@ body {
     background: var(--bg-raised);
   }
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold;
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium;
     background: var(--bg-sunken);
     color: var(--text-secondary);
+  }
+
+  /** 一覧幅の共通コンテナ（ビジョン: 余白で区切る・写真主役のフィード幅） */
+  .nook-page {
+    @apply mx-auto w-full max-w-2xl px-4;
+  }
+
+  /** 絞り込み：塗りピルより下線で状態（使いやすさ＝スキャンしやすさ） */
+  .filter-chip {
+    @apply shrink-0 border-0 bg-transparent px-2.5 py-2.5 text-[12px] font-medium transition;
+    color: var(--text-muted);
+    border-radius: 0;
+    box-shadow: inset 0 -1px 0 0 transparent;
+    min-height: var(--touch);
+  }
+  @media (min-width: 640px) {
+    .filter-chip {
+      @apply min-h-0 py-2;
+    }
+  }
+  .filter-chip:hover {
+    color: var(--text-secondary);
+  }
+  .filter-chip[aria-selected="true"],
+  .filter-chip[aria-pressed="true"] {
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 0 var(--text);
+  }
+
+  .feed-tab {
+    @apply mr-5 inline-block border-0 bg-transparent py-2 text-xs font-medium transition;
+    color: var(--text-muted);
+    box-shadow: inset 0 -2px 0 0 transparent;
+  }
+  .feed-tab:hover {
+    color: var(--text-secondary);
+  }
+  .feed-tab--active {
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 0 var(--text);
+  }
+
+  .input-feed {
+    @apply min-h-[var(--touch)] w-full rounded-none border-0 py-3.5 pl-11 pr-12 text-[15px] transition-[border-color,opacity] duration-150 focus:outline-none focus:ring-0 sm:min-h-0 sm:py-3 sm:pl-11 sm:pr-12 sm:text-[14px];
+    background: transparent;
+    color: var(--text);
+    border-bottom: 1px solid var(--border-subtle);
+    caret-color: var(--text);
+  }
+  .input-feed::placeholder {
+    color: var(--text-faint);
+  }
+  .input-feed:focus {
+    border-bottom-color: var(--text-muted);
+  }
+  .input-feed:disabled {
+    opacity: 0.55;
+  }
+
+  /**
+   * 全画面共通：§6 ムード（ホームと同じごく弱い環境光）
+   * `.home-discovery` は後方互換の別名
+   */
+  .nook-app-canvas,
+  .home-discovery {
+    background: var(--home-ambient-bg);
+  }
+
+  /** 浮きカード（フィルタパネル・フォーム・法務ページなど） */
+  .nook-elevated-surface,
+  .home-filter-panel__surface {
+    border-radius: 1.25rem;
+    border: 1px solid var(--hairline);
+    background: var(--bg-raised);
+    box-shadow: var(--home-tile-shadow);
+  }
+  html[data-theme="dark"] .nook-elevated-surface,
+  html[data-theme="dark"] .home-filter-panel__surface {
+    background: rgba(26, 26, 26, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /** 投稿詳細：ギャラリー帯に軽い奥行き（§5 写真主役・境界は細く） */
+  .nook-gallery-cap {
+    box-shadow: var(--home-tile-shadow);
+  }
+  .post-detail-hero.nook-gallery-cap {
+    border-bottom: 1px solid var(--hairline);
+  }
+  @media (min-width: 640px) {
+    .post-detail-hero.nook-gallery-cap {
+      border-radius: 0 0 var(--radius-card) var(--radius-card);
+    }
+  }
+
+  /** 投稿詳細：操作帯（いいね・保存・共有）をコンテンツと区切る */
+  .post-detail-toolbar {
+    border-color: var(--hairline);
+  }
+
+  /** ログイン・Google 続行（§5 操作は軽く・Google ブランドマークはボタン内に限定） */
+  .login-google-btn:hover:not(:disabled) {
+    border-color: var(--text-faint);
+  }
+  .login-google-btn:focus-visible {
+    outline: 2px solid var(--text-muted);
+    outline-offset: 2px;
+  }
+
+  /** ログイン済みホーム・再訪1行：操作帯と同化しすぎないようごく弱い字間 */
+  .home-revisit-strip {
+    letter-spacing: 0.02em;
+  }
+
+  /** ホーム上部スティッキー：縦を抑え、写真エリアを食わない（§5.1） */
+  .home-sticky-feed {
+    border-bottom: 1px solid var(--hairline);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  }
+  html[data-theme="dark"] .home-sticky-feed {
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.28);
+  }
+
+  /**
+   * ホーム・ウェルカム（§6）：面より下線。写真のフィードに視線を渡す。
+   */
+  .home-welcome-editorial {
+    padding-top: 0.125rem;
+  }
+
+  .nook-section-label,
+  .home-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+  }
+
+  /** トレンド：塗り一面を避け、細い境界＋ホバーでリズム（§5.2） */
+  .home-trending-pill {
+    @apply inline-flex shrink-0 items-center gap-0.5 rounded-full border font-medium transition duration-200;
+    border-color: var(--hairline);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 0.4rem 0.8rem;
+    box-shadow: none;
+  }
+  .home-trending-pill:hover {
+    color: var(--text);
+    border-color: var(--text-faint);
+    background: var(--accent-warm-muted);
+  }
+
+  /** 最近：ごく薄い面でキーワードの塊だと分かる程度 */
+  .home-recent-pill {
+    @apply inline-flex shrink-0 items-center gap-0.5 rounded-full border font-medium transition duration-200;
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-raised) 55%, transparent);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 0.4rem 0.8rem;
+    box-shadow: none;
+  }
+  html[data-theme="dark"] .home-recent-pill {
+    background: color-mix(in srgb, var(--bg-sunken) 50%, transparent);
+  }
+  .home-recent-pill:hover {
+    color: var(--text);
+    border-color: var(--text-faint);
+    background: var(--accent-warm-muted);
+  }
+
+  .home-post-tile__media {
+    border-radius: 0.5rem;
+    box-shadow: var(--home-tile-shadow);
+    transition:
+      box-shadow 0.28s ease,
+      transform 0.28s ease;
+  }
+  @media (min-width: 640px) {
+    .home-post-tile__media {
+      border-radius: 0.65rem;
+    }
+  }
+  .group:hover .home-post-tile__media {
+    box-shadow: var(--home-card-lift);
+    transform: translateY(-2px);
+  }
+
+  /** 適用中条件チップ：塗りより細い輪郭＋字重（§3.3・§5.2） */
+  .nook-active-filter-chip {
+    border-radius: 9999px;
+    border: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--bg-raised) 88%, transparent);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: none;
+  }
+  .nook-active-filter-chip:hover {
+    color: var(--text);
+    border-color: var(--text-faint);
+    background: var(--bg-sunken);
+  }
+  html[data-theme="dark"] .nook-active-filter-chip {
+    background: rgba(28, 27, 25, 0.55);
+  }
+
+  /** アラート（ログイン等）：テーマ追随 */
+  .nook-alert-error {
+    margin-top: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--signal-soft) 35%, var(--border));
+    background: color-mix(in srgb, var(--signal-soft) 12%, var(--bg-sunken));
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text-secondary);
+  }
+
+  /** フォーム内エラー（ダークでも目立ちすぎない） */
+  .nook-form-error {
+    margin-top: 0.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--signal-soft) 38%, var(--border));
+    background: color-mix(in srgb, var(--signal-soft) 10%, var(--bg-sunken));
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .home-feed-nav {
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  /**
+   * ホーム「絞り込み」パネル内のチップ（横スクロール・タップしやすさ）
+   */
+  .home-filter-panel .filter-chip {
+    min-height: 2.5rem;
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+  @media (min-width: 640px) {
+    .home-filter-panel .filter-chip {
+      min-height: 0;
+      @apply py-1.5;
+    }
+  }
+
+  /** ホーム・スティッキー内のフィードタブ */
+  .home-sticky-feed .feed-tab {
+    @apply py-1.5;
+  }
+  .home-top-search-clear {
+    @apply py-1 text-[11px] font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-80 disabled:opacity-40;
+    color: var(--text-muted);
+  }
+  .home-top-search-clear:hover:not(:disabled) {
+    color: var(--text-secondary);
+    text-decoration-color: var(--text-faint);
+  }
+
+  .search-field__icon {
+    @apply flex shrink-0 items-center pl-0.5;
+  }
+
+  /**
+   * 検索バー：下線はフィールド全体の一本に集約（アイコン〜送信まで）
+   * ビジョン: 下線のみ・テキスト中心の操作
+   */
+  .search-field {
+    @apply flex w-full min-h-[var(--touch)] items-center gap-1 border-b transition-[border-color,opacity] duration-150 sm:min-h-[2.75rem];
+    border-color: var(--border-subtle);
+  }
+  .search-field:focus-within {
+    border-color: var(--text-muted);
+  }
+  .search-field--pending {
+    @apply pointer-events-none opacity-50;
+  }
+  .search-field .input-feed {
+    @apply min-h-0 min-w-0 flex-1 border-0 py-3 pl-1 pr-1 text-[15px] sm:min-h-0 sm:py-2.5 sm:text-[14px];
+    border-bottom: none;
+  }
+  .search-field .input-feed:focus {
+    border-bottom-color: transparent;
+  }
+  .search-clear-btn {
+    @apply inline-flex shrink-0 items-center justify-center rounded-md transition hover:opacity-80;
+    min-height: var(--touch);
+    min-width: var(--touch);
+    color: var(--text-muted);
+  }
+  @media (min-width: 640px) {
+    .search-clear-btn {
+      min-height: 2.25rem;
+      min-width: 2.25rem;
+    }
+  }
+  .search-submit {
+    @apply inline-flex shrink-0 items-center justify-center rounded-md text-xs font-semibold transition;
+    min-height: var(--touch);
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+    color: var(--text-muted);
+  }
+  @media (min-width: 640px) {
+    .search-submit {
+      min-height: 2.25rem;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+  }
+  .search-submit:hover:not(:disabled) {
+    color: var(--text-secondary);
+  }
+  .search-submit:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  /** セクション見出し（さがす / カテゴリ / スタイル を揃える） */
+  .nook-overline {
+    @apply mb-1 text-[10px] font-medium tracking-[0.12em] uppercase;
+    color: var(--text-faint);
+  }
+
+  /** 日本語ラベル用（大文字化しない・トラッキング弱め） */
+  .nook-overline--sentence {
+    text-transform: none;
+    letter-spacing: 0.06em;
+  }
+
+  /** マイページタブなど — フィードタブと同じ下線アクセント、均等幅向け */
+  .nook-tab {
+    @apply border-0 bg-transparent py-3 text-center text-xs font-medium transition;
+    color: var(--text-muted);
+    box-shadow: inset 0 -2px 0 0 transparent;
+  }
+  .nook-tab[aria-selected="true"] {
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 0 var(--text);
+  }
+  .nook-tab:hover:not([aria-selected="true"]) {
+    color: var(--text-secondary);
+  }
+
+  /** ホーム・スティッキー内の区切り（多重枠を避け、線は細く） */
+  .nook-hairline-top {
+    border-top: 1px solid var(--hairline);
+  }
+
+  /** マイページなど：枠なし・下線だけの軽い入力 */
+  .nook-input-line {
+    @apply w-full rounded-none border-0 py-2.5 text-xs transition focus:outline-none focus:ring-0;
+    background: transparent;
+    color: var(--text);
+    border-bottom: 1px solid var(--border-subtle);
+    caret-color: var(--text);
+  }
+  .nook-input-line::placeholder {
+    color: var(--text-faint);
+  }
+  .nook-input-line:focus {
+    border-bottom-color: var(--text-muted);
+  }
+
+  /**
+   * 法務ページ：本文は正確さ優先（§4）。見出し階層だけアプリの軽さに寄せる。
+   */
+  .prose-nook h2 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text);
   }
 }
 
 /* react-image-gallery */
+.post-detail-gallery .image-gallery-thumbnails-container {
+  padding-top: 0.35rem;
+  padding-bottom: 0.5rem;
+  background: color-mix(in srgb, var(--bg-sunken) 55%, var(--bg-raised));
+  border-top: 1px solid var(--hairline);
+}
 .image-gallery-icon:hover { color: var(--text); }
 .image-gallery-svg { height: 28px; width: 28px; }
 .image-gallery-slide .image-gallery-image { object-fit: contain; background: var(--bg-sunken); }
 .image-gallery-thumbnail.active,
 .image-gallery-thumbnail:hover { border-color: var(--text-muted); }
+
+/** 投稿モーダル：§5 操作は軽く・写真主役。背景はテーマ共通のニュートラル */
+.nook-post-modal-backdrop {
+  background: rgba(42, 38, 35, 0.34);
+}
+html[data-theme="dark"] .nook-post-modal-backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
 
 body.modal-open { overflow: hidden; }
 
@@ -119,3 +586,24 @@ body.modal-open { overflow: hidden; }
 
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* カテゴリショーケース：§6 モノトーン・グリッド（1px 分割・ホバーはごく弱く） */
+.category-showcase-tile:hover {
+  background: color-mix(in srgb, var(--bg-sunken) 55%, var(--bg-raised)) !important;
+}
+html[data-theme="dark"] .category-showcase-tile:hover {
+  background: color-mix(in srgb, var(--bg-wash) 35%, var(--bg-raised)) !important;
+}
+

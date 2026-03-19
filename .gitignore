@@ -30,9 +30,13 @@ yarn-error.log*
 .env.*
 !.env.example
 
-# database (local dev)
-prisma/dev.db
-prisma/dev.db-journal
+# database（ローカル SQLite — コミット不要。各自 `npm run db:push` で生成）
+/dev.db
+/dev.db-journal
+/prisma/*.db
+/prisma/*.db-journal
+*.db-wal
+*.db-shm
 
 # user uploads (local dev; production uses Cloudinary etc.)
 /public/uploads/
