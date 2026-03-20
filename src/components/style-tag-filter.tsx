@@ -47,11 +47,14 @@ export default function StyleTagFilter() {
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1" aria-busy={isPending}>
       <p id="style-filter-hint" className="sr-only">
         スタイルを複数選ぶと、選んだタグがすべて付いた部屋だけが表示されます。
       </p>
       <p className="nook-overline nook-overline--sentence mb-0">スタイル</p>
+      <p className="mb-1 text-[10px] leading-snug" style={{ color: "var(--text-faint)" }}>
+        複数選ぶと、すべてに合う部屋だけ
+      </p>
       <div
         className={`flex gap-0 overflow-x-auto scrollbar-hide ${isPending ? "opacity-60" : ""}`}
         role="group"

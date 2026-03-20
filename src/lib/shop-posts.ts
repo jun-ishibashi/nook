@@ -29,6 +29,7 @@ export async function fetchPostsByShopHost(
     include: {
       medias: { take: 1, orderBy: { id: "asc" } },
       user: { select: { id: true, name: true, image: true } },
+      furnitureItems: { select: { price: true } },
       styleTags: { select: { tagSlug: true } },
       _count: { select: { furnitureItems: true, likes: true } },
       ...interactive,
@@ -46,7 +47,7 @@ export async function fetchPostsByShopHost(
       user: { select: { id: true, name: true, image: true } },
       styleTags: { select: { tagSlug: true } },
       _count: { select: { furnitureItems: true, likes: true } },
-      furnitureItems: { select: { id: true, productUrl: true, productHost: true } },
+      furnitureItems: { select: { id: true, price: true, productUrl: true, productHost: true } },
       ...interactive,
     },
   });

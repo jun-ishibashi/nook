@@ -17,6 +17,7 @@ export type HomePostGridItem = {
   liked: boolean;
   bookmarked: boolean;
   styleTags: string[];
+  totalPrice: number | null;
   createdAt: string;
 };
 
@@ -46,7 +47,7 @@ export default function HomePostGrid({
 
   const grid = (
     <div className="home-post-grid grid grid-cols-2 gap-3 sm:gap-4">
-      {posts.map((post) => (
+      {posts.map((post, index) => (
         <article key={post.id} className="stagger-item group flex flex-col">
           {/* Image — 単体リンク（保存はオーバーレイ） */}
           <div
@@ -61,6 +62,7 @@ export default function HomePostGrid({
                   fill
                   className="object-cover transition duration-300 group-hover:opacity-[0.96]"
                   sizes="(max-width: 640px) 50vw, 400px"
+                  priority={index < 4}
                 />
               ) : (
                 <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
@@ -87,9 +89,16 @@ export default function HomePostGrid({
               </p>
             </Link>
             {post.itemCount > 0 ? (
-              <p className="mt-0.5 text-[10px] font-medium tabular-nums" style={{ color: "var(--text-faint)" }}>
-                家具・雑貨 {post.itemCount}
-              </p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-2">
+                <p className="text-[10px] font-medium tabular-nums" style={{ color: "var(--text-faint)" }}>
+                  {post.itemCount}つのアイテム
+                </p>
+                {post.totalPrice !== null && (
+                  <p className="text-[10px] font-bold tabular-nums" style={{ color: "var(--text-secondary)" }}>
+                    Total ¥{post.totalPrice.toLocaleString()}
+                  </p>
+                )}
+              </div>
             ) : null}
             <div className="mt-1 flex items-center justify-between gap-1">
               <Link
@@ -119,9 +128,10 @@ export default function HomePostGrid({
                   href={`/post/${post.id}`}
                   className="-mr-1 inline-flex min-h-9 min-w-9 items-center justify-center rounded-md px-1 text-[10px] tabular-nums transition hover:opacity-80"
                   style={{ color: "var(--text-faint)" }}
-                  title={formatDate(post.createdAt)}
                 >
-                  {formatDate(post.createdAt)}
+                  <time dateTime={post.createdAt} className="tabular-nums">
+                    {formatDate(post.createdAt)}
+                  </time>
                 </Link>
               </div>
             </div>

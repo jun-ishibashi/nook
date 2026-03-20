@@ -55,6 +55,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
   const postList = posts.map((p) => {
     const likes = "likes" in p && Array.isArray(p.likes) ? p.likes : [];
     const bookmarks = "bookmarks" in p && Array.isArray(p.bookmarks) ? p.bookmarks : [];
+    const totalPrice = p.furnitureItems.reduce((acc, item) => acc + (item.price ?? 0), 0);
     return {
       id: p.id,
       title: p.title,
@@ -67,6 +68,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
       liked: currentUserId ? likes.length > 0 : false,
       bookmarked: currentUserId ? bookmarks.length > 0 : false,
       styleTags: p.styleTags.map((t) => t.tagSlug),
+      totalPrice: totalPrice > 0 ? totalPrice : null,
       createdAt: p.createdAt.toISOString(),
     };
   });

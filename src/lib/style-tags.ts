@@ -28,6 +28,12 @@ export const STYLE_TAGS = [
   { slug: "tidying", label: "掃除・整頓" },
   { slug: "warm", label: "ウォーム" },
   { slug: "cool", label: "クール" },
+  /** §6.2 エリア・ストリート（ターゲットの活動圏・想起イメージ） */
+  { slug: "shimokitazawa", label: "下北沢" },
+  { slug: "sangenjaya", label: "三茶" },
+  { slug: "nakameguro", label: "中目黒" },
+  { slug: "daikanyama", label: "代官山" },
+  { slug: "omotesando", label: "表参道" },
 ] as const;
 
 export type StyleTagSlug = (typeof STYLE_TAGS)[number]["slug"];

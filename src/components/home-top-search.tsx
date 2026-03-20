@@ -38,6 +38,7 @@ function ClearFiltersButton() {
       type="button"
       onClick={clear}
       disabled={isPending}
+      aria-busy={isPending}
       className="home-top-search-clear shrink-0"
     >
       条件をすべてクリア
@@ -179,9 +180,9 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
           enterKeyHint="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="デスク、間接照明、コンクリ調…"
+          placeholder="デスク、照明、無機質…"
           className="input-feed"
-          aria-label="キーワードで部屋をさがす"
+          aria-label="キーワードで部屋を探す"
           aria-describedby={helpId}
           disabled={isPending}
           autoComplete="off"
@@ -202,7 +203,7 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
           </button>
         ) : null}
         <button type="submit" disabled={isPending} className="search-submit disabled:opacity-40">
-          さがす
+          検索
         </button>
       </div>
     </form>

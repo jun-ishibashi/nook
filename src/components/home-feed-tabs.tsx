@@ -30,7 +30,7 @@ export default function HomeFeedTabs() {
         aria-current={!isFollowing ? "page" : undefined}
         className={`feed-tab ${!isFollowing ? "feed-tab--active" : ""}`}
       >
-        みんなの部屋
+        すべての部屋
       </Link>
       <Link
         href={followingHref}

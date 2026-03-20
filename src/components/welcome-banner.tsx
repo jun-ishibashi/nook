@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 /**
- * §5.1 入口層。§6.1 の想像の軸（男一人暮らし・こだわり・モノトーン等）に寄せつつ、§6.1 末のとおり「男性専用」は言わない。
+ * §5.1 入口層。§4 短文・ですます、§4.3 で部屋・ムード先。他サービス名は出さない。
  */
 export default function WelcomeBanner() {
   const { data: session } = useSession();
@@ -13,7 +13,7 @@ export default function WelcomeBanner() {
 
   return (
     <header
-      className="home-welcome-editorial mb-8 border-b pb-7 sm:mb-9 sm:pb-8"
+      className="home-welcome-editorial mb-7 border-b pb-6 sm:mb-8 sm:pb-7"
       style={{ borderColor: "var(--hairline)" }}
     >
       <div
@@ -23,23 +23,23 @@ export default function WelcomeBanner() {
         <p className="nook-section-label mb-2">みんなの部屋</p>
         <h2 className="max-w-[22rem] text-pretty text-[1.5rem] font-bold leading-tight tracking-tighter sm:max-w-xl sm:text-[1.875rem] sm:leading-tight">
           静かに、こだわりを重ねる。<br />
-          理想の部屋を、その手の中に。
+          理想の部屋を、ひと続きのカタログに。
         </h2>
         <div className="mt-4 max-w-md space-y-2 text-[13px] leading-relaxed sm:text-[13px]" style={{ color: "var(--text-muted)" }}>
           <p>
-            無機質、モノトーン、光。一人暮らしのインスピレーションを、現実の部屋へ。
-            住んでいそうな画から、その家具が「どこで買えるか」までを最短でつなぎます。
+            無機質、モノトーン、光。賃貸の現実に、一筋のインスピレーションを。
+            住まい手の「こだわり」から、その家具が「どこで買えるか」まで。
           </p>
           <p className="italic opacity-80">
-            一発で完成させなくて大丈夫。少しずつ、自分のこだわりを足していくストーリーを。
+            一発で完成させなくていい。少しずつ、自分だけの物語を足していく贅沢を。
           </p>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-2.5">
           <Link href="/login" className="btn-primary text-xs">
-            ログインして写真を載せる
+            部屋を載せる
           </Link>
           <Link href="#home-feed-anchor" className="btn-ghost text-xs">
-            まずは眺める
+            カタログを見る
           </Link>
         </div>
       </div>

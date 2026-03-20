@@ -92,6 +92,10 @@ model FurnitureItem {
   sortOrder  Int    @default(0)
   /// 写っている写真の並び（0 = 1枚目）。投稿の枚数を超えないよう UI で制限
   mediaIndex Int    @default(0)
+  /// 価格（概算・任意）
+  price      Int?
+  /// 通貨（既定: JPY）
+  currency   String   @default("JPY")
 
   @@index([productUrl])
   @@index([productHost])
@@ -106,6 +110,9 @@ model ItemWishlist {
   productUrl   String
   note         String   @default("")
   sourcePostId String?
+  /// 保存時の価格スナップショット
+  price        Int?
+  currency     String   @default("JPY")
   createdAt    DateTime @default(now())
 
   @@unique([userId, productUrl])

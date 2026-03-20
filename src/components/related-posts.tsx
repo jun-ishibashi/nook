@@ -60,28 +60,29 @@ export default async function RelatedPosts({
       </h2>
       <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
         {related.map((p) => (
-          <Link
-            key={p.id}
-            href={`/post/${p.id}`}
-            className="relative block aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)] transition hover:opacity-92"
-            style={{ background: "var(--bg-sunken)" }}
-          >
-            {p.medias[0]?.path ? (
-              <NookImage
-                src={p.medias[0].path}
-                alt={p.title ? `${p.title}の写真` : "似た部屋の写真"}
-                fill
-                className="object-cover"
-                sizes="120px"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
-              </div>
-            )}
-          </Link>
+          <div key={p.id} className="stagger-item">
+            <Link
+              href={`/post/${p.id}`}
+              className="relative block aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)] transition hover:opacity-92"
+              style={{ background: "var(--bg-sunken)" }}
+            >
+              {p.medias[0]?.path ? (
+                <NookImage
+                  src={p.medias[0].path}
+                  alt={p.title ? `${p.title}の写真` : "似た部屋の写真"}
+                  fill
+                  className="object-cover"
+                  sizes="120px"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                </div>
+              )}
+            </Link>
+          </div>
         ))}
       </div>
     </section>

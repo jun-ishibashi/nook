@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
@@ -14,14 +15,23 @@ import { breakConsecutiveSameAuthor } from "@/lib/feed-mix";
 import HomeRevisitStrip from "@/components/home-revisit-strip";
 import HomeTrendingStyles from "@/components/home-trending-styles";
 import HomeFilterPanel from "@/components/home-filter-panel";
+import HomeRecentRooms from "@/components/home-recent-rooms";
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string; style?: string; styles?: string; feed?: string }>;
+  searchParams: Promise<{ 
+    q?: string; 
+    category?: string; 
+    style?: string; 
+    styles?: string; 
+    feed?: string;
+    minPrice?: string;
+    maxPrice?: string;
+  }>;
 }) {
   const sp = await searchParams;
-  const { q, category, feed: feedRaw } = sp;
+  const { q, category, feed: feedRaw, minPrice, maxPrice } = sp;
   const query = q?.trim() ?? "";
   const activeCategory = category?.trim() ?? "";
   const activeStyles = parseStyleSlugsFromSearchParams({
@@ -29,6 +39,8 @@ export default async function HomePage({
     style: sp.style,
   });
   const followingFeed = feedRaw?.trim() === "following";
+  const minP = parseInt(minPrice ?? "", 10);
+  const maxP = parseInt(maxPrice ?? "", 10);
 
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.email
@@ -62,8 +74,20 @@ export default async function HomePage({
     }));
   }
 
+  if (!isNaN(minP) || !isNaN(maxP)) {
+    const priceWhere: Record<string, any> = {};
+    if (!isNaN(minP)) priceWhere.gte = minP;
+    if (!isNaN(maxP)) priceWhere.lte = maxP;
+    
+    where.furnitureItems = {
+      some: {
+        price: priceWhere
+      }
+    };
+  }
+
   const isFiltered =
-    !!query || !!activeCategory || activeStyles.length > 0 || followingFeed;
+    !!query || !!activeCategory || activeStyles.length > 0 || followingFeed || !isNaN(minP) || !isNaN(maxP);
 
   const postsRaw = await prisma.post.findMany({
     where,
@@ -72,6 +96,7 @@ export default async function HomePage({
       medias: { take: 1, orderBy: { id: "asc" } },
       user: { select: { id: true, name: true, image: true } },
       styleTags: { select: { tagSlug: true } },
+      furnitureItems: { select: { price: true } },
       _count: { select: { furnitureItems: true, likes: true } },
       likes: currentUserId
         ? { where: { userId: currentUserId }, select: { id: true } }
@@ -84,8 +109,8 @@ export default async function HomePage({
 
   const posts =
     !isFiltered && !followingFeed
-      ? breakConsecutiveSameAuthor(postsRaw)
-      : postsRaw;
+      ? breakConsecutiveSameAuthor(postsRaw as any[])
+      : (postsRaw as any[]);
 
   let bookmarkCount = 0;
   let wishlistCount = 0;
@@ -96,7 +121,7 @@ export default async function HomePage({
     ]);
   }
 
-  const postList = posts.map((p) => ({
+  const postList = (posts as any[]).map((p) => ({
     id: p.id,
     title: p.title,
     description: p.description,
@@ -107,7 +132,8 @@ export default async function HomePage({
     likeCount: p._count.likes,
     liked: currentUserId ? p.likes.length > 0 : false,
     bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
-    styleTags: p.styleTags.map((t) => t.tagSlug),
+    styleTags: p.styleTags.map((t: any) => t.tagSlug),
+    totalPrice: p.furnitureItems.reduce((acc: number, f: any) => acc + (f.price ?? 0), 0) || null,
     createdAt: p.createdAt.toISOString(),
   }));
 
@@ -157,14 +183,18 @@ export default async function HomePage({
                 <div className="py-0.5 sm:py-1">
                   <HomeFeedTabs />
                 </div>
-                <HomeRevisitStrip bookmarkCount={bookmarkCount} wishlistCount={wishlistCount} />
+                <HomeRevisitStrip
+                  bookmarkCount={bookmarkCount}
+                  wishlistCount={wishlistCount}
+                  showEmptyHint={bookmarkCount === 0 && wishlistCount === 0}
+                />
               </div>
             </Suspense>
           ) : null}
         </div>
       </div>
 
-      <div className="nook-page pb-16 pt-2.5 sm:pt-4">
+      <div className="nook-page pt-3 pb-[max(5rem,calc(env(safe-area-inset-bottom,0px)+3rem))] sm:pt-5">
         {showWelcome ? <WelcomeBanner /> : null}
 
         <div id="home-feed-anchor" className="scroll-mt-28">
@@ -175,27 +205,41 @@ export default async function HomePage({
               style={{ borderColor: "var(--hairline)" }}
               aria-hidden
             >
-              <div className="h-4 w-32 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
-              <div
-                className="mt-3 h-28 animate-pulse rounded-xl"
-                style={{ background: "var(--bg-wash)" }}
-              />
+              <div className="h-3 w-36 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+              <div className="mt-3 space-y-3">
+                <div className="h-2.5 w-16 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+                <div className="flex gap-2 overflow-hidden">
+                  <div className="h-9 w-14 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
+                  <div className="h-9 w-20 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
+                  <div className="h-9 w-16 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
+                  <div className="h-9 w-24 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
+                </div>
+                <div className="h-2.5 w-12 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+                <div className="flex gap-2 overflow-hidden">
+                  <div className="h-9 w-16 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
+                  <div className="h-9 w-20 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
+                  <div className="h-9 w-14 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
+                </div>
+              </div>
             </section>
           }
         >
           <HomeFilterPanel />
         </Suspense>
 
+        {!isFiltered && <HomeRecentRooms />}
+
         {postList.length > 0 ? (
-          <header className="mb-2.5 sm:mb-3">
-            <div className="flex items-baseline justify-between gap-3">
+          <header className="mb-3 sm:mb-3.5">
+            <div className="flex min-h-[1.25rem] items-baseline justify-between gap-3">
               <h2 className="nook-section-label" id="home-feed-heading">
-                {followingFeed ? "フォロー中の部屋" : isFiltered ? "該当する部屋" : "みんなの部屋"}
+                {followingFeed ? "お気に入りの部屋" : isFiltered ? "該当する部屋" : "すべての部屋"}
               </h2>
               {isFiltered ? (
                 <span
-                  className="text-[11px] font-medium tabular-nums tracking-wide"
+                  className="shrink-0 text-[11px] font-medium tabular-nums tracking-wide"
                   style={{ color: "var(--text-muted)" }}
+                  aria-label={`${postList.length}件`}
                 >
                   {postList.length}
                   <span className="ml-0.5 font-normal opacity-80">件</span>
@@ -208,37 +252,53 @@ export default async function HomePage({
         <HomePostGrid posts={postList} ariaLabelledBy={postList.length > 0 ? "home-feed-heading" : undefined} />
 
         {postList.length === 0 && (
-          <div className="stagger-item flex flex-col items-center py-20 text-center animate-fade-in">
-            <div className="mb-8 relative h-48 w-48 opacity-80 mix-blend-multiply dark:mix-blend-screen overflow-hidden rounded-2xl grayscale transition duration-700 hover:grayscale-0">
-               <img src="/empty-state.png" alt="" className="object-cover w-full h-full" aria-hidden />
+          <div
+            className="home-empty-state flex flex-col items-center px-4 py-16 text-center animate-fade-in"
+            role="status"
+          >
+            <div
+              className="relative mb-6 h-28 w-28 shrink-0 overflow-hidden rounded-2xl sm:h-32 sm:w-32"
+              style={{ background: "var(--bg-sunken)" }}
+              aria-hidden
+            >
+              <Image
+                src="/empty-state.png"
+                alt=""
+                width={128}
+                height={128}
+                className="h-full w-full object-cover opacity-90"
+                sizes="128px"
+              />
             </div>
-            <p className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>
-              {isFiltered ? "まだ、見つからないようです" : "静かなはじまり"}
-            </p>
-            <p className="mt-2 text-[13px] max-w-[240px] leading-relaxed mx-auto italic" style={{ color: "var(--text-muted)" }}>
+            <p className="text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
               {followingFeed
-                ? "フォロー中の部屋がまだありません。気になる人を探してみましょう。"
+                ? "お気に入りの部屋は、まだ静かです"
                 : isFiltered
-                  ? "条件を少し広げてみると、新しいインスピレーションに出会えるかもしれません。"
-                  : currentUserId
-                    ? "あなたのこだわりを、最初の一枚として載せてみませんか。"
-                    : "ログインすると、自分だけの「好き」をストックしたり、部屋を載せたりできます。"}
+                  ? "該当するカタログは、まだ見つからないようです"
+                  : "カタログがまだありません"}
+            </p>
+            <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              {followingFeed
+                ? "まずは「すべての部屋」から、あなたの「こだわり」を探してみませんか。"
+                : isFiltered
+                  ? "条件を少し変えてみると、新しいインスピレーションに出会えるかもしれません。"
+                  : "静かなはじまり。あなたのこだわりを、最初の一編として載せてみませんか。"}
             </p>
             {followingFeed ? (
-              <Link href="/" scroll={false} className="btn-primary mt-8 text-[11px] px-6">
-                みんなの部屋を探す
+              <Link href="/" scroll={false} className="btn-primary mt-7 text-xs">
+                みんなの部屋へ
               </Link>
             ) : isFiltered ? (
-              <Link href="/" scroll={false} className="btn-secondary mt-8 text-[11px] px-6">
+              <Link href="/" scroll={false} className="btn-secondary mt-7 text-xs">
                 条件をすべてクリア
               </Link>
             ) : currentUserId ? (
-              <label htmlFor="post_modal" className="btn-primary mt-8 cursor-pointer text-[11px] px-8">
-                写真を載せる
+              <label htmlFor="post_modal" className="btn-primary mt-7 cursor-pointer text-xs">
+                部屋を載せる
               </label>
             ) : (
-              <Link href="/login" className="btn-primary mt-8 text-[11px] px-8">
-                NOOK をはじめる
+              <Link href="/login" className="btn-primary mt-7 text-xs">
+                ログインして始める
               </Link>
             )}
           </div>
@@ -248,13 +308,16 @@ export default async function HomePage({
           <Suspense
             fallback={
               <div
-                className="mt-8 h-12 animate-pulse rounded-lg"
-                style={{ background: "var(--bg-sunken)" }}
+                className="mt-10 h-12 animate-pulse rounded-lg border-t pt-8 sm:mt-12"
+                style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
                 aria-hidden
               />
             }
           >
-            <div className="mt-8">
+            <div
+              className="mt-10 border-t pt-8 sm:mt-12 sm:pt-10"
+              style={{ borderColor: "var(--hairline)" }}
+            >
               <HomeTrendingStyles />
             </div>
           </Suspense>

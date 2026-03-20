@@ -39,11 +39,12 @@ function LoginForm() {
           </span>
           <p className="nook-section-label">NOOK</p>
         </div>
-        <h1 className="text-pretty text-xl font-semibold leading-snug tracking-tight sm:text-2xl" style={{ color: "var(--text)" }}>
-          ログインして続ける
+        <h1 className="text-pretty text-xl font-bold leading-tight tracking-tighter sm:text-2xl" style={{ color: "var(--text)" }}>
+          静かに、こだわりを重ねる。
         </h1>
         <p className="mt-3 max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          保存した部屋と、家具・雑貨の商品ページまで、あとからすぐ見返せます。
+          自分のこだわりを、一冊のカタログに。<br />
+          保存した部屋や気になる家具を、いつでもここから見返せます。
         </p>
       </header>
 

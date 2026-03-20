@@ -7,6 +7,8 @@ type Item = {
   name: string;
   productUrl: string;
   note: string | null;
+  price: number | null;
+  currency: string;
   mediaIndex: number;
 };
 
@@ -95,7 +97,15 @@ export default function PostFurnitureList({
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0">
+        <div className="flex shrink-0 flex-col items-end gap-2 text-right">
+          {item.price !== null && (
+            <div className="flex flex-col items-end">
+              <span className="nook-section-label !mb-0 text-[10px]">概算価格</span>
+              <span className="text-[17px] font-bold tracking-tight" style={{ color: "var(--text)" }}>
+                ¥{item.price.toLocaleString()}
+              </span>
+            </div>
+          )}
           <PurchaseLink name={item.name} productUrl={item.productUrl} />
         </div>
       </li>
@@ -142,8 +152,12 @@ export default function PostFurnitureList({
                 />
               </div>
             ) : null}
-            <ul className="space-y-2" role="list">
-              {group.map((item) => renderItemRow(item))}
+            <ul className="space-y-4" role="list">
+              {group.map((item) => (
+                <div key={item.id} className="stagger-item">
+                  {renderItemRow(item)}
+                </div>
+              ))}
             </ul>
           </div>
         );

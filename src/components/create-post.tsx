@@ -22,7 +22,7 @@ function PostModalDesc({ children }: { children: React.ReactNode }) {
   );
 }
 
-type FurnitureEntry = { name: string; productUrl: string; note: string; mediaIndex: number };
+type FurnitureEntry = { name: string; productUrl: string; note: string; price: number | null; mediaIndex: number };
 
 type DraftPayload = {
   v: 1;
@@ -51,6 +51,7 @@ function parseDraft(raw: unknown): DraftPayload | null {
         name: r.name,
         productUrl: r.productUrl,
         note: typeof r.note === "string" ? r.note : "",
+        price: typeof r.price === "number" && Number.isFinite(r.price) ? Math.max(0, Math.floor(r.price)) : null,
         mediaIndex: typeof r.mediaIndex === "number" && Number.isFinite(r.mediaIndex) ? Math.max(0, Math.floor(r.mediaIndex)) : 0,
       });
     }
@@ -84,6 +85,7 @@ export default function CreatePost() {
   const [furnitureName, setFurnitureName] = useState("");
   const [furnitureUrl, setFurnitureUrl] = useState("");
   const [furnitureNote, setFurnitureNote] = useState("");
+  const [furniturePrice, setFurniturePrice] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedStyleTags, setSelectedStyleTags] = useState<string[]>([]);
@@ -198,12 +200,14 @@ export default function CreatePost() {
         name,
         productUrl: url,
         note: furnitureNote.trim().slice(0, 500),
+        price: furniturePrice.trim() ? parseInt(furniturePrice.trim(), 10) : null,
         mediaIndex: 0,
       },
     ]);
     setFurnitureName("");
     setFurnitureUrl("");
     setFurnitureNote("");
+    setFurniturePrice("");
   }
 
   function removeFurniture(i: number) {
@@ -234,6 +238,7 @@ export default function CreatePost() {
           name: f.name,
           productUrl: f.productUrl,
           note: f.note,
+          price: f.price,
           mediaIndex: Math.min(
             Math.max(0, f.mediaIndex),
             Math.max(0, files.length - 1)
@@ -413,6 +418,11 @@ export default function CreatePost() {
                     <span className="min-w-0 flex-1 truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
                       {f.productUrl}
                     </span>
+                    {f.price !== null && (
+                      <span className="text-[11px] font-bold" style={{ color: "var(--text-secondary)" }}>
+                        ¥{f.price.toLocaleString()}
+                      </span>
+                    )}
                   </div>
                   {f.note ? (
                     <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
@@ -499,6 +509,15 @@ export default function CreatePost() {
                 maxLength={500}
                 aria-label="メモ"
               />
+              <input
+                type="number"
+                value={furniturePrice}
+                onChange={(e) => setFurniturePrice(e.target.value)}
+                placeholder="価格（概算・任意）"
+                className="input-base text-xs"
+                aria-label="価格"
+                onKeyDown={(e) => e.key === "Enter" && addFurniture()}
+              />
             </div>
           </div>
           {error ? <p className="nook-form-error mt-0 text-xs" role="alert">{error}</p> : null}
@@ -523,6 +542,11 @@ export default function CreatePost() {
                           {f.note}
                         </p>
                       ) : null}
+                      {f.price !== null && (
+                        <p className="mt-1 text-[11px] font-bold" style={{ color: "var(--text)" }}>
+                          ¥{f.price.toLocaleString()}
+                        </p>
+                      )}
                     </div>
                     <button
                       type="button"

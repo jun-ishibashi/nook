@@ -15,6 +15,7 @@ import PostFurnitureList from "@/components/post-furniture-list";
 import FollowButton from "@/components/follow-button";
 import RelatedPosts from "@/components/related-posts";
 import SameUrlRooms from "@/components/same-url-rooms";
+import PostViewTracker from "@/components/post-view-tracker";
 import {
   getHousingLabel,
   getLayoutLabel,
@@ -250,15 +251,40 @@ export default async function PostPage({
                 {post.description}
               </p>
             ) : null}
+
+            {post.furnitureItems.some(f => f.price !== null) && (
+              <div 
+                className="mt-6 flex flex-col items-start gap-1 rounded-2xl border px-4 py-3 sm:px-5"
+                style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
+              >
+                <span className="nook-section-label !mb-0 text-[10px]">Total Look / 概算費用</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[1.5rem] font-bold tracking-tighter" style={{ color: "var(--text)" }}>
+                    ¥{post.furnitureItems.reduce((acc, f) => acc + (f.price ?? 0), 0).toLocaleString()}
+                  </span>
+                  <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>
+                    （掲載時の参考価格）
+                  </span>
+                </div>
+              </div>
+            )}
           </header>
 
           <div
-            className="post-detail-toolbar mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-b py-3.5"
+            className="post-detail-toolbar mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-4 py-3.5 sm:px-5"
+            style={{
+              borderColor: "var(--hairline)",
+              background: "var(--bg-raised)",
+              boxShadow: "var(--home-tile-shadow)",
+            }}
             aria-label="部屋への反応と共有"
           >
-            <div className="flex items-center gap-0.5">
-              <LikeButton postId={post.id} initialLiked={liked} initialCount={post._count.likes} />
-              <BookmarkButton postId={post.id} initialBookmarked={bookmarked} />
+            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5 rounded-full border px-1" style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}>
+                <LikeButton postId={post.id} initialLiked={liked} initialCount={post._count.likes} />
+                <div className="h-4 w-[1px] opacity-20" style={{ background: "var(--text-muted)" }} />
+                <BookmarkButton postId={post.id} initialBookmarked={bookmarked} />
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {currentUserId === post.user.id && (
@@ -359,6 +385,7 @@ export default async function PostPage({
           </div>
         </div>
       </article>
+      <PostViewTracker post={{ id: post.id, title: post.title, thumbnail: post.medias[0]?.path ?? null }} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ export default function Footer() {
       className="mt-auto nook-app-canvas"
       style={{ borderTop: "1px solid var(--hairline)" }}
     >
-      <div className="nook-page flex flex-col items-center gap-2.5 py-7 sm:py-8">
+      <div className="nook-page flex flex-col items-center gap-2.5 pt-7 pb-[max(1.75rem,env(safe-area-inset-bottom,0px))] sm:pt-8 sm:pb-[max(2rem,env(safe-area-inset-bottom,0px))]">
         <Link
           href="/"
           className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.06em]"
