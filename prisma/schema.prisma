@@ -96,6 +96,10 @@ model FurnitureItem {
   price      Int?
   /// 通貨（既定: JPY）
   currency   String   @default("JPY")
+  /// 購入URLとの関係（任意・透明性用。値: purchased / same_model / reference）
+  linkRelation   String    @default("")
+  /// リンクを最後に確認した日（投稿者任意・日付のみ UTC 0:00）
+  linkVerifiedAt DateTime?
 
   @@index([productUrl])
   @@index([productHost])

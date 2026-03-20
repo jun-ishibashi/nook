@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import EditPostForm from "@/components/edit-post-form";
+import { linkVerifiedAtToDateInputValue } from "@/lib/furniture-link-meta";
 
 export const metadata: Metadata = {
   title: "部屋を編集",
@@ -51,6 +52,8 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
       productUrl: f.productUrl,
       note: f.note ?? "",
       mediaIndex: f.mediaIndex ?? 0,
+      linkRelation: f.linkRelation ?? "",
+      linkVerifiedDate: linkVerifiedAtToDateInputValue(f.linkVerifiedAt),
     })),
   };
 

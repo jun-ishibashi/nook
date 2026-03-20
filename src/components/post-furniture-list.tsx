@@ -1,6 +1,10 @@
 import NookImage from "@/components/nook-image";
 import WishlistItemButton from "@/components/wishlist-item-button";
 import { getProductUrlMeta } from "@/lib/product-url";
+import {
+  formatLinkVerifiedAtJa,
+  getFurnitureLinkRelationLabel,
+} from "@/lib/furniture-link-meta";
 
 type Item = {
   id: string;
@@ -10,6 +14,8 @@ type Item = {
   price: number | null;
   currency: string;
   mediaIndex: number;
+  linkRelation: string;
+  linkVerifiedAt: Date | null;
 };
 
 type Media = { id: string; path: string };
@@ -19,9 +25,23 @@ function clampIdx(idx: number, n: number) {
   return Math.min(Math.max(0, Math.floor(idx)), n - 1);
 }
 
-function PurchaseLink({ name, productUrl }: { name: string; productUrl: string }) {
+function PurchaseLink({
+  name,
+  productUrl,
+  linkRelation,
+  linkVerifiedAt,
+}: {
+  name: string;
+  productUrl: string;
+  linkRelation: string;
+  linkVerifiedAt: Date | null;
+}) {
   const meta = getProductUrlMeta(productUrl);
   if (!meta) return null;
+
+  const relationLabel =
+    linkRelation && linkRelation.trim() ? getFurnitureLinkRelationLabel(linkRelation) : "";
+  const verifiedLabel = formatLinkVerifiedAtJa(linkVerifiedAt);
 
   return (
     <div className="mt-4 flex flex-col items-stretch gap-2 sm:mt-0 sm:items-end">
@@ -54,6 +74,20 @@ function PurchaseLink({ name, productUrl }: { name: string; productUrl: string }
           </svg>
         )}
       </div>
+      {(relationLabel || verifiedLabel) && (
+        <p
+          className="max-w-[14rem] text-right text-[9px] font-medium leading-snug sm:ml-auto"
+          style={{ color: "var(--text-faint)" }}
+        >
+          {relationLabel ? <span>{relationLabel}</span> : null}
+          {relationLabel && verifiedLabel ? (
+            <span className="mx-1 opacity-50" aria-hidden>
+              ・
+            </span>
+          ) : null}
+          {verifiedLabel ? <span>リンク確認 {verifiedLabel}</span> : null}
+        </p>
+      )}
     </div>
   );
 }
@@ -106,7 +140,12 @@ export default function PostFurnitureList({
               </span>
             </div>
           )}
-          <PurchaseLink name={item.name} productUrl={item.productUrl} />
+          <PurchaseLink
+            name={item.name}
+            productUrl={item.productUrl}
+            linkRelation={item.linkRelation}
+            linkVerifiedAt={item.linkVerifiedAt}
+          />
         </div>
       </li>
     );

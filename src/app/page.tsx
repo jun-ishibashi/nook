@@ -274,15 +274,15 @@ export default async function HomePage({
               {followingFeed
                 ? "お気に入りの部屋は、まだ静かです"
                 : isFiltered
-                  ? "該当するカタログは、まだ見つからないようです"
-                  : "カタログがまだありません"}
+                  ? "該当する部屋は、まだ見つからないようです"
+                  : "まだ部屋がありません"}
             </p>
             <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
               {followingFeed
-                ? "まずは「すべての部屋」から、あなたの「こだわり」を探してみませんか。"
+                ? "まずは「すべての部屋」から、好みのムードを探してみませんか。"
                 : isFiltered
                   ? "条件を少し変えてみると、新しいインスピレーションに出会えるかもしれません。"
-                  : "静かなはじまり。あなたのこだわりを、最初の一編として載せてみませんか。"}
+                  : "静かなはじまり。一枚目を、載せてみませんか。"}
             </p>
             {followingFeed ? (
               <Link href="/" scroll={false} className="btn-primary mt-7 text-xs">
@@ -294,7 +294,7 @@ export default async function HomePage({
               </Link>
             ) : currentUserId ? (
               <label htmlFor="post_modal" className="btn-primary mt-7 cursor-pointer text-xs">
-                部屋を載せる
+                写真を載せる
               </label>
             ) : (
               <Link href="/login" className="btn-primary mt-7 text-xs">

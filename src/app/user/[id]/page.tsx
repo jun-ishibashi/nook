@@ -264,8 +264,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
               まだ、静かな部屋の一角です
             </p>
             <p className="mt-2 max-w-xs px-4 text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              {isOwn 
-                ? "あなたの「こだわり」を、最初の一枚として載せてみませんか。" 
+              {isOwn
+                ? "最初の一枚を、マイページから写真を載せてみませんか。"
                 : "これから、こだわりの詰まった部屋が並ぶ予定です。"}
             </p>
               {isOwn ? (

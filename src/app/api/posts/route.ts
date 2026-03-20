@@ -13,6 +13,10 @@ import {
 import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
 import { postSearchOrConditions } from "@/lib/post-search";
 import { getProductUrlHost } from "@/lib/product-url";
+import {
+  normalizeFurnitureLinkRelation,
+  parseLinkVerifiedDate,
+} from "@/lib/furniture-link-meta";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -127,7 +131,15 @@ export async function POST(request: Request) {
   const validCategories = CATEGORIES.map((c) => c.value as string);
   const safeCategory = validCategories.includes(category) ? category : "other";
 
-  let furniture: { name: string; productUrl: string; note: string; price: number | null; mediaIndex: number }[] = [];
+  let furniture: {
+    name: string;
+    productUrl: string;
+    note: string;
+    price: number | null;
+    mediaIndex: number;
+    linkRelation: string;
+    linkVerifiedAt: Date | null;
+  }[] = [];
   if (furnitureJson) {
     try {
       interface FurnitureInput {
@@ -136,6 +148,8 @@ export async function POST(request: Request) {
         note?: string;
         price?: number;
         mediaIndex?: number;
+        linkRelation?: string;
+        linkVerifiedDate?: string | null;
       }
       const parsed = JSON.parse(furnitureJson) as FurnitureInput[];
       furniture = (Array.isArray(parsed) ? parsed : [])
@@ -155,6 +169,8 @@ export async function POST(request: Request) {
             typeof f.mediaIndex === "number" && Number.isFinite(f.mediaIndex)
               ? Math.max(0, Math.floor(f.mediaIndex))
               : 0,
+          linkRelation: normalizeFurnitureLinkRelation(f.linkRelation),
+          linkVerifiedAt: parseLinkVerifiedDate(f.linkVerifiedDate),
         }));
     } catch {
       furniture = [];
@@ -207,6 +223,8 @@ export async function POST(request: Request) {
             price: f.price,
             sortOrder: i,
             mediaIndex: Math.min(f.mediaIndex ?? 0, Math.max(0, files.length - 1)),
+            linkRelation: f.linkRelation,
+            linkVerifiedAt: f.linkVerifiedAt,
           };
         }),
       },

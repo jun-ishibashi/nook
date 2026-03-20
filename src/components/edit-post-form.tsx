@@ -7,6 +7,10 @@ import { CATEGORIES } from "@/lib/categories";
 import CategoryIcon from "./category-icon";
 import { STYLE_TAGS } from "@/lib/style-tags";
 import { HOUSING_TYPES, LAYOUT_TYPES } from "@/lib/room-context";
+import {
+  FURNITURE_LINK_RELATIONS,
+  linkVerifiedAtToDateInputValue,
+} from "@/lib/furniture-link-meta";
 
 export type EditPostInitial = {
   id: string;
@@ -18,10 +22,25 @@ export type EditPostInitial = {
   roomContextNote: string;
   styleTags: string[];
   mediaCount: number;
-  furnitureItems: { id: string; name: string; productUrl: string; note: string; mediaIndex: number }[];
+  furnitureItems: {
+    id: string;
+    name: string;
+    productUrl: string;
+    note: string;
+    mediaIndex: number;
+    linkRelation: string;
+    linkVerifiedDate: string;
+  }[];
 };
 
-type FurnitureEntry = { name: string; productUrl: string; note: string; mediaIndex: number };
+type FurnitureEntry = {
+  name: string;
+  productUrl: string;
+  note: string;
+  mediaIndex: number;
+  linkRelation: string;
+  linkVerifiedDate: string;
+};
 
 export default function EditPostForm({ initial }: { initial: EditPostInitial }) {
   const router = useRouter();
@@ -38,11 +57,15 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
       productUrl: f.productUrl,
       note: f.note ?? "",
       mediaIndex: f.mediaIndex ?? 0,
+      linkRelation: f.linkRelation ?? "",
+      linkVerifiedDate: f.linkVerifiedDate ?? "",
     }))
   );
   const [furnitureName, setFurnitureName] = useState("");
   const [furnitureUrl, setFurnitureUrl] = useState("");
   const [furnitureNote, setFurnitureNote] = useState("");
+  const [furnitureLinkRelation, setFurnitureLinkRelation] = useState("");
+  const [furnitureLinkVerifiedDate, setFurnitureLinkVerifiedDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -65,15 +88,28 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
         productUrl: url,
         note: furnitureNote.trim().slice(0, 500),
         mediaIndex: 0,
+        linkRelation: furnitureLinkRelation,
+        linkVerifiedDate: furnitureLinkVerifiedDate.trim(),
       },
     ]);
     setFurnitureName("");
     setFurnitureUrl("");
     setFurnitureNote("");
+    setFurnitureLinkRelation("");
+    setFurnitureLinkVerifiedDate("");
   }
 
   function removeFurniture(i: number) {
     setFurniture((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  function updateFurnitureTrust(
+    i: number,
+    patch: Partial<Pick<FurnitureEntry, "linkRelation" | "linkVerifiedDate">>
+  ) {
+    setFurniture((prev) =>
+      prev.map((f, idx) => (idx === i ? { ...f, ...patch } : f))
+    );
   }
 
   function toggleStyleTag(slug: string) {
@@ -110,6 +146,8 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
             Math.max(0, f.mediaIndex),
             Math.max(0, initial.mediaCount - 1)
           ),
+          linkRelation: f.linkRelation || undefined,
+          linkVerifiedDate: f.linkVerifiedDate.trim() || null,
         })),
         styleTags: selectedStyleTags,
       }),
@@ -300,6 +338,44 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
               maxLength={500}
               aria-label="メモ"
             />
+            <div
+              className="mt-1 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:flex-wrap"
+              style={{ borderColor: "var(--hairline)" }}
+            >
+              <label
+                className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
+                style={{ color: "var(--text-muted)" }}
+              >
+                リンクについて
+                <span style={{ color: "var(--text-faint)" }}>（次に追加する行・任意）</span>
+                <select
+                  value={furnitureLinkRelation}
+                  onChange={(e) => setFurnitureLinkRelation(e.target.value)}
+                  className="input-base text-[10px]"
+                  aria-label="商品ページのリンクの位置づけ"
+                >
+                  {FURNITURE_LINK_RELATIONS.map((r) => (
+                    <option key={r.value || "rel-unset-add"} value={r.value}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label
+                className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
+                style={{ color: "var(--text-muted)" }}
+              >
+                リンク確認日
+                <span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                <input
+                  type="date"
+                  value={furnitureLinkVerifiedDate}
+                  onChange={(e) => setFurnitureLinkVerifiedDate(e.target.value)}
+                  className="input-base text-[10px]"
+                  aria-label="リンクを確認した日"
+                />
+              </label>
+            </div>
             <button type="button" onClick={addFurniture} className="btn-secondary text-xs">
               追加
             </button>
@@ -363,6 +439,39 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
                     </select>
                   </label>
                 )}
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <label
+                    className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    リンクについて<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                    <select
+                      value={f.linkRelation}
+                      onChange={(e) => updateFurnitureTrust(i, { linkRelation: e.target.value })}
+                      className="input-base text-[10px]"
+                      aria-label={`${f.name} のリンクの位置づけ`}
+                    >
+                      {FURNITURE_LINK_RELATIONS.map((r) => (
+                        <option key={`${i}-${r.value || "unset"}`} value={r.value}>
+                          {r.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label
+                    className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    リンク確認日<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                    <input
+                      type="date"
+                      value={f.linkVerifiedDate}
+                      onChange={(e) => updateFurnitureTrust(i, { linkVerifiedDate: e.target.value })}
+                      className="input-base text-[10px]"
+                      aria-label={`${f.name} のリンクを確認した日`}
+                    />
+                  </label>
+                </div>
               </li>
             ))}
           </ul>

@@ -91,7 +91,7 @@ export default function HomePostGrid({
             {post.itemCount > 0 ? (
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2">
                 <p className="text-[10px] font-medium tabular-nums" style={{ color: "var(--text-faint)" }}>
-                  {post.itemCount}つのアイテム
+                  家具・雑貨 {post.itemCount}点
                 </p>
                 {post.totalPrice !== null && (
                   <p className="text-[10px] font-bold tabular-nums" style={{ color: "var(--text-secondary)" }}>

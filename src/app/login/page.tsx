@@ -43,7 +43,7 @@ function LoginForm() {
           静かに、こだわりを重ねる。
         </h1>
         <p className="mt-3 max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          自分のこだわりを、一冊のカタログに。<br />
+          部屋の写真と家具・雑貨の行き先を、あとでまた。<br />
           保存した部屋や気になる家具を、いつでもここから見返せます。
         </p>
       </header>

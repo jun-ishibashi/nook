@@ -9,6 +9,10 @@ import { CATEGORIES } from "@/lib/categories";
 import CategoryIcon from "./category-icon";
 import { STYLE_TAGS } from "@/lib/style-tags";
 import { HOUSING_TYPES, LAYOUT_TYPES } from "@/lib/room-context";
+import {
+  FURNITURE_LINK_RELATIONS,
+  getFurnitureLinkRelationLabel,
+} from "@/lib/furniture-link-meta";
 
 const MODAL_ID = "post_modal";
 const STEPS = ["写真", "家具・雑貨", "確認"];
@@ -22,7 +26,15 @@ function PostModalDesc({ children }: { children: React.ReactNode }) {
   );
 }
 
-type FurnitureEntry = { name: string; productUrl: string; note: string; price: number | null; mediaIndex: number };
+type FurnitureEntry = {
+  name: string;
+  productUrl: string;
+  note: string;
+  price: number | null;
+  mediaIndex: number;
+  linkRelation: string;
+  linkVerifiedDate: string;
+};
 
 type DraftPayload = {
   v: 1;
@@ -53,6 +65,8 @@ function parseDraft(raw: unknown): DraftPayload | null {
         note: typeof r.note === "string" ? r.note : "",
         price: typeof r.price === "number" && Number.isFinite(r.price) ? Math.max(0, Math.floor(r.price)) : null,
         mediaIndex: typeof r.mediaIndex === "number" && Number.isFinite(r.mediaIndex) ? Math.max(0, Math.floor(r.mediaIndex)) : 0,
+        linkRelation: typeof r.linkRelation === "string" ? r.linkRelation : "",
+        linkVerifiedDate: typeof r.linkVerifiedDate === "string" ? r.linkVerifiedDate : "",
       });
     }
   }
@@ -86,6 +100,8 @@ export default function CreatePost() {
   const [furnitureUrl, setFurnitureUrl] = useState("");
   const [furnitureNote, setFurnitureNote] = useState("");
   const [furniturePrice, setFurniturePrice] = useState("");
+  const [furnitureLinkRelation, setFurnitureLinkRelation] = useState("");
+  const [furnitureLinkVerifiedDate, setFurnitureLinkVerifiedDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedStyleTags, setSelectedStyleTags] = useState<string[]>([]);
@@ -202,12 +218,16 @@ export default function CreatePost() {
         note: furnitureNote.trim().slice(0, 500),
         price: furniturePrice.trim() ? parseInt(furniturePrice.trim(), 10) : null,
         mediaIndex: 0,
+        linkRelation: furnitureLinkRelation,
+        linkVerifiedDate: furnitureLinkVerifiedDate.trim(),
       },
     ]);
     setFurnitureName("");
     setFurnitureUrl("");
     setFurnitureNote("");
     setFurniturePrice("");
+    setFurnitureLinkRelation("");
+    setFurnitureLinkVerifiedDate("");
   }
 
   function removeFurniture(i: number) {
@@ -216,6 +236,14 @@ export default function CreatePost() {
   function setFurnitureMediaIndex(i: number, mediaIndex: number) {
     setFurniture((prev) =>
       prev.map((f, idx) => (idx === i ? { ...f, mediaIndex } : f))
+    );
+  }
+  function updateFurnitureTrust(
+    i: number,
+    patch: Partial<Pick<FurnitureEntry, "linkRelation" | "linkVerifiedDate">>
+  ) {
+    setFurniture((prev) =>
+      prev.map((f, idx) => (idx === i ? { ...f, ...patch } : f))
     );
   }
   function removeFile(index: number) { setFiles((prev) => prev.filter((_, i) => i !== index)); }
@@ -243,6 +271,8 @@ export default function CreatePost() {
             Math.max(0, f.mediaIndex),
             Math.max(0, files.length - 1)
           ),
+          linkRelation: f.linkRelation || undefined,
+          linkVerifiedDate: f.linkVerifiedDate.trim() || null,
         }))
       )
     );
@@ -429,6 +459,13 @@ export default function CreatePost() {
                       {f.note}
                     </p>
                   ) : null}
+                  {(f.linkRelation || f.linkVerifiedDate) && (
+                    <p className="text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>
+                      {f.linkRelation ? getFurnitureLinkRelationLabel(f.linkRelation) : null}
+                      {f.linkRelation && f.linkVerifiedDate ? "・" : null}
+                      {f.linkVerifiedDate ? `リンク確認 ${f.linkVerifiedDate}` : null}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
@@ -518,6 +555,44 @@ export default function CreatePost() {
                 aria-label="価格"
                 onKeyDown={(e) => e.key === "Enter" && addFurniture()}
               />
+              <div
+                className="mt-1 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:flex-wrap"
+                style={{ borderColor: "var(--hairline)" }}
+              >
+                <label
+                  className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  リンクについて
+                  <span style={{ color: "var(--text-faint)" }}>（次に追加する行・任意）</span>
+                  <select
+                    value={furnitureLinkRelation}
+                    onChange={(e) => setFurnitureLinkRelation(e.target.value)}
+                    className="input-base text-[10px]"
+                    aria-label="商品ページのリンクの位置づけ"
+                  >
+                    {FURNITURE_LINK_RELATIONS.map((r) => (
+                      <option key={r.value || "rel-unset"} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label
+                  className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  リンク確認日
+                  <span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                  <input
+                    type="date"
+                    value={furnitureLinkVerifiedDate}
+                    onChange={(e) => setFurnitureLinkVerifiedDate(e.target.value)}
+                    className="input-base text-[10px]"
+                    aria-label="リンクを確認した日"
+                  />
+                </label>
+              </div>
             </div>
           </div>
           {error ? <p className="nook-form-error mt-0 text-xs" role="alert">{error}</p> : null}
@@ -545,6 +620,13 @@ export default function CreatePost() {
                       {f.price !== null && (
                         <p className="mt-1 text-[11px] font-bold" style={{ color: "var(--text)" }}>
                           ¥{f.price.toLocaleString()}
+                        </p>
+                      )}
+                      {(f.linkRelation || f.linkVerifiedDate) && (
+                        <p className="mt-1 text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>
+                          {f.linkRelation ? getFurnitureLinkRelationLabel(f.linkRelation) : null}
+                          {f.linkRelation && f.linkVerifiedDate ? "・" : null}
+                          {f.linkVerifiedDate ? `リンク確認 ${f.linkVerifiedDate}` : null}
                         </p>
                       )}
                     </div>
@@ -577,6 +659,39 @@ export default function CreatePost() {
                       </select>
                     </label>
                   )}
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <label
+                      className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      リンクについて<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                      <select
+                        value={f.linkRelation}
+                        onChange={(e) => updateFurnitureTrust(i, { linkRelation: e.target.value })}
+                        className="input-base text-[10px]"
+                        aria-label={`${f.name} のリンクの位置づけ`}
+                      >
+                        {FURNITURE_LINK_RELATIONS.map((r) => (
+                          <option key={`${i}-${r.value || "unset"}`} value={r.value}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label
+                      className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      リンク確認日<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                      <input
+                        type="date"
+                        value={f.linkVerifiedDate}
+                        onChange={(e) => updateFurnitureTrust(i, { linkVerifiedDate: e.target.value })}
+                        className="input-base text-[10px]"
+                        aria-label={`${f.name} のリンクを確認した日`}
+                      />
+                    </label>
+                  </div>
                 </li>
               ))}
             </ul>

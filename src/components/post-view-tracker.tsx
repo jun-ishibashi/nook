@@ -12,7 +12,7 @@ export default function PostViewTracker({ post }: { post: { id: string; title: s
       title: post.title,
       thumbnail: post.thumbnail,
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [addPost, post.id, post.title, post.thumbnail]);
 
   return null;
 }

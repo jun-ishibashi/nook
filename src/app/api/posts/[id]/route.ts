@@ -10,6 +10,10 @@ import {
   normalizeRoomContextNote,
 } from "@/lib/room-context";
 import { getProductUrlHost } from "@/lib/product-url";
+import {
+  normalizeFurnitureLinkRelation,
+  parseLinkVerifiedDate,
+} from "@/lib/furniture-link-meta";
 
 export async function GET(
   _request: Request,
@@ -81,7 +85,14 @@ type PatchBody = {
   housingType?: string;
   layoutType?: string;
   roomContextNote?: string;
-  furniture?: { name: string; productUrl: string; note?: string; mediaIndex?: number }[];
+  furniture?: {
+    name: string;
+    productUrl: string;
+    note?: string;
+    mediaIndex?: number;
+    linkRelation?: string;
+    linkVerifiedDate?: string | null;
+  }[];
   styleTags?: string[];
 };
 
@@ -214,6 +225,8 @@ export async function PATCH(
                   : "",
               sortOrder: i,
               mediaIndex,
+              linkRelation: normalizeFurnitureLinkRelation(f.linkRelation),
+              linkVerifiedAt: parseLinkVerifiedDate(f.linkVerifiedDate ?? null),
             };
           }),
         });
