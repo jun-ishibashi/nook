@@ -1,6 +1,6 @@
 import { CATEGORIES } from "@/lib/categories";
 import { HOUSING_TYPES, LAYOUT_TYPES } from "@/lib/room-context";
-import { STYLE_TAGS } from "@/lib/style-tags";
+import { STYLE_TAGS, STYLE_TAG_SEARCH_ALIASES } from "@/lib/style-tags";
 
 /**
  * ホーム検索用: タイトル・説明・部屋の文脈メモに加え、
@@ -13,9 +13,21 @@ export function postSearchOrConditions(q: string): Record<string, unknown>[] {
   const categoryMatches = CATEGORIES.filter(
     (c) => c.label.toLowerCase().includes(ql) || c.value.toLowerCase().includes(ql)
   ).map((c) => c.value);
-  const styleMatches = STYLE_TAGS.filter(
-    (t) => t.label.toLowerCase().includes(ql) || t.slug.toLowerCase().includes(ql)
-  ).map((t) => t.slug);
+  const styleSlugSet = new Set(
+    STYLE_TAGS.filter(
+      (t) => t.label.toLowerCase().includes(ql) || t.slug.toLowerCase().includes(ql)
+    ).map((t) => t.slug)
+  );
+  for (const { alias, slug } of STYLE_TAG_SEARCH_ALIASES) {
+    const al = alias.toLowerCase();
+    const exact = ql === al;
+    const sub =
+      ql.length >= 2 && al.length >= 2 && (al.includes(ql) || ql.includes(al));
+    if (exact || sub) {
+      styleSlugSet.add(slug);
+    }
+  }
+  const styleMatches = [...styleSlugSet];
 
   const housingMatches = HOUSING_TYPES.filter(
     (h) =>

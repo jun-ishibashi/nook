@@ -1,9 +1,9 @@
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
 
-/* 固定ナビ＋ホームのスティッキー帯の下に見え隠れしないよう、アンカー・スキップリンク時のオフセット */
+/* 固定ナビ＋ホームのスティッキー帯の下に見え隠れしないよう、アンカー・スキップリンク時のオフセット（ノッチ時は safe-area を足す） */
 html {
-  scroll-padding-top: 5rem;
+  scroll-padding-top: max(5rem, env(safe-area-inset-top, 0px));
 }
 
 :root,
@@ -298,6 +298,11 @@ body {
     padding-top: 0.125rem;
   }
 
+  /** ホーム空状態：写真グリッドと同じトーンで控えめに */
+  .home-empty-state img {
+    -webkit-user-drag: none;
+  }
+
   .nook-section-label,
   .home-section-label {
     font-size: 10px;
@@ -355,28 +360,27 @@ body {
   }
   .group:hover .home-post-tile__media {
     box-shadow: var(--home-card-lift);
-    transform: translateY(-4px) scale(1.01);
+    transform: translateY(-2px);
   }
 
-  /** 適用中条件チップ：塗りより細い輪郭＋字重（§3.3・§5.2） */
+  /** 適用中条件チップ：細い輪郭・写真主役を損なわない（§3.3・§5.2） */
   .nook-active-filter-chip {
     border-radius: 9999px;
-    border: 1px solid var(--text-faint);
-    background: var(--bg-sunken);
-    color: var(--text);
+    border: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--bg-raised) 88%, transparent);
+    color: var(--text-secondary);
     font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all var(--transition-fast);
+    font-weight: 600;
+    box-shadow: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
   .nook-active-filter-chip:hover {
-    border-color: var(--text-muted);
-    transform: translateY(-1px);
+    color: var(--text);
+    border-color: var(--text-faint);
+    background: var(--bg-sunken);
   }
   html[data-theme="dark"] .nook-active-filter-chip {
-    background: rgba(45, 43, 40, 0.85);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(28, 27, 25, 0.55);
   }
 
   /** アラート（ログイン等）：テーマ追随 */
@@ -667,6 +671,17 @@ html[data-theme="dark"] .category-showcase-tile:hover {
 .stagger-item:nth-child(10) { animation-delay: 400ms; }
 .stagger-item:nth-child(11) { animation-delay: 440ms; }
 .stagger-item:nth-child(12) { animation-delay: 480ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stagger-item {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .animate-fade-in {
+    animation: none !important;
+  }
+}
 
 .glass-surface {
   background: var(--nav-surface);

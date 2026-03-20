@@ -58,6 +58,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
     include: {
       medias: { take: 1, orderBy: { id: "asc" } },
       user: { select: { id: true, name: true, image: true } },
+      furnitureItems: { select: { price: true } },
       styleTags: { select: { tagSlug: true } },
       _count: { select: { furnitureItems: true, likes: true } },
       likes: currentUserId ? { where: { userId: currentUserId }, select: { id: true } } : false,
@@ -65,20 +66,24 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
     },
   });
 
-  const postList = posts.map((p) => ({
-    id: p.id,
-    title: p.title,
-    description: p.description,
-    category: p.category,
-    thumbnail: p.medias[0]?.path ?? null,
-    user: p.user,
-    itemCount: p._count.furnitureItems,
-    likeCount: p._count.likes,
-    liked: currentUserId ? p.likes.length > 0 : false,
-    bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
-    styleTags: p.styleTags.map((t) => t.tagSlug),
-    createdAt: p.createdAt.toISOString(),
-  }));
+  const postList = posts.map((p) => {
+    const totalPrice = p.furnitureItems.reduce((acc, item) => acc + (item.price ?? 0), 0);
+    return {
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      category: p.category,
+      thumbnail: p.medias[0]?.path ?? null,
+      user: p.user,
+      itemCount: p._count.furnitureItems,
+      likeCount: p._count.likes,
+      liked: currentUserId ? p.likes.length > 0 : false,
+      bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
+      styleTags: p.styleTags.map((t) => t.tagSlug),
+      totalPrice: totalPrice > 0 ? totalPrice : null,
+      createdAt: p.createdAt.toISOString(),
+    };
+  });
 
   const isOwn = currentUserId === user.id;
 
@@ -255,12 +260,14 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
               className="flex flex-col items-center rounded-[var(--radius-card)] border py-12 text-center sm:py-14"
               style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
             >
-              <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
-                まだ部屋がありません
-              </p>
-              <p className="mt-1 max-w-xs px-4 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                {isOwn ? "写真を載せるとここに並びます。" : "まだ部屋がありません。"}
-              </p>
+            <p className="text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+              まだ、静かな部屋の一角です
+            </p>
+            <p className="mt-2 max-w-xs px-4 text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              {isOwn
+                ? "最初の一枚を、マイページから写真を載せてみませんか。"
+                : "これから、こだわりの詰まった部屋が並ぶ予定です。"}
+            </p>
               {isOwn ? (
                 <Link href="/dashboard" className="btn-secondary mt-5 text-xs">
                   マイページへ

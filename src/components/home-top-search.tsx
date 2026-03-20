@@ -7,6 +7,7 @@ import { buildHomeHref } from "@/lib/home-href";
 import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
 import { getCategoryLabel } from "@/lib/categories";
 import { getStyleTagLabel } from "@/lib/style-tags";
+import { hasActivePriceParams, labelForPriceSearchParams } from "@/lib/price-brackets";
 import {
   getRecentSearchesServerSnapshot,
   getRecentSearchesSnapshot,
@@ -28,6 +29,8 @@ function ClearFiltersButton() {
           p.delete("styles");
           p.delete("style");
           p.delete("feed");
+          p.delete("minPrice");
+          p.delete("maxPrice");
         })
       );
     });
@@ -38,6 +41,7 @@ function ClearFiltersButton() {
       type="button"
       onClick={clear}
       disabled={isPending}
+      aria-busy={isPending}
       className="home-top-search-clear shrink-0"
     >
       条件をすべてクリア
@@ -52,6 +56,8 @@ function ActiveFilterChips() {
   const q = searchParams.get("q")?.trim() ?? "";
   const category = searchParams.get("category")?.trim() ?? "";
   const following = searchParams.get("feed")?.trim() === "following";
+  const minPrice = searchParams.get("minPrice");
+  const maxPrice = searchParams.get("maxPrice");
   const styles = parseStyleSlugsFromSearchParams({
     styles: searchParams.get("styles") ?? undefined,
     style: searchParams.get("style") ?? undefined,
@@ -89,6 +95,18 @@ function ActiveFilterChips() {
         else p.set("styles", next.join(","));
       }),
       ariaRemove: `スタイル「${lab}」を外す`,
+    });
+  }
+  const priceLab = labelForPriceSearchParams(minPrice, maxPrice);
+  if (priceLab) {
+    chips.push({
+      key: "price",
+      label: priceLab,
+      clearHref: buildHomeHref(searchParams, (p) => {
+        p.delete("minPrice");
+        p.delete("maxPrice");
+      }),
+      ariaRemove: `価格帯「${priceLab}」を外す`,
     });
   }
   if (following) {
@@ -179,9 +197,9 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
           enterKeyHint="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="デスク、間接照明、コンクリ調…"
+          placeholder="デスク、照明、無機質…"
           className="input-feed"
-          aria-label="キーワードで部屋をさがす"
+          aria-label="キーワードで部屋を探す"
           aria-describedby={helpId}
           disabled={isPending}
           autoComplete="off"
@@ -202,7 +220,7 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
           </button>
         ) : null}
         <button type="submit" disabled={isPending} className="search-submit disabled:opacity-40">
-          さがす
+          検索
         </button>
       </div>
     </form>
@@ -257,16 +275,24 @@ export default function HomeTopSearch() {
   const urlQ = searchParams.get("q") ?? "";
   const category = searchParams.get("category")?.trim() ?? "";
   const following = searchParams.get("feed")?.trim() === "following";
+  const minPrice = searchParams.get("minPrice");
+  const maxPrice = searchParams.get("maxPrice");
   const styles = parseStyleSlugsFromSearchParams({
     styles: searchParams.get("styles") ?? undefined,
     style: searchParams.get("style") ?? undefined,
   });
-  const hasFilter = Boolean(urlQ.trim() || category || styles.length > 0 || following);
+  const hasFilter = Boolean(
+    urlQ.trim() ||
+      category ||
+      styles.length > 0 ||
+      following ||
+      hasActivePriceParams(minPrice, maxPrice)
+  );
 
   return (
     <section className="home-top-search" aria-label="キーワード検索">
       <p id="home-search-help" className="sr-only">
-        タイトル・キャプション・タグなどで検索。Enter または「さがす」。
+        タイトル・説明・タグなどで検索。Enter または「検索」ボタン。
       </p>
       <header className="mb-2 flex items-center justify-between gap-2">
         <p id="home-search-label" className="nook-section-label">

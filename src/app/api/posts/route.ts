@@ -13,6 +13,10 @@ import {
 import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
 import { postSearchOrConditions } from "@/lib/post-search";
 import { getProductUrlHost } from "@/lib/product-url";
+import {
+  normalizeFurnitureLinkRelation,
+  parseLinkVerifiedDate,
+} from "@/lib/furniture-link-meta";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -24,6 +28,9 @@ export async function GET(request: NextRequest) {
     style: searchParams.get("style") ?? undefined,
   });
 
+  const minPrice = parseInt(searchParams.get("minPrice") ?? "", 10);
+  const maxPrice = parseInt(searchParams.get("maxPrice") ?? "", 10);
+
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user
     ? await prisma.user
@@ -31,7 +38,7 @@ export async function GET(request: NextRequest) {
         .then((u) => u?.id)
     : undefined;
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, any> = {};
   if (q) {
     where.OR = postSearchOrConditions(q);
   }
@@ -47,12 +54,26 @@ export async function GET(request: NextRequest) {
     }));
   }
 
+  // 価格フィルター: 指定された範囲の価格を持つ家具が1つ以上ある投稿を抽出
+  if (!isNaN(minPrice) || !isNaN(maxPrice)) {
+    const priceWhere: Record<string, any> = {};
+    if (!isNaN(minPrice)) priceWhere.gte = minPrice;
+    if (!isNaN(maxPrice)) priceWhere.lte = maxPrice;
+    
+    where.furnitureItems = {
+      some: {
+        price: priceWhere
+      }
+    };
+  }
+
   const posts = await prisma.post.findMany({
     where,
     orderBy: { createdAt: "desc" },
     include: {
       medias: { take: 1, orderBy: { id: "asc" } },
       user: { select: { id: true, name: true, image: true } },
+      furnitureItems: { select: { price: true } },
       styleTags: { select: { tagSlug: true } },
       _count: { select: { furnitureItems: true, likes: true } },
       likes: currentUserId
@@ -64,20 +85,24 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const list = posts.map((p) => ({
-    id: p.id,
-    title: p.title,
-    description: p.description,
-    category: p.category,
-    thumbnail: p.medias[0]?.path ?? null,
-    user: p.user,
-    itemCount: p._count.furnitureItems,
-    likeCount: p._count.likes,
-    liked: currentUserId ? p.likes.length > 0 : false,
-    bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
-    styleTags: p.styleTags.map((t) => t.tagSlug),
-    createdAt: p.createdAt.toISOString(),
-  }));
+  const list = posts.map((p) => {
+    const totalPrice = p.furnitureItems.reduce((acc, item) => acc + (item.price ?? 0), 0);
+    return {
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      category: p.category,
+      thumbnail: p.medias[0]?.path ?? null,
+      user: p.user,
+      itemCount: p._count.furnitureItems,
+      likeCount: p._count.likes,
+      liked: currentUserId ? p.likes.length > 0 : false,
+      bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
+      styleTags: p.styleTags.map((t) => t.tagSlug),
+      totalPrice: totalPrice > 0 ? totalPrice : null,
+      createdAt: p.createdAt.toISOString(),
+    };
+  });
 
   return NextResponse.json(list);
 }
@@ -106,15 +131,27 @@ export async function POST(request: Request) {
   const validCategories = CATEGORIES.map((c) => c.value as string);
   const safeCategory = validCategories.includes(category) ? category : "other";
 
-  let furniture: { name: string; productUrl: string; note: string; mediaIndex: number }[] = [];
+  let furniture: {
+    name: string;
+    productUrl: string;
+    note: string;
+    price: number | null;
+    mediaIndex: number;
+    linkRelation: string;
+    linkVerifiedAt: Date | null;
+  }[] = [];
   if (furnitureJson) {
     try {
-      const parsed = JSON.parse(furnitureJson) as {
+      interface FurnitureInput {
         name: string;
         productUrl: string;
         note?: string;
+        price?: number;
         mediaIndex?: number;
-      }[];
+        linkRelation?: string;
+        linkVerifiedDate?: string | null;
+      }
+      const parsed = JSON.parse(furnitureJson) as FurnitureInput[];
       furniture = (Array.isArray(parsed) ? parsed : [])
         .filter(
           (f) =>
@@ -127,10 +164,13 @@ export async function POST(request: Request) {
           name: f.name,
           productUrl: f.productUrl,
           note: typeof f.note === "string" ? f.note.trim().slice(0, 500) : "",
+          price: typeof f.price === "number" && Number.isFinite(f.price) ? Math.max(0, Math.floor(f.price)) : null,
           mediaIndex:
             typeof f.mediaIndex === "number" && Number.isFinite(f.mediaIndex)
               ? Math.max(0, Math.floor(f.mediaIndex))
               : 0,
+          linkRelation: normalizeFurnitureLinkRelation(f.linkRelation),
+          linkVerifiedAt: parseLinkVerifiedDate(f.linkVerifiedDate),
         }));
     } catch {
       furniture = [];
@@ -180,8 +220,11 @@ export async function POST(request: Request) {
             productUrl: url,
             productHost: getProductUrlHost(url),
             note: f.note.slice(0, 500),
+            price: f.price,
             sortOrder: i,
             mediaIndex: Math.min(f.mediaIndex ?? 0, Math.max(0, files.length - 1)),
+            linkRelation: f.linkRelation,
+            linkVerifiedAt: f.linkVerifiedAt,
           };
         }),
       },
