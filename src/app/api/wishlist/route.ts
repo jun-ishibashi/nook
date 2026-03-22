@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireApiUser } from "@/lib/session-user";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 401 });
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const { user } = auth;
 
   const items = await prisma.itemWishlist.findMany({
     where: { userId: user.id },
@@ -32,14 +26,9 @@ export async function GET() {
 
 /** トグル: 同じ URL があれば削除、なければ追加 */
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 401 });
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const { user } = auth;
 
   let body: { productUrl?: string; name?: string; note?: string; postId?: string };
   try {
@@ -87,14 +76,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 401 });
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const { user } = auth;
 
   const id = request.nextUrl.searchParams.get("id");
   if (!id) {

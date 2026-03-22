@@ -1,4 +1,4 @@
-/** 家具行の購入リンク透明性（任意・§8.8） */
+/** 家具行の購入リンク透明性（任意） */
 
 export const FURNITURE_LINK_RELATIONS = [
   { value: "", label: "未設定" },

@@ -12,31 +12,25 @@ export default function TermsPage() {
       <div className="nook-page pb-16 pt-8 sm:py-12">
         <Link
           href="/"
-          className="inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
-          style={{ color: "var(--text-muted)" }}
+          className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
         >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
             <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           みんなの部屋へ
         </Link>
-        <div
-          className="mt-6 space-y-4 rounded-[var(--radius-card)] border p-5 sm:p-6"
-          style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)", boxShadow: "var(--home-tile-shadow)" }}
-        >
+        <div className="nook-elevated-surface mt-6 space-y-4 overflow-hidden p-5 sm:p-6">
           <div>
             <p className="nook-section-label mb-2">法務（サンプル）</p>
-            <h1 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-              利用規約
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              サンプル文面です。公開前に法務確認を。本文は正確さ優先。
+            <h1 className="nook-fg text-xl font-semibold tracking-tight">利用規約</h1>
+            <p className="nook-fg-secondary mt-3 text-sm leading-relaxed">
+              NOOK は、一人暮らしの部屋を見ながら、気になる家具・雑貨も探していけるサービスです。以下はサンプル文面です。公開前に法務確認を。本文は正確さ優先。
             </p>
-            <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
+            <p className="nook-fg-muted mt-2 text-xs">
               最終更新: 2025年3月19日
             </p>
           </div>
-          <div className="prose-nook space-y-5 border-t pt-6 text-sm leading-relaxed" style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)" }}>
+          <div className="prose-nook prose-nook-block space-y-5 border-t pt-6 text-sm leading-relaxed">
           <section>
             <h2>第1条（適用）</h2>
             <p className="mt-2">

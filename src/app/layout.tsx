@@ -25,11 +25,11 @@ const siteUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3001";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "NOOK — 静かに、こだわりを重ねる。理想の部屋への一歩を。",
+    default: "NOOK — 部屋にこだわってみる",
     template: "%s | NOOK",
   },
   description:
-    "無機質、モノトーン、光。一人暮らしのインスピレーションを、現実の部屋へ。住んでいそうな画から、その家具が「どこで買えるか」までを最短でつなぐ、若者のための発見アプリ。",
+    "一人暮らしの部屋を見ながら、気になる家具・雑貨も探していけます。",
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon",
@@ -38,52 +38,33 @@ export const metadata: Metadata = {
     siteName: "NOOK",
     locale: "ja_JP",
     type: "website",
-    title: "NOOK — 静かに、こだわりを重ねる。理想の部屋への一歩を。",
+    title: "NOOK — 部屋にこだわってみる",
     description:
-      "無機質、モノトーン、光。一人暮らしのインスピレーションを、現実の部屋へ。住んでいそうな画から、その家具が「どこで買えるか」までを最短でつなぐ、若者のための発見アプリ。",
+      "一人暮らしの部屋を見ながら、気になる家具・雑貨も探していけます。",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NOOK — 静かに、こだわりを重ねる。理想の部屋への一歩を。",
+    title: "NOOK — 部屋にこだわってみる",
     description:
-      "無機質、モノトーン、光。一人暮らしのインスピレーションを、現実の部屋へ。住んでいそうな画から、その家具が「どこで買えるか」までを最短でつなぐ、若者のための発見アプリ。",
+      "一人暮らしの部屋を見ながら、気になる家具・雑貨も探していけます。",
   },
 };
 
 const POST_MODAL_ID = "post_modal";
-
-/** FOUC 防止: 初回ペイント前に data-theme を適用（既定: dark） */
-const THEME_INIT_SCRIPT = `
-(function(){
-  try {
-    var k = "nook-theme";
-    var t = localStorage.getItem(k);
-    if (t !== "light" && t !== "dark") t = "dark";
-    document.documentElement.setAttribute("data-theme", t);
-  } catch (e) {
-    document.documentElement.setAttribute("data-theme", "dark");
-  }
-})();`;
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`} suppressHydrationWarning>
-      <body
-        className={`flex min-h-screen flex-col antialiased ${notoSansJP.className}`}
-        style={{
-          background: "var(--bg)",
-          color: "var(--text)",
-          fontFeatureSettings: '"palt" 1',
-        }}
-      >
-        <Script id="nook-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      <head>
+        <Script src="/nook-theme-init.js" strategy="beforeInteractive" />
+      </head>
+      <body className={`nook-body-surface flex min-h-screen flex-col antialiased ${notoSansJP.className}`}>
         <Providers>
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:px-4 focus:py-2 focus:font-medium focus:outline-none"
-            style={{ background: "var(--bg-inverse)", color: "var(--text-inverse)" }}
+            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-[var(--bg-inverse)] focus:px-4 focus:py-2 focus:font-medium focus:text-[var(--text-inverse)] focus:outline-none"
           >
             メインコンテンツへスキップ
           </a>

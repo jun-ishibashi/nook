@@ -8,7 +8,7 @@ html {
 
 :root,
 html[data-theme="light"] {
-  /* §6 賃貸リアル・モノトーン：紙とコンクリのあいだのライトグレー（ややウォーム） */
+  /* §6 モノトーン・コンクリ寄り：紙とコンクリのあいだのライトグレー（ややウォーム） */
   --bg:          #f5f3f0;
   --bg-raised:   #fffcf9;
   --bg-sunken:   #ebe8e4;
@@ -45,7 +45,7 @@ html[data-theme="light"] {
     radial-gradient(ellipse 90% 50% at 100% 0%, rgba(232, 226, 216, 0.5) 0%, transparent 52%),
     radial-gradient(ellipse 70% 40% at 0% 18%, rgba(220, 214, 206, 0.35) 0%, transparent 45%),
     var(--bg);
-  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 2px 14px rgba(44, 40, 37, 0.06);
+  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
   --home-card-lift: 0 10px 36px rgba(44, 40, 37, 0.08);
   --home-tile-shadow: 0 2px 10px rgba(44, 40, 37, 0.05);
 
@@ -95,7 +95,7 @@ html[data-theme="dark"] {
     radial-gradient(ellipse 82% 44% at 0% 4%, rgba(72, 62, 52, 0.28) 0%, transparent 52%),
     radial-gradient(ellipse 55% 36% at 100% 12%, rgba(48, 44, 40, 0.45) 0%, transparent 50%),
     linear-gradient(180deg, #131211 0%, #0d0c0b 100%);
-  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 32px rgba(0, 0, 0, 0.5);
+  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
   --home-card-lift: 0 20px 60px rgba(0, 0, 0, 0.6);
   --home-tile-shadow: 0 4px 24px rgba(0, 0, 0, 0.38);
 }
@@ -111,6 +111,13 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/** layout.tsx の body に付与（インラインの集約） */
+.nook-body-surface {
+  background: var(--bg);
+  color: var(--text);
+  font-feature-settings: "palt" 1;
 }
 
 @layer components {
@@ -164,6 +171,308 @@ body {
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium;
     background: var(--bg-sunken);
+    color: var(--text-secondary);
+  }
+
+  /** テーマ追随の前景色（インライン style の集約・a11y でコントラストはトークン側で担保） */
+  .nook-fg {
+    color: var(--text);
+  }
+  .nook-fg-secondary {
+    color: var(--text-secondary);
+  }
+  .nook-fg-muted {
+    color: var(--text-muted);
+  }
+  .nook-fg-faint {
+    color: var(--text-faint);
+  }
+
+  .nook-bg-wash {
+    background: var(--bg-wash);
+  }
+  .nook-bg-sunken {
+    background: var(--bg-sunken);
+  }
+  .nook-bg-raised {
+    background: var(--bg-raised);
+  }
+
+  /** create-post ステッパー（状態はクラス切り替え） */
+  .nook-create-step-connector {
+    background: var(--hairline);
+  }
+  .nook-create-step-connector--on {
+    background: var(--text-muted);
+  }
+  .nook-create-step-badge-done {
+    border: 1px solid var(--hairline);
+    background: var(--bg-sunken);
+    color: var(--text-secondary);
+  }
+  .nook-create-step-badge-active {
+    border: 1px solid var(--text);
+    background: var(--text);
+    color: var(--text-inverse);
+  }
+  .nook-create-step-badge-pending {
+    border: 1px solid var(--hairline);
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  /** 投稿モーダル：手順の線形プログレス */
+  .nook-create-post-progress {
+    height: 3px;
+    width: 100%;
+    border-radius: 9999px;
+    background: var(--bg-sunken);
+    overflow: hidden;
+  }
+  .nook-create-post-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--text);
+    transition: width 0.28s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nook-create-post-progress-fill {
+      transition: none;
+    }
+  }
+
+  /** btn-primary 上の送信中スピナー */
+  .nook-spinner-btn-inverse {
+    @apply h-4 w-4 animate-spin rounded-full border-2 border-t-transparent;
+    border-color: var(--text-inverse);
+    border-top-color: transparent;
+  }
+
+  /** Mood チップ（選択は data または修飾クラス） */
+  .nook-mood-chip {
+    border-color: var(--hairline);
+    background: transparent;
+  }
+  .nook-mood-chip--selected {
+    border-color: var(--text-muted);
+    background: var(--bg-raised);
+  }
+  .nook-mood-swatch-frame {
+    border: 1px solid var(--hairline);
+    background: var(--bg-sunken);
+  }
+  /** ムードチップ内プレビュー（ライト/ダークで #eee/#fff に依存しない） */
+  .nook-mood-swatch-checker {
+    background-color: var(--bg-sunken);
+    background-image:
+      linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text) 8%, transparent) 25%,
+        transparent 25%,
+        transparent 75%,
+        color-mix(in srgb, var(--text) 8%, transparent) 75%
+      ),
+      linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text) 8%, transparent) 25%,
+        var(--bg-raised) 25%,
+        var(--bg-raised) 75%,
+        color-mix(in srgb, var(--text) 8%, transparent) 75%
+      );
+    background-size: 10px 10px;
+    background-position: 0 0, 5px 5px;
+  }
+  .nook-mood-check-badge {
+    border: 1px solid var(--hairline);
+  }
+
+  /** 画像プレビュー上の削除ボタン */
+  .nook-image-remove-btn {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+  }
+
+  /** ダッシュボード：サムネ下部のガラス帯・白テキスト上の操作 */
+  .nook-dash-post-bar {
+    background: rgba(14, 16, 18, 0.66);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .nook-dash-post-btn-outline {
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .nook-dash-post-btn-outline-soft {
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .nook-dash-post-btn-danger {
+    background: color-mix(in srgb, var(--like-active) 82%, transparent);
+  }
+  .nook-dash-post-btn-ghost {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  /** ホーム：カテゴリショーケースの gap-px グリッド枠 */
+  .nook-category-showcase-frame {
+    border-color: var(--hairline);
+    background: var(--hairline);
+  }
+
+  /** いいね：オン時の色（トークン） */
+  .nook-like-fg-on {
+    color: var(--like-active);
+  }
+
+  /** ホーム・ダッシュボードの統計タイル */
+  .nook-stat-tile {
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-sunken) 55%, var(--bg-raised));
+  }
+
+  /** 投稿詳細：操作帯・著者カードなど */
+  .nook-post-toolbar-surface {
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-raised) 80%, transparent);
+  }
+
+  /** 家具リスト1行 */
+  .nook-furniture-row {
+    border-color: var(--hairline);
+    background: var(--bg-raised);
+  }
+
+  .nook-style-pill {
+    border-color: var(--hairline);
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .nook-like-bookmark-cluster {
+    border-color: var(--hairline);
+    background: var(--bg-sunken);
+  }
+
+  .nook-dropzone-idle {
+    border-color: var(--hairline);
+    background: var(--bg-sunken);
+  }
+  .nook-dropzone-active {
+    border-color: var(--text-muted);
+    background: color-mix(in srgb, var(--bg-raised) 88%, var(--bg-wash));
+  }
+
+  .nook-room-context-panel {
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-sunken) 40%, var(--bg-raised));
+  }
+
+  .nook-shop-host-chip {
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-sunken) 55%, var(--bg-raised));
+    color: var(--text-secondary);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  /** スケルトン・ローディングプレースホルダ */
+  .nook-skeleton-pulse {
+    @apply animate-pulse rounded-sm;
+    background: var(--bg-sunken);
+  }
+
+  /** 境界色の短縮（border クラスと併用） */
+  .nook-border-hairline {
+    border-color: var(--hairline);
+  }
+  .nook-border-subtle {
+    border-color: var(--border-subtle);
+  }
+
+  .nook-signal-dot {
+    background: var(--signal-soft);
+  }
+
+  .nook-nav-avatar-trigger {
+    background: var(--bg-raised);
+    border: 1px solid var(--hairline);
+    color: var(--text-secondary);
+  }
+
+  /** ホバーで沈む面（アイコンボタンなど） */
+  .nook-hover-bg-sunken:hover {
+    background-color: var(--bg-sunken);
+  }
+
+  /** ナビ・ドロップダウン */
+  .nook-menu-surface {
+    background: var(--bg-raised);
+    border: 1px solid var(--hairline);
+  }
+  .nook-menu-header-row {
+    border-bottom: 1px solid var(--hairline);
+    background: var(--bg-sunken);
+  }
+  .nook-menu-item {
+    @apply flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium transition duration-200;
+    color: var(--text-secondary);
+  }
+  .nook-menu-item:hover,
+  .nook-menu-item:focus-visible {
+    background: var(--bg-sunken);
+    outline: none;
+  }
+  .nook-menu-item:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--hairline);
+  }
+
+  .nook-mobile-nav-sheet {
+    border-top: 1px solid var(--hairline);
+    background: var(--bg);
+  }
+  .nook-mobile-nav-divider {
+    border-bottom: 1px solid var(--hairline);
+  }
+  .nook-mobile-nav-row {
+    @apply flex w-full min-h-11 items-center rounded-md px-3 py-2.5 text-sm font-medium transition;
+    color: var(--text-secondary);
+  }
+  .nook-mobile-nav-row:hover,
+  .nook-mobile-nav-row:focus-visible {
+    background: var(--bg-sunken);
+    outline: none;
+  }
+
+  /** モーダル（投稿など） */
+  .nook-modal-dialog-surface {
+    background: var(--bg-raised);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--home-card-lift);
+  }
+  .nook-modal-header-surface {
+    border-color: var(--hairline);
+    background: var(--bg-raised);
+  }
+  .nook-modal-drag-indicator {
+    background: var(--border-subtle);
+  }
+
+  /** フローティング戻る（セーフエリア込み位置はクラスで固定） */
+  .nook-back-to-top {
+    bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    right: max(1.25rem, env(safe-area-inset-right, 0px));
+    background: var(--bg-raised);
+    border-color: var(--hairline);
+    color: var(--text-secondary);
+    box-shadow: var(--home-tile-shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /** プロフィールアバター（イニシャル） */
+  .nook-avatar-letter {
+    @apply flex shrink-0 items-center justify-center rounded-full text-xl font-semibold;
+    background: var(--bg-raised);
+    border: 1px solid var(--hairline);
     color: var(--text-secondary);
   }
 
@@ -250,9 +559,17 @@ body {
     -webkit-backdrop-filter: blur(14px);
   }
 
+  /** 投稿詳細：ギャラリー帯の面（背景。影は下の複合セレクタで .nook-gallery-cap より後勝ち） */
+  .nook-post-hero-surface {
+    background: var(--bg-sunken);
+  }
+
   /** 投稿詳細：ギャラリー帯に軽い奥行き（§5 写真主役・境界は細く） */
   .nook-gallery-cap {
     box-shadow: var(--home-tile-shadow);
+  }
+  .post-detail-hero.nook-gallery-cap.nook-post-hero-surface {
+    box-shadow: 0 8px 40px color-mix(in srgb, var(--accent-warm) 6%, transparent);
   }
   .post-detail-hero.nook-gallery-cap {
     border-bottom: 1px solid var(--hairline);
@@ -269,6 +586,12 @@ body {
   }
 
   /** ログイン・Google 続行（§5 操作は軽く・Google ブランドマークはボタン内に限定） */
+  .login-google-btn {
+    background: var(--bg-raised);
+    color: var(--text);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--home-tile-shadow);
+  }
   .login-google-btn:hover:not(:disabled) {
     border-color: var(--text-faint);
   }
@@ -277,28 +600,507 @@ body {
     outline-offset: 2px;
   }
 
+  .login-visual-scrim {
+    background: linear-gradient(
+      to top,
+      rgba(19, 18, 17, 0.7) 0%,
+      rgba(19, 18, 17, 0.15) 50%,
+      transparent 100%
+    );
+  }
+  .login-hero-caption {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .nook-spinner-muted {
+    border: 2px solid var(--text-muted);
+    border-top-color: transparent;
+  }
+
+  /** ホームスティッキー帯の面（インライン集約） */
+  .home-sticky-feed-surface {
+    background: var(--sticky-surface);
+  }
+
+  /** 細い区切り（ツールバー内など） */
+  .nook-vdivider {
+    height: 1rem;
+    width: 1px;
+    opacity: 0.2;
+    background: var(--text-muted);
+  }
+
   /** ログイン済みホーム・再訪1行：操作帯と同化しすぎないようごく弱い字間 */
   .home-revisit-strip {
     letter-spacing: 0.02em;
   }
 
-  /** ホーム上部スティッキー：縦を抑え、写真エリアを食わない（§5.1） */
+  /** ホーム：操作層は境界とごく弱い面だけ（product-vision §5.1） */
   .home-sticky-feed {
     border-bottom: 1px solid var(--hairline);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    box-shadow: var(--home-bar-shadow);
   }
-  html[data-theme="dark"] .home-sticky-feed {
-    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.28);
+
+  /** ログイン後：タブと再訪を1帯に（固定操作域の高さを抑える） */
+  .home-sticky-toolbar {
+    @apply flex flex-col gap-1 py-1 sm:flex-row sm:items-end sm:justify-between sm:gap-6 sm:py-1.5;
+  }
+  .home-sticky-toolbar__tabs {
+    @apply min-w-0 shrink-0;
+  }
+  .home-sticky-toolbar__revisit {
+    @apply min-w-0 sm:max-w-[min(100%,20rem)] sm:text-right;
+  }
+
+  /** ホーム・フィード縦スタック（余白で階層 §3.3） */
+  .home-feed-stack {
+    @apply flex flex-col gap-7 sm:gap-9;
+  }
+
+  /** スティッキー内：検索＋クリアの一行 */
+  .home-sticky-search-clear {
+    @apply shrink-0 pt-2.5 text-[10px] font-semibold tracking-wide underline decoration-transparent underline-offset-4 transition hover:opacity-80 sm:pt-2;
+    color: var(--text-muted);
+  }
+  .home-sticky-search-clear:hover:not(:disabled) {
+    color: var(--text-secondary);
+  }
+  .home-sticky-search-clear:disabled {
+    opacity: 0.45;
+  }
+
+  /** 条件チップ：横スクロールで縦を固定 */
+  .home-active-chips-scroll {
+    -webkit-overflow-scrolling: touch;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  .home-active-chips-scroll__track {
+    @apply flex flex-nowrap gap-2 overflow-x-auto pb-0.5;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .home-active-chips-scroll__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /** 最近のキーワード（スティッキー外） */
+  .home-recent-search-row {
+    @apply flex flex-col gap-1.5;
+  }
+  .home-recent-search-row__label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+  }
+  .home-recent-search-row__scroll {
+    @apply flex gap-2 overflow-x-auto pb-0.5;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .home-recent-search-row__scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /** 一覧まわりの小見出し（最近・トレンド・フィード） */
+  .home-browse-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+  }
+  .home-browse-hint {
+    margin-top: 0.2rem;
+    margin-bottom: 0.75rem;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  @media (min-width: 640px) {
+    .home-browse-hint {
+      margin-bottom: 0.85rem;
+    }
+  }
+
+  /** フィード直前の区切り（写真主役の手前で一段だけ） */
+  .home-feed-ledge {
+    margin-top: 0.25rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .home-feed-ledge__title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+  }
+
+  /** 絞り込み：見出し行＋テキストトグル（操作は軽く） */
+  .home-filter-panel {
+    @apply border-t pt-4 sm:pt-5;
+    border-color: var(--hairline);
+  }
+  .home-filter-panel__bar {
+    @apply flex items-center justify-between gap-3;
+  }
+  .home-filter-panel__title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+  .home-filter-panel__toggle {
+    @apply inline-flex items-center gap-1 border-0 bg-transparent py-1 text-[11px] font-semibold transition;
+    color: var(--text-secondary);
+  }
+  .home-filter-panel__toggle:hover {
+    color: var(--text);
+  }
+  .home-filter-panel__chevron {
+    opacity: 0.55;
+    transition: transform var(--transition-base);
+  }
+  .home-filter-panel__toggle[aria-expanded="true"] .home-filter-panel__chevron {
+    transform: rotate(180deg);
+  }
+  .home-filter-panel__badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+  }
+
+  /** 入口層：上線＋グリッド。カード枠は使わない（§5.1） */
+  .home-entry {
+    @apply pb-1;
+  }
+  .home-entry__rule {
+    height: 1px;
+    width: 2.5rem;
+    margin-bottom: 1rem;
+    background: color-mix(in srgb, var(--accent-warm) 32%, var(--hairline));
+  }
+  .home-entry__grid {
+    @apply flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8;
+  }
+  .home-entry__copy {
+    @apply min-w-0 flex-1;
+  }
+  .home-entry__kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+  }
+  .home-entry__title {
+    @apply max-w-xl text-pretty font-semibold leading-[1.2] tracking-tight;
+    font-size: clamp(1.45rem, 4vw, 1.95rem);
+    color: var(--text);
+  }
+  .home-entry__lede {
+    @apply mt-2 max-w-md text-[12px] leading-relaxed sm:text-[13px];
+    color: var(--text-muted);
+  }
+  .home-entry__actions {
+    @apply flex shrink-0 flex-col items-stretch gap-2.5 sm:items-end;
+  }
+  .home-entry__cta {
+    @apply min-h-10 px-5;
+  }
+  .home-entry__link {
+    @apply text-center text-[12px] font-medium underline decoration-transparent underline-offset-4 transition hover:opacity-80 sm:text-left;
+    color: var(--text-secondary);
+  }
+  .home-entry__moods {
+    @apply mt-5 flex gap-2 overflow-x-auto pb-0.5 sm:mt-6;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .home-entry__moods::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Hero（入口層 §5.1）── */
+  .home-hero {
+    position: relative;
+    min-height: min(70vh, 480px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    border-radius: 0 0 var(--radius-card) var(--radius-card);
+    margin-left: -1rem;
+    margin-right: -1rem;
+  }
+  @media (min-width: 640px) {
+    .home-hero {
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: var(--radius-card);
+    }
+  }
+
+  .home-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .home-hero__media img {
+    object-position: center 40%;
+  }
+  .home-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(19, 18, 17, 0.88) 0%,
+      rgba(19, 18, 17, 0.55) 35%,
+      rgba(19, 18, 17, 0.18) 65%,
+      rgba(19, 18, 17, 0.06) 100%
+    );
+  }
+  html[data-theme="light"] .home-hero__overlay {
+    background: linear-gradient(
+      to top,
+      rgba(42, 38, 35, 0.82) 0%,
+      rgba(42, 38, 35, 0.45) 35%,
+      rgba(42, 38, 35, 0.12) 65%,
+      transparent 100%
+    );
+  }
+
+  .home-hero__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem 1.25rem 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .home-hero__content {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+      padding: 2.5rem 2rem 2rem;
+    }
+  }
+
+  .home-hero__body {
+    min-width: 0;
+    flex: 1;
+  }
+  .home-hero__kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.4rem;
+  }
+  .home-hero__title {
+    font-size: clamp(1.35rem, 4.5vw, 1.85rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: #f5f3f0;
+    max-width: 28rem;
+    text-wrap: balance;
+  }
+  .home-hero__lede {
+    margin-top: 0.6rem;
+    font-size: 12px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.55);
+    max-width: 22rem;
+  }
+  @media (min-width: 640px) {
+    .home-hero__lede {
+      font-size: 13px;
+    }
+  }
+
+  .home-hero__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) {
+    .home-hero__actions {
+      align-items: flex-end;
+    }
+  }
+  .home-hero__cta {
+    min-height: 2.5rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    background: rgba(245, 243, 240, 0.92);
+    color: #131211;
+  }
+  .home-hero__cta:hover {
+    background: rgba(245, 243, 240, 1);
+  }
+  .home-hero__link {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition: all 0.15s ease;
+  }
+  .home-hero__link:hover {
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration-color: rgba(255, 255, 255, 0.3);
+  }
+  @media (min-width: 640px) {
+    .home-hero__link {
+      text-align: left;
+    }
+  }
+
+  .home-hero__moods {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0 1.25rem 1.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .home-hero__moods::-webkit-scrollbar {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .home-hero__moods {
+      padding: 0 2rem 1.75rem;
+    }
+  }
+  .home-hero__mood-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.2s ease;
+  }
+  .home-hero__mood-chip:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .home-tail-discover {
+    @apply pt-1;
+  }
+
+  /** 絞り込み展開：塗りのカードを避け、線と余白だけ（§5.1 操作層） */
+  .home-filter-sheet {
+    @apply flex flex-col gap-5 py-4 sm:gap-6 sm:py-5;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  html[data-theme="dark"] .home-filter-sheet {
+    background: color-mix(in srgb, var(--bg-raised) 35%, transparent);
+  }
+
+  /** 補助一文：表層は部屋・ムード・発見を先に、購入先の価値は短く補足 */
+  .nook-vision-subline {
+    margin-top: 0.35rem;
+    max-width: 36rem;
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  /** フィード見出し行：件数をスキャンしやすいピルに */
+  .home-feed-count-pill {
+    border-radius: 9999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--bg-raised) 70%, transparent);
+    color: var(--text-secondary);
+  }
+  html[data-theme="dark"] .home-feed-count-pill {
+    background: color-mix(in srgb, var(--bg-sunken) 45%, transparent);
   }
 
   /**
-   * ホーム・ウェルカム（§5.1 入口層）：左アクセントはごく弱く。写真フィードへ視線を渡す。
+   * 横スクロール行：端をごく弱くフェード（最近見た部屋・集計スタッツなど）
    */
-  .home-welcome-editorial {
-    padding-top: 0.125rem;
+  .nook-hscroll-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 14px,
+      #000 calc(100% - 14px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 14px,
+      #000 calc(100% - 14px),
+      transparent
+    );
+  }
+  @media (min-width: 640px) {
+    .nook-hscroll-mask-sm-clear {
+      -webkit-mask-image: none !important;
+      mask-image: none !important;
+    }
   }
 
-  /** ホーム空状態：写真グリッドと同じトーンで控えめに */
+  /** マイページ：プロフィール設定の開閉矢印 */
+  .profile-settings-disclosure > summary .profile-settings-chevron {
+    transition: transform var(--transition-base);
+  }
+  .profile-settings-disclosure[open] > summary .profile-settings-chevron {
+    transform: rotate(180deg);
+  }
+
+  /** 一覧グリッド：写真の呼吸とリズム（§5 コンテンツ層） */
+  .home-post-grid {
+    @apply grid grid-cols-2 gap-3 sm:gap-5;
+  }
+  /** Featured カード: フル幅スパン（エディトリアル §5.1） */
+  .home-post-tile--featured {
+    grid-column: 1 / -1;
+  }
+
+  /** ホーム空状態：装飾は最小（§3.3） */
+  .home-empty-state {
+    border-radius: 0.75rem;
+    box-shadow: none;
+    background: transparent;
+  }
   .home-empty-state img {
     -webkit-user-drag: none;
   }
@@ -325,6 +1127,7 @@ body {
     color: var(--text);
     border-color: var(--text-faint);
     background: var(--accent-warm-muted);
+    box-shadow: 0 0 8px 0 color-mix(in srgb, var(--accent-warm) 18%, transparent);
   }
 
   /** 最近：ごく薄い面でキーワードの塊だと分かる程度 */
@@ -347,11 +1150,12 @@ body {
   }
 
   .home-post-tile__media {
-    border-radius: 0.5rem;
+    border-radius: 0.55rem;
     box-shadow: var(--home-tile-shadow);
     transition:
       box-shadow 0.28s ease,
-      transform 0.28s ease;
+      transform 0.28s ease,
+      border-color 0.28s ease;
   }
   @media (min-width: 640px) {
     .home-post-tile__media {
@@ -360,7 +1164,22 @@ body {
   }
   .group:hover .home-post-tile__media {
     box-shadow: var(--home-card-lift);
+    transform: translateY(-1px);
+  }
+
+  /** ホーム一覧：境界は細く、写真を前に（§3.3）+ じんわり暖色グロウ（§6.3） */
+  .home-post-tile__media--renewed {
+    box-shadow: none;
+    border: 1px solid var(--hairline);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+  }
+  .group:hover .home-post-tile__media--renewed {
+    border-color: color-mix(in srgb, var(--text) 12%, var(--hairline));
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--accent-warm) 12%, transparent);
     transform: translateY(-2px);
+  }
+  html[data-theme="dark"] .group:hover .home-post-tile__media--renewed {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   /** 適用中条件チップ：細い輪郭・写真主役を損なわない（§3.3・§5.2） */
@@ -411,6 +1230,12 @@ body {
   .home-feed-nav {
     border-bottom: 1px solid var(--hairline);
   }
+  .home-sticky-toolbar .home-feed-nav {
+    border-bottom: none;
+  }
+  .home-feed-nav--home .feed-tab {
+    @apply py-1 text-[11px];
+  }
 
   /**
    * ホーム「絞り込み」パネル内のチップ（横スクロール・タップしやすさ）
@@ -432,14 +1257,16 @@ body {
     color: var(--text);
   }
   .home-filter-panel .filter-chip[aria-selected="true"] {
-    background: var(--text);
-    color: var(--bg);
-    border-color: var(--text);
-    font-weight: 700;
+    background: color-mix(in srgb, var(--text) 6%, transparent);
+    color: var(--text);
+    border-color: var(--text-muted);
+    font-weight: 600;
+    box-shadow: none;
   }
   html[data-theme="dark"] .home-filter-panel .filter-chip[aria-selected="true"] {
-    background: var(--text);
-    color: var(--bg);
+    background: color-mix(in srgb, var(--text) 10%, transparent);
+    color: var(--text);
+    border-color: var(--text-faint);
   }
   @media (min-width: 640px) {
     .home-filter-panel .filter-chip {
@@ -450,7 +1277,7 @@ body {
 
   /** ホーム・スティッキー内のフィードタブ */
   .home-sticky-feed .feed-tab {
-    @apply py-1.5;
+    @apply py-1;
   }
   .home-top-search-clear {
     @apply py-1 text-[11px] font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-80 disabled:opacity-40;
@@ -567,6 +1394,12 @@ body {
     border-bottom-color: var(--text-muted);
   }
 
+  /** 法務ページ：条文ブロックの境界と本文色 */
+  .prose-nook-block {
+    border-color: var(--hairline);
+    color: var(--text-secondary);
+  }
+
   /**
    * 法務ページ：本文は正確さ優先（§4）。見出し階層だけアプリの軽さに寄せる。
    */
@@ -673,6 +1506,10 @@ html[data-theme="dark"] .category-showcase-tile:hover {
 .stagger-item:nth-child(12) { animation-delay: 480ms; }
 
 @media (prefers-reduced-motion: reduce) {
+  .nook-skeleton-pulse {
+    animation: none !important;
+    opacity: 0.88;
+  }
   .stagger-item {
     animation: none !important;
     opacity: 1 !important;
@@ -680,6 +1517,12 @@ html[data-theme="dark"] .category-showcase-tile:hover {
   }
   .animate-fade-in {
     animation: none !important;
+  }
+  .home-filter-panel__chevron {
+    transition: none !important;
+  }
+  .profile-settings-disclosure > summary .profile-settings-chevron {
+    transition: none !important;
   }
 }
 

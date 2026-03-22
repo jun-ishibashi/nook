@@ -178,19 +178,19 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
           maxLength={100}
           autoComplete="off"
         />
-        <p className="mt-1 text-right text-[10px]" style={{ color: "var(--text-muted)" }}>
+        <p className="nook-fg-muted mt-1 text-right text-[10px]">
           {title.length}/100
         </p>
       </div>
       <div>
         <label htmlFor="edit-desc" className="nook-overline nook-overline--sentence mb-1.5 block">
-          キャプション<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+          キャプション<span className="nook-fg-faint">（任意）</span>
         </label>
         <textarea
           id="edit-desc"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="こだわり・賃貸の条件など、短くて大丈夫です"
+          placeholder="こだわり・住まいの条件など、短くて大丈夫です"
           className="textarea-base text-sm"
           rows={4}
           maxLength={500}
@@ -217,7 +217,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
 
       <div>
         <span className="nook-overline nook-overline--sentence mb-1.5 block">
-          スタイル<span style={{ color: "var(--text-faint)" }}>（任意・最大8）</span>
+          スタイル<span className="nook-fg-faint">（任意・最大8）</span>
         </span>
         <p id="edit-style-hint" className="sr-only">
           タップで複数選べます。同じタグをもう一度押すと外れます。
@@ -245,13 +245,10 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
         </div>
       </div>
 
-      <div
-        className="rounded-[var(--radius-card)] border p-4"
-        style={{ borderColor: "var(--hairline)", background: "color-mix(in srgb, var(--bg-sunken) 40%, var(--bg-raised))" }}
-      >
+      <div className="nook-room-context-panel rounded-[var(--radius-card)] border p-4">
         <span className="nook-overline nook-overline--sentence mb-2 block">部屋の文脈（任意）</span>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <label className="flex flex-1 flex-col gap-1 text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+          <label className="nook-fg-muted flex flex-1 flex-col gap-1 text-[10px] font-semibold">
             住まい
             <select
               value={housingType}
@@ -264,7 +261,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
               ))}
             </select>
           </label>
-          <label className="flex flex-1 flex-col gap-1 text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+          <label className="nook-fg-muted flex flex-1 flex-col gap-1 text-[10px] font-semibold">
             間取いの目安
             <select
               value={layoutType}
@@ -278,7 +275,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
             </select>
           </label>
         </div>
-        <label htmlFor="edit-room-note" className="mt-3 block text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+        <label htmlFor="edit-room-note" className="nook-fg-muted mt-3 block text-[10px] font-semibold">
           ひとこと（角部屋・築年など）
         </label>
         <input
@@ -293,20 +290,15 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
         />
       </div>
 
-      <div className="border-t pt-6" style={{ borderColor: "var(--hairline)" }}>
+      <div className="border-t pt-6 nook-border-hairline">
         <p className="nook-section-label mb-1">家具・雑貨</p>
-        <p className="mb-1 text-sm font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-          リンクの編集
-        </p>
+        <p className="nook-fg mb-1 text-sm font-semibold tracking-tight">リンクの編集</p>
         {furniture.length === 0 ? (
-          <p className="mb-3 text-[11px]" style={{ color: "var(--text-muted)" }}>
+          <p className="nook-fg-muted mb-3 text-[11px]">
             未登録（任意）
           </p>
         ) : null}
-        <div
-          className="rounded-[var(--radius-card)] border p-4"
-          style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
-        >
+        <div className="nook-bg-sunken rounded-[var(--radius-card)] border p-4 nook-border-hairline">
           <div className="flex flex-col gap-2">
             <input
               type="text"
@@ -325,7 +317,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
               aria-label="商品ページのURL"
             />
             {furnitureUrl.trim() && /^http:\/\//i.test(furnitureUrl.trim()) ? (
-              <p className="text-[9px] leading-snug" style={{ color: "var(--text-faint)" }}>
+              <p className="nook-fg-faint text-[9px] leading-snug">
                 可能なら https のリンクを推奨します。
               </p>
             ) : null}
@@ -338,21 +330,15 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
               maxLength={500}
               aria-label="メモ"
             />
-            <div
-              className="mt-1 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:flex-wrap"
-              style={{ borderColor: "var(--hairline)" }}
-            >
-              <label
-                className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
-                style={{ color: "var(--text-muted)" }}
-              >
+            <div className="mt-1 flex flex-col gap-2 border-t pt-3 nook-border-hairline sm:flex-row sm:flex-wrap">
+              <label className="nook-fg-muted flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]">
                 リンクについて
-                <span style={{ color: "var(--text-faint)" }}>（次に追加する行・任意）</span>
+                <span className="nook-fg-faint">（次に追加する行・任意）</span>
                 <select
                   value={furnitureLinkRelation}
                   onChange={(e) => setFurnitureLinkRelation(e.target.value)}
                   className="input-base text-[10px]"
-                  aria-label="商品ページのリンクの位置づけ"
+                  aria-label="商品ページリンクの位置づけ"
                 >
                   {FURNITURE_LINK_RELATIONS.map((r) => (
                     <option key={r.value || "rel-unset-add"} value={r.value}>
@@ -361,12 +347,9 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
                   ))}
                 </select>
               </label>
-              <label
-                className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
-                style={{ color: "var(--text-muted)" }}
-              >
+              <label className="nook-fg-muted flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]">
                 リンク確認日
-                <span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                <span className="nook-fg-faint">（任意）</span>
                 <input
                   type="date"
                   value={furnitureLinkVerifiedDate}
@@ -386,19 +369,14 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
             {furniture.map((f, i) => (
               <li
                 key={`${f.productUrl}-${i}`}
-                className="flex flex-col gap-2 rounded-[var(--radius-sm)] border px-3 py-2.5 text-sm"
-                style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
+                className="nook-furniture-row flex flex-col gap-2 rounded-[var(--radius-sm)] border px-3 py-2.5 text-sm"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate" style={{ color: "var(--text)" }}>
-                      {f.name}
-                    </p>
-                    <p className="text-[11px] truncate" style={{ color: "var(--text-muted)" }}>
-                      {f.productUrl}
-                    </p>
+                    <p className="nook-fg truncate font-medium">{f.name}</p>
+                    <p className="nook-fg-muted truncate text-[11px]">{f.productUrl}</p>
                     {f.note ? (
-                      <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                      <p className="nook-fg-secondary mt-1 text-[11px] leading-relaxed">
                         {f.note}
                       </p>
                     ) : null}
@@ -406,8 +384,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
                   <button
                     type="button"
                     onClick={() => removeFurniture(i)}
-                    className="shrink-0 rounded-full p-1.5 transition hover:opacity-100"
-                    style={{ color: "var(--text-muted)" }}
+                    className="nook-fg-muted shrink-0 rounded-full p-1.5 transition hover:opacity-100"
                     aria-label={`${f.name} を削除`}
                   >
                     <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -416,7 +393,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
                   </button>
                 </div>
                 {initial.mediaCount > 1 && (
-                  <label className="flex items-center gap-2 text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+                  <label className="nook-fg-muted flex items-center gap-2 text-[10px] font-semibold">
                     写っている写真
                     <select
                       value={f.mediaIndex}
@@ -440,11 +417,8 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
                   </label>
                 )}
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <label
-                    className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    リンクについて<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                  <label className="nook-fg-muted flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]">
+                    リンクについて<span className="nook-fg-faint">（任意）</span>
                     <select
                       value={f.linkRelation}
                       onChange={(e) => updateFurnitureTrust(i, { linkRelation: e.target.value })}
@@ -458,11 +432,8 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
                       ))}
                     </select>
                   </label>
-                  <label
-                    className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    リンク確認日<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                  <label className="nook-fg-muted flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]">
+                    リンク確認日<span className="nook-fg-faint">（任意）</span>
                     <input
                       type="date"
                       value={f.linkVerifiedDate}

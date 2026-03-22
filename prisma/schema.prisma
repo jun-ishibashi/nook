@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
@@ -77,6 +77,8 @@ model Media {
   id     String @id @default(cuid())
   postId String
   path   String
+  /// 写真の空気感（プリセット名: none, concrete, ambient, industrial 等）
+  mood   String @default("")
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 

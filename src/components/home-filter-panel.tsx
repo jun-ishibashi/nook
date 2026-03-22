@@ -7,9 +7,7 @@ import CategoryFilter from "@/components/category-filter";
 import StyleTagFilter from "@/components/style-tag-filter";
 import PriceFilter from "@/components/price-filter";
 
-/**
- * 絞り込みなしのときは折りたたみ、条件適用中は常に展開（§5 操作帯の縦を抑える）
- */
+/** 発見の補助：既定は閉じ、操作は線と文字で軽く */
 export default function HomeFilterPanel() {
   const searchParams = useSearchParams();
   const hasActive = useMemo(() => {
@@ -28,43 +26,57 @@ export default function HomeFilterPanel() {
 
   return (
     <section
-      className="home-filter-panel mb-6 border-t pt-5 sm:mb-7 sm:pt-6"
-      style={{ borderColor: "var(--hairline)" }}
+      className="home-filter-panel"
       aria-labelledby="home-filters-heading"
       aria-describedby="home-filters-help"
     >
       <p id="home-filters-help" className="sr-only">
-        カテゴリ・スタイル・価格帯で絞り込み。
+        カテゴリ・スタイル・予算でムードを絞り込みできます。
       </p>
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="home-filters-heading" className="nook-section-label">
-          絞り込み
+      <div className="home-filter-panel__bar">
+        <h2 id="home-filters-heading" className="home-filter-panel__title">
+          ムードを絞る
         </h2>
         {!hasActive ? (
           <button
             type="button"
-            className="min-h-9 shrink-0 rounded-md px-1.5 text-[11px] font-medium underline decoration-transparent underline-offset-4 transition hover:decoration-[var(--text-faint)]"
-            style={{ color: "var(--text-muted)" }}
+            className="home-filter-panel__toggle"
             aria-expanded={open}
             aria-controls="home-filters-body"
-            aria-label={open ? "フィルターを閉じる" : "フィルターを開く"}
+            aria-label={open ? "絞り込みを閉じる" : "ムードで絞る"}
             onClick={() => setExpanded((v) => !v)}
           >
-            {open ? "閉じる" : "開く"}
+            <span>{open ? "閉じる" : "開く"}</span>
+            <svg
+              className="home-filter-panel__chevron"
+              width="11"
+              height="11"
+              viewBox="0 0 12 12"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M3 4.5L6 7.5L9 4.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
         ) : (
-          <span className="text-[10px] font-medium tracking-wide" style={{ color: "var(--text-faint)" }}>
+          <span className="home-filter-panel__badge" aria-live="polite">
             適用中
           </span>
         )}
       </div>
       {!open && !hasActive ? (
-        <p className="mt-1.5 text-[10px] leading-snug" style={{ color: "var(--text-faint)" }}>
-          タップでカテゴリ・スタイル・価格帯を表示
+        <p className="home-filter-panel__collapsed-hint nook-fg-muted mt-1.5 text-[11px] leading-snug sm:mt-2">
+          カテゴリ・スタイル・予算で、好みのムードに近づけます。
         </p>
       ) : null}
-      {open ? (
-        <div id="home-filters-body" className="mt-2.5 flex flex-col gap-5 sm:gap-6">
+      {!open && !hasActive ? null : open ? (
+        <div id="home-filters-body" className="home-filter-sheet mt-3 sm:mt-3.5">
           <CategoryFilter />
           <StyleTagFilter />
           <PriceFilter />

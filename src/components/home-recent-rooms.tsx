@@ -10,41 +10,37 @@ export default function HomeRecentRooms() {
   if (recentPosts.length === 0) return null;
 
   return (
-    <section className="home-recent-rooms mb-8" aria-labelledby="recent-rooms-heading">
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 id="recent-rooms-heading" className="nook-section-label">最近見た部屋</h2>
-        <span className="text-[10px] font-medium tracking-wide" style={{ color: "var(--text-faint)" }}>
-          履歴
-        </span>
+    <section className="home-recent-rooms" aria-labelledby="recent-rooms-heading">
+      <div className="mb-2 flex items-baseline justify-between gap-3 sm:mb-2.5">
+        <h2 id="recent-rooms-heading" className="home-browse-label">
+          最近見た部屋
+        </h2>
       </div>
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide sm:-mx-6 sm:px-6">
+      <div className="nook-hscroll-mask nook-hscroll-mask-sm-clear -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide sm:-mx-0 sm:gap-3.5 sm:px-0 sm:pb-2">
         {recentPosts.map((post) => (
           <Link
             key={post.id}
             href={`/post/${post.id}`}
-            className="group relative flex w-24 shrink-0 flex-col gap-1.5 transition active:scale-[0.97]"
+            className="group relative flex w-[5.5rem] shrink-0 flex-col gap-1 transition active:scale-[0.98] sm:w-24"
           >
-            <div
-              className="relative aspect-square overflow-hidden rounded-[var(--radius-sm)] border"
-              style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
-            >
+            <div className="relative aspect-square overflow-hidden rounded-md border transition-all duration-300 group-hover:shadow-md nook-border-hairline nook-bg-sunken">
               {post.thumbnail ? (
                 <NookImage
                   src={post.thumbnail}
                   alt={post.title}
                   fill
-                  className="object-cover transition duration-300 group-hover:scale-110"
+                  className="object-cover transition duration-300 group-hover:scale-[1.03]"
                   sizes="96px"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                <div className="nook-fg-faint flex h-full items-center justify-center">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
                 </div>
               )}
             </div>
-            <p className="truncate text-[10px] font-medium leading-snug" style={{ color: "var(--text-muted)" }}>
+            <p className="nook-fg-muted truncate text-[10px] font-medium leading-snug">
               {post.title}
             </p>
           </Link>

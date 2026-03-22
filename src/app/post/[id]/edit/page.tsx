@@ -1,29 +1,22 @@
-import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getOptionalSessionUser } from "@/lib/session-user";
 import EditPostForm from "@/components/edit-post-form";
 import { linkVerifiedAtToDateInputValue } from "@/lib/furniture-link-meta";
 
 export const metadata: Metadata = {
   title: "部屋を編集",
-  description: "タイトル・キャプション・家具・雑貨・タグを更新",
+  description: "部屋の写真に添える文言や家具・雑貨の購入先を更新",
 };
 
 export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const user = await getOptionalSessionUser({ id: true });
+  if (!user) {
     redirect(`/login?callbackUrl=${encodeURIComponent(`/post/${id}/edit`)}`);
   }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!user) redirect("/login");
 
   const post = await prisma.post.findUnique({
     where: { id },
@@ -60,18 +53,10 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page pb-16 pt-6 sm:py-10">
-        <div
-          className="rounded-[var(--radius-card)] border p-5 sm:p-6"
-          style={{
-            borderColor: "var(--hairline)",
-            background: "var(--bg-raised)",
-            boxShadow: "var(--home-tile-shadow)",
-          }}
-        >
+        <div className="nook-elevated-surface overflow-hidden p-5 sm:p-6">
           <Link
             href={`/post/${id}`}
-            className="inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
-            style={{ color: "var(--text-muted)" }}
+            className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path
@@ -85,10 +70,11 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
             部屋に戻る
           </Link>
           <p className="nook-section-label mb-1 mt-5">編集</p>
-          <h1 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-            部屋を編集
-          </h1>
-          <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--hairline)" }}>
+          <h1 className="nook-fg text-lg font-semibold tracking-tight">部屋を編集</h1>
+          <p className="nook-vision-subline max-w-md !mt-1">
+            写真に添える文言や、家具・雑貨の購入先URLをあとから整えられます。
+          </p>
+          <div className="mt-6 border-t pt-6 nook-border-hairline">
             <EditPostForm initial={initial} />
           </div>
         </div>

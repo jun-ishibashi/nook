@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getOptionalUserId } from "@/lib/session-user";
 import HomePostGrid from "@/components/home-post-grid";
 import { fetchPostsByShopHost } from "@/lib/shop-posts";
 import { isSafeShopHostParam } from "@/lib/shop-path";
@@ -21,11 +20,11 @@ export async function generateMetadata({
     return { title: "ショップ | NOOK" };
   }
   const title = isSafeShopHostParam(decoded)
-    ? `${decoded}・みんなの部屋`
+    ? `${decoded}・ショップの投稿`
     : "ショップ | NOOK";
   return {
     title,
-    description: `${decoded} の商品ページが載っている、みんなの部屋`,
+    description: `${decoded} の購入先URLが載っている投稿一覧｜NOOK`,
   };
 }
 
@@ -41,12 +40,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
 
   const normalized = decoded.trim().toLowerCase();
 
-  const session = await getServerSession(authOptions);
-  const currentUserId = session?.user?.email
-    ? await prisma.user
-        .findUnique({ where: { email: session.user.email }, select: { id: true } })
-        .then((u) => u?.id)
-    : undefined;
+  const currentUserId = await getOptionalUserId();
 
   const posts = await fetchPostsByShopHost(normalized, 60, {
     interactiveUserId: currentUserId,
@@ -76,61 +70,34 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page pb-16 pt-6 sm:py-8">
-        <header className="shop-page-header mb-8 border-b pb-7 sm:mb-9 sm:pb-8" style={{ borderColor: "var(--hairline)" }}>
-          <p className="nook-section-label mb-2">ショップ別の部屋</p>
-          <p className="mb-4 max-w-lg text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            このショップの商品ページが載っている、みんなの部屋です。
-          </p>
-          <h1 className="text-lg font-semibold tracking-tight sm:text-xl" style={{ color: "var(--text)" }}>
-            <span
-              className="shop-page-host block break-words rounded-[var(--radius-card)] border px-3 py-2.5 text-[0.8125rem] font-medium leading-snug tracking-normal sm:px-3.5 sm:py-3 sm:text-sm"
-              style={{
-                borderColor: "var(--hairline)",
-                background: "color-mix(in srgb, var(--bg-sunken) 55%, var(--bg-raised))",
-                color: "var(--text-secondary)",
-                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-              }}
-            >
+        <header className="shop-page-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
+          <p className="nook-section-label mb-2">ショップ別</p>
+          <h1 className="nook-fg text-lg font-semibold tracking-tight sm:text-xl">
+            <span className="nook-shop-host-chip shop-page-host block break-words rounded-[var(--radius-card)] border px-3 py-2.5 text-[0.8125rem] font-medium leading-snug tracking-normal sm:px-3.5 sm:py-3 sm:text-sm">
               {decoded}
             </span>
           </h1>
           <div
-            className="shop-page-stats mt-4 flex w-full flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-b py-3 text-[11px] tabular-nums"
-            style={{ borderColor: "var(--hairline)", color: "var(--text-muted)" }}
+            className="shop-page-stats nook-fg-muted mt-4 flex w-full flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-b py-3 text-[11px] tabular-nums nook-border-hairline"
             aria-label="件数"
           >
-            <span style={{ color: "var(--text)" }} className="text-sm font-semibold">
+            <span className="nook-fg text-sm font-semibold">
               {postList.length}
             </span>
-            <span>部屋</span>
-            {postList.length > 0 ? (
-              <>
-                <span className="opacity-40" aria-hidden>
-                  ・
-                </span>
-                <span>写真はグリッドをタップ</span>
-              </>
-            ) : null}
+            <span>投稿</span>
           </div>
         </header>
 
         <section className="shop-page-grid-section" aria-labelledby="shop-posts-heading">
           <h2 id="shop-posts-heading" className="nook-section-label mb-1">
-            みんなの部屋
+            投稿
           </h2>
           {postList.length > 0 ? (
             <HomePostGrid posts={postList} ariaLabelledBy="shop-posts-heading" />
           ) : (
-            <div
-              className="flex flex-col items-center rounded-[var(--radius-card)] border py-14 text-center sm:py-16"
-              style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
-            >
-              <div
-                className="mb-3 flex h-12 w-12 items-center justify-center rounded-full"
-                style={{ background: "var(--bg-sunken)" }}
-                aria-hidden
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }}>
+            <div className="nook-elevated-surface flex flex-col items-center px-4 py-14 text-center sm:px-6 sm:py-16">
+              <div className="nook-bg-sunken mb-3 flex h-12 w-12 items-center justify-center rounded-full" aria-hidden>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="nook-fg-faint">
                   <path
                     d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
                     stroke="currentColor"
@@ -141,11 +108,11 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
                   <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
-                まだ部屋がありません
+              <p className="nook-fg text-sm font-semibold">
+                まだ投稿がありません
               </p>
-              <p className="mt-1 max-w-xs px-4 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                該当する部屋が増えると表示されます。
+              <p className="nook-fg-muted mt-1 max-w-xs px-4 text-xs leading-relaxed">
+                このショップのリンクが載った投稿が増えると表示されます。
               </p>
               <Link href="/" className="btn-secondary mt-6 text-xs">
                 みんなの部屋を見る
@@ -154,11 +121,10 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
           )}
         </section>
 
-        <div className="mt-10 border-t pt-6" style={{ borderColor: "var(--hairline)" }}>
+        <div className="mt-10 border-t pt-6 nook-border-hairline">
           <Link
             href="/"
-            className="inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
-            style={{ color: "var(--text-muted)" }}
+            className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 rounded-sm text-xs font-medium transition hover:opacity-75 focus-visible:outline-offset-2"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path

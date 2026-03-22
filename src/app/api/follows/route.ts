@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireApiUser } from "@/lib/session-user";
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const me = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!me) return NextResponse.json({ error: "User not found" }, { status: 401 });
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const me = auth.user;
 
   const { userId: targetUserId } = (await request.json()) as { userId?: string };
   if (!targetUserId) {

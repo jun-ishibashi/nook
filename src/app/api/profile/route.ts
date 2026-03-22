@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireSessionEmail } from "@/lib/session-user";
 
 function normalizeProfileLink(raw: string): { ok: true; value: string } | { ok: false } {
   const t = raw.trim();
@@ -17,10 +16,8 @@ function normalizeProfileLink(raw: string): { ok: true; value: string } | { ok: 
 }
 
 export async function PATCH(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const sess = await requireSessionEmail();
+  if (!sess.ok) return sess.response;
 
   let body: { bio?: unknown; profileLink?: unknown };
   try {
@@ -51,7 +48,7 @@ export async function PATCH(request: Request) {
   if (profileLink !== undefined) data.profileLink = profileLink;
 
   await prisma.user.update({
-    where: { email: session.user.email },
+    where: { email: sess.email },
     data,
   });
 

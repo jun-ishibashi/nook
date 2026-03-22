@@ -1,12 +1,13 @@
+import type { Prisma } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, createElement } from "react";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { fetchHomeFeedPosts, toHomePostGridItem } from "@/lib/home-feed";
+import { getOptionalSessionUser } from "@/lib/session-user";
 import HomePostGrid from "@/components/home-post-grid";
-import HomeTopSearch from "@/components/home-top-search";
+import HomeTopSearch, { HomeRecentSearchRow } from "@/components/home-top-search";
 import WelcomeBanner from "@/components/welcome-banner";
 import HomeFeedTabs from "@/components/home-feed-tabs";
 import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
@@ -16,6 +17,7 @@ import HomeRevisitStrip from "@/components/home-revisit-strip";
 import HomeTrendingStyles from "@/components/home-trending-styles";
 import HomeFilterPanel from "@/components/home-filter-panel";
 import HomeRecentRooms from "@/components/home-recent-rooms";
+import HomeLoggedInOverview from "@/components/home-logged-in-overview";
 
 export default async function HomePage({
   searchParams,
@@ -42,18 +44,18 @@ export default async function HomePage({
   const minP = parseInt(minPrice ?? "", 10);
   const maxP = parseInt(maxPrice ?? "", 10);
 
-  const session = await getServerSession(authOptions);
-  const currentUserId = session?.user?.email
-    ? await prisma.user
-        .findUnique({ where: { email: session.user.email }, select: { id: true } })
-        .then((u) => u?.id)
-    : undefined;
+  const currentUser = await getOptionalSessionUser({
+    id: true,
+    name: true,
+    _count: { select: { posts: true, followsInitiated: true } },
+  });
+  const currentUserId = currentUser?.id;
 
   if (followingFeed && !currentUserId) {
     redirect("/login?callbackUrl=" + encodeURIComponent("/?feed=following"));
   }
 
-  const where: Record<string, unknown> = {};
+  const where: Prisma.PostWhereInput = {};
   if (followingFeed && currentUserId) {
     const rows = await prisma.follow.findMany({
       where: { followerId: currentUserId },
@@ -75,7 +77,7 @@ export default async function HomePage({
   }
 
   if (!isNaN(minP) || !isNaN(maxP)) {
-    const priceWhere: Record<string, any> = {};
+    const priceWhere: Prisma.IntFilter = {};
     if (!isNaN(minP)) priceWhere.gte = minP;
     if (!isNaN(maxP)) priceWhere.lte = maxP;
     
@@ -89,28 +91,12 @@ export default async function HomePage({
   const isFiltered =
     !!query || !!activeCategory || activeStyles.length > 0 || followingFeed || !isNaN(minP) || !isNaN(maxP);
 
-  const postsRaw = await prisma.post.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: {
-      medias: { take: 1, orderBy: { id: "asc" } },
-      user: { select: { id: true, name: true, image: true } },
-      styleTags: { select: { tagSlug: true } },
-      furnitureItems: { select: { price: true } },
-      _count: { select: { furnitureItems: true, likes: true } },
-      likes: currentUserId
-        ? { where: { userId: currentUserId }, select: { id: true } }
-        : false,
-      bookmarks: currentUserId
-        ? { where: { userId: currentUserId }, select: { id: true } }
-        : false,
-    },
-  });
+  const postsRaw = await fetchHomeFeedPosts(where, currentUserId);
 
   const posts =
     !isFiltered && !followingFeed
-      ? breakConsecutiveSameAuthor(postsRaw as any[])
-      : (postsRaw as any[]);
+      ? breakConsecutiveSameAuthor(postsRaw)
+      : postsRaw;
 
   let bookmarkCount = 0;
   let wishlistCount = 0;
@@ -121,41 +107,31 @@ export default async function HomePage({
     ]);
   }
 
-  const postList = (posts as any[]).map((p) => ({
-    id: p.id,
-    title: p.title,
-    description: p.description,
-    category: p.category,
-    thumbnail: p.medias[0]?.path ?? null,
-    user: p.user,
-    itemCount: p._count.furnitureItems,
-    likeCount: p._count.likes,
-    liked: currentUserId ? p.likes.length > 0 : false,
-    bookmarked: currentUserId ? p.bookmarks.length > 0 : false,
-    styleTags: p.styleTags.map((t: any) => t.tagSlug),
-    totalPrice: p.furnitureItems.reduce((acc: number, f: any) => acc + (f.price ?? 0), 0) || null,
-    createdAt: p.createdAt.toISOString(),
-  }));
+  const postList = posts.map((p) => toHomePostGridItem(p, currentUserId));
 
   const showWelcome = !currentUserId && !isFiltered && !followingFeed;
+  const showLoggedInOverview = Boolean(currentUser) && !isFiltered && !followingFeed;
+  /** ページに既に h1（ヒーロー or ログイン後概要）があるときはフィード見出しを h2 に */
+  const feedHeadingTag = showWelcome || showLoggedInOverview ? "h2" : "h1";
+  const feedSectionTitle = followingFeed
+    ? "フォロー中の投稿"
+    : isFiltered
+      ? "該当する投稿"
+      : "みんなの部屋";
 
   return (
-    <div className="nook-app-canvas min-h-screen">
-      {/* Sticky: 検索・フィード */}
+    <div className="nook-app-canvas home-canvas min-h-screen">
+      {/* 操作層: sticky top-14 は Navbar の h-14 と一致（html scroll-padding-top と連動） */}
       <div
-        className="home-sticky-feed sticky top-14 z-30 backdrop-blur-md"
-        style={{ background: "var(--sticky-surface)" }}
+        className="home-sticky-feed home-sticky-feed-surface sticky top-14 z-30 backdrop-blur-md"
       >
         <div className="nook-page">
-          <div className="pt-1 pb-0.5 sm:pt-1.5 sm:pb-1">
+          <div className="py-1.5 sm:py-2">
             <Suspense
               fallback={
                 <div className="space-y-2.5 pb-0.5" aria-hidden>
-                  <div className="h-2.5 w-28 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
-                  <div
-                    className="h-11 w-full animate-pulse rounded-none border-b"
-                    style={{ borderColor: "var(--border-subtle)", background: "var(--bg-sunken)" }}
-                  />
+                  <div className="nook-skeleton-pulse h-2.5 w-28" />
+                  <div className="nook-skeleton-pulse h-11 w-full rounded-none border-b nook-border-subtle" />
                 </div>
               }
             >
@@ -166,62 +142,65 @@ export default async function HomePage({
             <Suspense
               fallback={
                 <div className="nook-hairline-top" aria-hidden>
-                  <div className="py-1 sm:py-1.5">
-                    <div
-                      className="flex h-[2.125rem] items-end gap-5 border-b"
-                      style={{ borderColor: "var(--hairline)" }}
-                    >
-                      <span className="mb-1.5 h-2.5 w-16 rounded-sm" style={{ background: "var(--bg-sunken)" }} />
-                      <span className="mb-1.5 h-2.5 w-14 rounded-sm" style={{ background: "var(--bg-sunken)" }} />
+                  <div className="home-sticky-toolbar">
+                    <div className="home-sticky-toolbar__tabs">
+                      <div className="flex h-[2.125rem] items-end gap-5">
+                        <span className="nook-skeleton-pulse mb-1.5 h-2.5 w-16" />
+                        <span className="nook-skeleton-pulse mb-1.5 h-2.5 w-14" />
+                      </div>
                     </div>
+                    <div className="nook-skeleton-pulse h-4 w-32 sm:ml-auto" />
                   </div>
-                  <div className="h-6" />
                 </div>
               }
             >
               <div className="nook-hairline-top">
-                <div className="py-0.5 sm:py-1">
-                  <HomeFeedTabs />
+                <div className="home-sticky-toolbar">
+                  <div className="home-sticky-toolbar__tabs">
+                    <HomeFeedTabs />
+                  </div>
+                  <div className="home-sticky-toolbar__revisit">
+                    <HomeRevisitStrip
+                      bookmarkCount={bookmarkCount}
+                      wishlistCount={wishlistCount}
+                      showEmptyHint={bookmarkCount === 0 && wishlistCount === 0}
+                      className="pb-0 pt-0 sm:pb-px"
+                    />
+                  </div>
                 </div>
-                <HomeRevisitStrip
-                  bookmarkCount={bookmarkCount}
-                  wishlistCount={wishlistCount}
-                  showEmptyHint={bookmarkCount === 0 && wishlistCount === 0}
-                />
               </div>
             </Suspense>
           ) : null}
         </div>
       </div>
 
-      <div className="nook-page pt-3 pb-[max(5rem,calc(env(safe-area-inset-bottom,0px)+3rem))] sm:pt-5">
+      <div className="nook-page home-main flex flex-col gap-7 pb-[max(5rem,calc(env(safe-area-inset-bottom,0px)+3rem))] pt-4 sm:gap-9 sm:pt-6">
         {showWelcome ? <WelcomeBanner /> : null}
 
-        <div id="home-feed-anchor" className="scroll-mt-28">
+        <Suspense fallback={null}>
+          <HomeRecentSearchRow />
+        </Suspense>
+
+        {currentUser && showLoggedInOverview ? (
+          <HomeLoggedInOverview
+            userName={currentUser.name ?? ""}
+            postCount={currentUser._count.posts}
+            followingCount={currentUser._count.followsInitiated}
+            bookmarkCount={bookmarkCount}
+            wishlistCount={wishlistCount}
+          />
+        ) : null}
+
+        <div
+          id="home-feed-anchor"
+          className="home-feed-stack scroll-mt-24 sm:scroll-mt-28"
+        >
         <Suspense
           fallback={
-            <section
-              className="home-filter-panel mb-6 border-t pt-5 sm:mb-7 sm:pt-6"
-              style={{ borderColor: "var(--hairline)" }}
-              aria-hidden
-            >
-              <div className="h-3 w-36 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
-              <div className="mt-3 space-y-3">
-                <div className="h-2.5 w-16 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
-                <div className="flex gap-2 overflow-hidden">
-                  <div className="h-9 w-14 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
-                  <div className="h-9 w-20 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
-                  <div className="h-9 w-16 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
-                  <div className="h-9 w-24 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
-                </div>
-                <div className="h-2.5 w-12 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
-                <div className="flex gap-2 overflow-hidden">
-                  <div className="h-9 w-16 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
-                  <div className="h-9 w-20 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
-                  <div className="h-9 w-14 shrink-0 animate-pulse rounded-full" style={{ background: "var(--bg-wash)" }} />
-                </div>
-              </div>
-            </section>
+            <div className="home-filter-panel-skeleton flex items-center justify-between py-4" aria-hidden>
+              <div className="nook-skeleton-pulse h-2.5 w-40" />
+              <div className="nook-skeleton-pulse h-2.5 w-10" />
+            </div>
           }
         >
           <HomeFilterPanel />
@@ -229,60 +208,62 @@ export default async function HomePage({
 
         {!isFiltered && <HomeRecentRooms />}
 
+        <div className="home-feed-body flex flex-col gap-4 sm:gap-5">
         {postList.length > 0 ? (
-          <header className="mb-3 sm:mb-3.5">
-            <div className="flex min-h-[1.25rem] items-baseline justify-between gap-3">
-              <h2 className="nook-section-label" id="home-feed-heading">
-                {followingFeed ? "お気に入りの部屋" : isFiltered ? "該当する部屋" : "すべての部屋"}
-              </h2>
+          <header className="home-feed-ledge">
+            <div className="flex min-h-[1.25rem] items-center justify-between gap-3">
+              {createElement(
+                feedHeadingTag,
+                {
+                  className: "home-feed-ledge__title",
+                  id: "home-feed-heading",
+                },
+                feedSectionTitle
+              )}
               {isFiltered ? (
-                <span
-                  className="shrink-0 text-[11px] font-medium tabular-nums tracking-wide"
-                  style={{ color: "var(--text-muted)" }}
-                  aria-label={`${postList.length}件`}
-                >
+                <span className="home-feed-count-pill shrink-0" aria-label={`${postList.length}件`}>
                   {postList.length}
-                  <span className="ml-0.5 font-normal opacity-80">件</span>
+                  <span className="ml-0.5 font-medium opacity-85">件</span>
                 </span>
               ) : null}
             </div>
           </header>
         ) : null}
 
-        <HomePostGrid posts={postList} ariaLabelledBy={postList.length > 0 ? "home-feed-heading" : undefined} />
+        <HomePostGrid posts={postList} ariaLabelledBy={postList.length > 0 ? "home-feed-heading" : undefined} enableFeatured={!isFiltered && !followingFeed} />
 
         {postList.length === 0 && (
           <div
-            className="home-empty-state flex flex-col items-center px-4 py-16 text-center animate-fade-in"
+            className="home-empty-state mx-auto flex max-w-sm flex-col items-center px-4 py-12 text-center animate-fade-in sm:px-6 sm:py-14"
             role="status"
           >
             <div
-              className="relative mb-6 h-28 w-28 shrink-0 overflow-hidden rounded-2xl sm:h-32 sm:w-32"
-              style={{ background: "var(--bg-sunken)" }}
+              className="nook-bg-sunken relative mb-5 h-20 w-20 shrink-0 overflow-hidden rounded-xl border opacity-90 nook-border-hairline sm:h-24 sm:w-24"
               aria-hidden
             >
               <Image
                 src="/empty-state.png"
                 alt=""
-                width={128}
-                height={128}
-                className="h-full w-full object-cover opacity-90"
-                sizes="128px"
+                width={96}
+                height={96}
+                className="h-full w-full object-cover"
+                sizes="96px"
+                priority
               />
             </div>
-            <p className="text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+            <p className="nook-fg text-[15px] font-semibold tracking-tight">
               {followingFeed
-                ? "お気に入りの部屋は、まだ静かです"
+                ? "フォロー中の投稿は、まだありません"
                 : isFiltered
-                  ? "該当する部屋は、まだ見つからないようです"
-                  : "まだ部屋がありません"}
+                  ? "該当する投稿は、まだ見つからないようです"
+                  : "まだ投稿がありません"}
             </p>
-            <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            <p className="nook-fg-muted mt-2 text-[13px] leading-relaxed">
               {followingFeed
-                ? "まずは「すべての部屋」から、好みのムードを探してみませんか。"
+                ? "まずは「みんなの部屋」から、好みのムードを探してみませんか。"
                 : isFiltered
-                  ? "条件を少し変えてみると、新しいインスピレーションに出会えるかもしれません。"
-                  : "静かなはじまり。一枚目を、載せてみませんか。"}
+                  ? "ムードや予算の条件を変えると、別の投稿に出会えるかもしれません。"
+                  : "一枚からで大丈夫です。写真を載せると、ここに残せます。"}
             </p>
             {followingFeed ? (
               <Link href="/" scroll={false} className="btn-primary mt-7 text-xs">
@@ -303,21 +284,18 @@ export default async function HomePage({
             )}
           </div>
         )}
+        </div>
 
         {!isFiltered && !followingFeed && (
           <Suspense
             fallback={
               <div
-                className="mt-10 h-12 animate-pulse rounded-lg border-t pt-8 sm:mt-12"
-                style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
+                className="nook-skeleton-pulse h-12 rounded-lg border-t pt-6 nook-border-hairline sm:pt-8"
                 aria-hidden
               />
             }
           >
-            <div
-              className="mt-10 border-t pt-8 sm:mt-12 sm:pt-10"
-              style={{ borderColor: "var(--hairline)" }}
-            >
+            <div className="border-t pt-6 nook-border-hairline sm:pt-8">
               <HomeTrendingStyles />
             </div>
           </Suspense>

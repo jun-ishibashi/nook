@@ -15,7 +15,7 @@ import {
   subscribeRecentSearches,
 } from "@/lib/search-recent";
 
-function ClearFiltersButton() {
+function ClearFiltersButton({ compact }: { compact?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -42,14 +42,18 @@ function ClearFiltersButton() {
       onClick={clear}
       disabled={isPending}
       aria-busy={isPending}
-      className="home-top-search-clear shrink-0"
+      className={
+        compact
+          ? "home-sticky-search-clear shrink-0"
+          : "home-top-search-clear shrink-0"
+      }
     >
-      条件をすべてクリア
+      {compact ? "すべてクリア" : "条件をすべてクリア"}
     </button>
   );
 }
 
-/** 適用中の条件を一覧し、1 タップでその条件だけ外す */
+/** 適用中の条件チップ（スティッキー内は横スクロールで縦を抑える） */
 function ActiveFilterChips() {
   const searchParams = useSearchParams();
 
@@ -121,23 +125,25 @@ function ActiveFilterChips() {
   if (chips.length === 0) return null;
 
   return (
-    <ul className="mt-2.5 flex flex-wrap gap-2" aria-label="いまの条件">
-      {chips.map((c) => (
-        <li key={c.key}>
-          <Link
-            href={c.clearHref}
-            scroll={false}
-            className="nook-active-filter-chip inline-flex max-w-full items-center gap-1 px-2.5 py-1.5 transition active:scale-[0.98]"
-            aria-label={c.ariaRemove}
-          >
-            <span className="min-w-0 truncate">{c.label}</span>
-            <span className="shrink-0 text-[14px] leading-none opacity-45" aria-hidden>
-              ×
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div className="home-active-chips-scroll mt-2">
+      <ul className="home-active-chips-scroll__track" aria-label="いまの条件">
+        {chips.map((c) => (
+          <li key={c.key} className="shrink-0">
+            <Link
+              href={c.clearHref}
+              scroll={false}
+              className="nook-active-filter-chip inline-flex max-w-[11rem] items-center gap-1 px-2.5 py-1 transition active:scale-[0.98] sm:max-w-[14rem]"
+              aria-label={c.ariaRemove}
+            >
+              <span className="min-w-0 truncate">{c.label}</span>
+              <span className="shrink-0 text-[13px] leading-none opacity-45" aria-hidden>
+                ×
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -182,12 +188,13 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
       role="search"
       aria-labelledby="home-search-label"
       aria-busy={isPending}
+      className="min-w-0 flex-1"
     >
       <div
-        className={`search-field w-full sm:min-h-[2.75rem] ${isPending ? "search-field--pending" : ""}`}
+        className={`search-field w-full sm:min-h-[2.5rem] ${isPending ? "search-field--pending" : ""}`}
       >
-        <span className="search-field__icon pl-0.5" aria-hidden>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ color: "var(--text-muted)" }}>
+        <span className="search-field__icon nook-fg-muted pl-0.5" aria-hidden>
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
             <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
             <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
@@ -197,7 +204,7 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
           enterKeyHint="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="デスク、照明、無機質…"
+          placeholder="ムード・部屋のキーワード…"
           className="input-feed"
           aria-label="キーワードで部屋を探す"
           aria-describedby={helpId}
@@ -211,7 +218,6 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
             type="button"
             onClick={handleClearInput}
             className="search-clear-btn"
-            style={{ color: "var(--text-muted)" }}
             aria-label="入力をクリア"
           >
             <svg width="16" height="16" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -219,16 +225,21 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
             </svg>
           </button>
         ) : null}
-        <button type="submit" disabled={isPending} className="search-submit disabled:opacity-40">
-          検索
+        <button type="submit" disabled={isPending} className="search-submit disabled:opacity-40" aria-label="検索">
+          <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden>
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
         </button>
       </div>
     </form>
   );
 }
 
-function RecentSearchChips({ urlHasQuery }: { urlHasQuery: boolean }) {
+/** スティッキー外：最近のキーワードのみ（操作帯の縦を増やさない） */
+export function HomeRecentSearchRow() {
   const searchParams = useSearchParams();
+  const urlQ = searchParams.get("q")?.trim() ?? "";
   const recentJson = useSyncExternalStore(
     subscribeRecentSearches,
     getRecentSearchesSnapshot,
@@ -244,12 +255,12 @@ function RecentSearchChips({ urlHasQuery }: { urlHasQuery: boolean }) {
     recent = [];
   }
 
-  if (urlHasQuery || recent.length === 0) return null;
+  if (urlQ || recent.length === 0) return null;
 
   return (
-    <div className="mt-3.5">
-      <p className="nook-section-label mb-2">最近</p>
-      <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide" role="list" aria-label="最近のキーワード">
+    <section className="home-recent-search-row" aria-label="最近のキーワード">
+      <p className="home-recent-search-row__label">最近</p>
+      <div className="home-recent-search-row__scroll nook-hscroll-mask" role="list">
         {recent.map((r) => (
           <Link
             key={r}
@@ -262,14 +273,11 @@ function RecentSearchChips({ urlHasQuery }: { urlHasQuery: boolean }) {
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-/**
- * ホーム上部スティッキー：キーワード検索＋適用中条件のチップ。
- * カテゴリ・スタイルのチップ列はページ本体の「カテゴリ・スタイル」ブロックへ分離。
- */
+/** ホーム上部：検索＋条件チップ。線と文字を基調、縦を抑える */
 export default function HomeTopSearch() {
   const searchParams = useSearchParams();
   const urlQ = searchParams.get("q") ?? "";
@@ -290,19 +298,18 @@ export default function HomeTopSearch() {
   );
 
   return (
-    <section className="home-top-search" aria-label="キーワード検索">
+    <section className="home-sticky-search" aria-label="さがす">
       <p id="home-search-help" className="sr-only">
-        タイトル・説明・タグなどで検索。Enter または「検索」ボタン。
+        部屋のタイトル・説明・スタイルタグで検索できます。Enter または「検索」で確定します。
       </p>
-      <header className="mb-2 flex items-center justify-between gap-2">
-        <p id="home-search-label" className="nook-section-label">
-          部屋をさがす
-        </p>
-        {hasFilter ? <ClearFiltersButton /> : null}
-      </header>
-      <KeywordSearch key={urlQ} urlQuery={urlQ} helpId="home-search-help" />
+      <p id="home-search-label" className="sr-only">
+        キーワードで部屋を探す
+      </p>
+      <div className="flex items-start gap-2 sm:items-center sm:gap-3">
+        <KeywordSearch key={urlQ} urlQuery={urlQ} helpId="home-search-help" />
+        {hasFilter ? <ClearFiltersButton compact /> : null}
+      </div>
       <ActiveFilterChips />
-      <RecentSearchChips urlHasQuery={Boolean(urlQ.trim())} />
     </section>
   );
 }

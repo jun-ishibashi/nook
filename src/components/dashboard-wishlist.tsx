@@ -72,31 +72,29 @@ export default function DashboardWishlist({ items }: { items: WishlistRow[] }) {
         return (
         <li
           key={w.id}
-          className="flex flex-col gap-2 rounded-2xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-          style={{ background: "var(--bg-sunken)", border: "1px solid var(--hairline)" }}
+          className="nook-furniture-row flex flex-col gap-2 rounded-2xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+            <p className="nook-fg text-sm font-semibold">
               {w.name}
             </p>
             {w.note ? (
-              <p className="mt-0.5 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              <p className="nook-fg-secondary mt-0.5 text-xs leading-relaxed">
                 {w.note}
               </p>
             ) : null}
-            <p className="mt-1 truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
+            <p className="nook-fg-muted mt-1 truncate text-[11px]">
               {w.productUrl}
             </p>
             {urlMeta && !urlMeta.isSecure ? (
-              <p className="mt-0.5 text-[9px] leading-snug" style={{ color: "var(--text-faint)" }}>
+              <p className="nook-fg-faint mt-0.5 text-[9px] leading-snug">
                 http の接続です。入力はご注意ください。
               </p>
             ) : null}
             {w.sourcePostId && (
               <Link
                 href={`/post/${w.sourcePostId}`}
-                className="mt-2 inline-block text-[11px] font-medium underline-offset-2 hover:underline"
-                style={{ color: "var(--text-muted)" }}
+                className="nook-fg-muted mt-2 inline-block text-[11px] font-medium underline-offset-2 hover:underline"
               >
                 元の部屋を見る
               </Link>

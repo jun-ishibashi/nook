@@ -1,15 +1,28 @@
+import "server-only";
+
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-/** `.env` 未設定時はリポジトリ内の prisma/dev.db（.env.example と揃える） */
 function createPrismaClient() {
-  const databaseUrl = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
-  const adapter = new PrismaBetterSqlite3({ url: databaseUrl });
-  return new PrismaClient({ adapter });
+  const url = process.env.DATABASE_URL?.trim() ?? "";
+  if (!url || (!url.startsWith("postgres://") && !url.startsWith("postgresql://"))) {
+    throw new Error(
+      "DATABASE_URL is missing or not a PostgreSQL URL. Set it in .env (see .env.example).",
+    );
+  }
+
+  neonConfig.webSocketConstructor = ws;
+  return new PrismaClient({
+    adapter: new PrismaNeon({ connectionString: url }),
+  });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}

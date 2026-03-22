@@ -1,5 +1,5 @@
 /**
- * 同一投稿者の連続を軽くほどく（新着順はなるべく維持・§8.1 フィードのミックスの最小版）
+ * 同一投稿者の連続を軽くほどく（新着順はなるべく維持・フィードのミックス最小版）
  */
 export function breakConsecutiveSameAuthor<T extends { user: { id: string } }>(posts: T[]): T[] {
   if (posts.length < 3) return posts;

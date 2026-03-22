@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getOptionalUserId } from "@/lib/session-user";
 import FollowButton from "@/components/follow-button";
 import HomePostGrid from "@/components/home-post-grid";
 import { getCategoryLabel } from "@/lib/categories";
@@ -15,16 +14,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!user) return { title: "プロフィールが見つかりません | NOOK" };
   const desc = user.bio?.trim()
     ? `${user.bio.trim()}・${user.name} | NOOK`
-    : `${user.name} の部屋・プロフィール | NOOK`;
+    : `${user.name} の投稿・プロフィール | NOOK`;
   return { title: `${user.name}・プロフィール`, description: desc };
 }
 
 export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  const currentUserId = session?.user?.email
-    ? await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } }).then((u) => u?.id)
-    : undefined;
+  const currentUserId = await getOptionalUserId();
 
   const user = await prisma.user.findUnique({
     where: { id },
@@ -110,30 +106,23 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page pb-16 pt-6 sm:pt-8">
-        <header className="user-profile-header mb-8 border-b pb-7 sm:mb-9 sm:pb-8" style={{ borderColor: "var(--hairline)" }}>
+        <header className="user-profile-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
           <p className="nook-section-label mb-2">プロフィール</p>
 
           <div className="mt-1 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 items-start gap-4">
-              <div
-                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-semibold"
-                style={{
-                  background: "var(--bg-raised)",
-                  border: "1px solid var(--hairline)",
-                  color: "var(--text-secondary)",
-                }}
-              >
+              <div className="nook-avatar-letter h-16 w-16 shrink-0">
                 {(user.name && user.name.trim()[0]) || "?"}
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg font-semibold tracking-tight sm:text-xl" style={{ color: "var(--text)" }}>
+                <h1 className="nook-fg text-lg font-semibold tracking-tight sm:text-xl">
                   {user.name}
                 </h1>
-                <p className="mt-1.5 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                <p className="nook-fg-muted mt-1.5 text-[11px] leading-relaxed">
                   NOOK 利用開始 {user.createdAt.toLocaleDateString("ja-JP", { year: "numeric", month: "long" })}
                 </p>
                 {user.bio?.trim() ? (
-                  <p className="mt-3 max-w-md text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                  <p className="nook-fg-secondary mt-3 max-w-md text-sm leading-relaxed">
                     {user.bio.trim()}
                   </p>
                 ) : null}
@@ -142,8 +131,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                     href={user.profileLink.trim()}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-85"
-                    style={{ color: "var(--text-muted)" }}
+                    className="nook-fg-muted mt-3 inline-flex items-center gap-1 text-xs font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-85"
                   >
                     プロフィールのリンク
                     <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -170,8 +158,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
           </div>
 
           <div
-            className="mt-5 flex w-full overflow-x-auto scrollbar-hide border-t border-b py-3.5 sm:justify-start"
-            style={{ borderColor: "var(--hairline)" }}
+            className="nook-hscroll-mask nook-hscroll-mask-sm-clear mt-5 flex w-full overflow-x-auto border-t border-b py-3.5 scrollbar-hide nook-border-hairline sm:justify-start"
             aria-label="集計"
           >
             {(
@@ -183,13 +170,10 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
             ).map((s, i) => (
               <div
                 key={s.l}
-                className={`min-w-[3.5rem] shrink-0 px-3 text-center first:pl-0 sm:min-w-[4rem] sm:px-4 ${i > 0 ? "border-l" : ""}`}
-                style={{ borderColor: "var(--hairline)" }}
+                className={`min-w-[3.5rem] shrink-0 px-3 text-center first:pl-0 sm:min-w-[4rem] sm:px-4 ${i > 0 ? "border-l nook-border-hairline" : ""}`}
               >
-                <p className="text-base font-semibold tabular-nums" style={{ color: "var(--text)" }}>
-                  {s.n}
-                </p>
-                <p className="text-[10px] font-medium sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
+                <p className="nook-fg text-base font-semibold tabular-nums">{s.n}</p>
+                <p className="nook-fg-muted text-[10px] font-medium sm:text-[11px]">
                   {s.l}
                 </p>
               </div>
@@ -199,17 +183,16 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
 
         {hasDiscovery && (
           <section
-            className="mb-8 border-t border-b py-6 sm:py-7"
-            style={{ borderColor: "var(--hairline)" }}
+            className="nook-elevated-surface mb-8 overflow-hidden p-4 sm:p-5"
             aria-labelledby="discover-heading"
           >
-            <h2 id="discover-heading" className="nook-section-label mb-2">
+            <h2 id="discover-heading" className="nook-section-label mb-1">
               ほかの部屋をさがす
             </h2>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {discoverStyleSlugs.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-[10px] font-medium" style={{ color: "var(--text-faint)" }}>
+                  <p className="nook-fg-faint mb-1.5 text-[10px] font-medium">
                     スタイル
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -217,8 +200,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                       <Link
                         key={slug}
                         href={`/?styles=${encodeURIComponent(slug)}`}
-                        className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition hover:opacity-85"
-                        style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)" }}
+                        className="home-trending-pill active:scale-[0.98]"
                       >
                         {getStyleTagLabel(slug)}
                       </Link>
@@ -228,7 +210,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
               )}
               {discoverCategories.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-[10px] font-medium" style={{ color: "var(--text-faint)" }}>
+                  <p className="nook-fg-faint mb-1.5 text-[10px] font-medium">
                     カテゴリ
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -236,8 +218,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                       <Link
                         key={value}
                         href={`/?category=${encodeURIComponent(value)}`}
-                        className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition hover:opacity-85"
-                        style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)" }}
+                        className="home-trending-pill active:scale-[0.98]"
                       >
                         {getCategoryLabel(value)}
                       </Link>
@@ -249,29 +230,31 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
           </section>
         )}
 
-        <section className="mt-6 border-t pt-6 sm:mt-8" style={{ borderColor: "var(--hairline)" }} aria-labelledby="user-posts-heading">
+        <section className="mt-6 border-t pt-6 nook-border-hairline sm:mt-8" aria-labelledby="user-posts-heading">
           <h2 id="user-posts-heading" className="nook-section-label mb-3">
-            部屋
+            投稿
           </h2>
           {postList.length > 0 ? (
             <HomePostGrid posts={postList} ariaLabelledBy="user-posts-heading" />
           ) : (
-            <div
-              className="flex flex-col items-center rounded-[var(--radius-card)] border py-12 text-center sm:py-14"
-              style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
-            >
-            <p className="text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-              まだ、静かな部屋の一角です
+            <div className="nook-elevated-surface flex flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-14">
+            <p className="nook-fg text-base font-semibold tracking-tight">
+              まだ投稿はありません
             </p>
-            <p className="mt-2 max-w-xs px-4 text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            <p className="nook-fg-muted mt-2 max-w-xs px-4 text-[13px] leading-relaxed">
               {isOwn
-                ? "最初の一枚を、マイページから写真を載せてみませんか。"
-                : "これから、こだわりの詰まった部屋が並ぶ予定です。"}
+                ? "一枚からで大丈夫です。写真を載せると、ここに並びます。"
+                : "これから、ムードの近い部屋が並ぶかもしれません。"}
             </p>
               {isOwn ? (
-                <Link href="/dashboard" className="btn-secondary mt-5 text-xs">
-                  マイページへ
-                </Link>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                  <label htmlFor="post_modal" className="btn-primary cursor-pointer text-xs">
+                    写真を載せる
+                  </label>
+                  <Link href="/dashboard" className="btn-secondary text-xs">
+                    マイページ
+                  </Link>
+                </div>
               ) : null}
             </div>
           )}

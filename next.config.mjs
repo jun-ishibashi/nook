@@ -14,6 +14,7 @@ const nextConfig = {
       },
     ],
   },
+  serverExternalPackages: ["@prisma/client", "@neondatabase/serverless"],
 };
 
 export default nextConfig;
