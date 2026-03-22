@@ -23,14 +23,14 @@ export default function HomeFeedTabs() {
   const followingHref = buildHomeHref(sp, (p) => p.set("feed", "following"));
 
   return (
-    <nav className="home-feed-nav flex" aria-label="一覧の切り替え">
+    <nav className="home-feed-nav home-feed-nav--home flex" aria-label="一覧の切り替え">
       <Link
         href={allHref}
         scroll={false}
         aria-current={!isFollowing ? "page" : undefined}
         className={`feed-tab ${!isFollowing ? "feed-tab--active" : ""}`}
       >
-        すべての部屋
+        みんなの部屋
       </Link>
       <Link
         href={followingHref}

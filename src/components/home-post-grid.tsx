@@ -35,88 +35,71 @@ function formatDate(dateStr: string) {
   return date.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" });
 }
 
+/**
+ * アスペクト比パターン: 雑誌的リズム（§5.1 コンテンツ層）
+ * featured (index=0): フル幅 16:9
+ * 奇数: 3:4（やや縦長）
+ * 偶数: 4:5（標準）
+ */
+function tileAspect(index: number, featured: boolean): string {
+  if (featured && index === 0) return "aspect-[16/9]";
+  // 1-indexed pattern after featured
+  const pos = featured ? index : index + 1;
+  return pos % 3 === 0 ? "aspect-[3/4]" : "aspect-[4/5]";
+}
+
 export default function HomePostGrid({
   posts,
   ariaLabelledBy,
+  enableFeatured = false,
 }: {
   posts: HomePostGridItem[];
-  /** ページ上部の見出し id（スクリーンリーダで一覧のラベルに紐づける） */
   ariaLabelledBy?: string;
+  enableFeatured?: boolean;
 }) {
   if (posts.length === 0) return null;
 
-  const grid = (
-    <div className="home-post-grid grid grid-cols-2 gap-3 sm:gap-4">
-      {posts.map((post, index) => (
-        <article key={post.id} className="stagger-item group flex flex-col">
-          {/* Image — 単体リンク（保存はオーバーレイ） */}
-          <div
-            className="home-post-tile__media relative aspect-[3/4] overflow-hidden"
-            style={{ background: "var(--bg-wash)" }}
-          >
-            <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 block">
-              {post.thumbnail ? (
-                <NookImage
-                  src={post.thumbnail}
-                  alt={post.title ? `${post.title}の写真` : "部屋の写真"}
-                  fill
-                  className="object-cover transition duration-300 group-hover:opacity-[0.96]"
-                  sizes="(max-width: 640px) 50vw, 400px"
-                  priority={index < 4}
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                    <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
-                    <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </div>
-              )}
-            </Link>
-            <div className="absolute right-0 top-0 z-10 p-0.5 opacity-80 transition group-hover:opacity-100">
-              <BookmarkButton postId={post.id} initialBookmarked={post.bookmarked} size="sm" />
-            </div>
-          </div>
+  const hasFeatured = enableFeatured && posts.length >= 3;
 
-          <div className="mt-1.5 px-0">
-            <Link href={`/post/${post.id}`}>
-              <p
-                className="text-[13px] font-medium leading-snug line-clamp-2 transition group-hover:underline"
-                style={{ color: "var(--text)" }}
-              >
-                {post.title}
-              </p>
-            </Link>
-            {post.itemCount > 0 ? (
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-2">
-                <p className="text-[10px] font-medium tabular-nums" style={{ color: "var(--text-faint)" }}>
-                  家具・雑貨 {post.itemCount}点
-                </p>
-                {post.totalPrice !== null && (
-                  <p className="text-[10px] font-bold tabular-nums" style={{ color: "var(--text-secondary)" }}>
-                    Total ¥{post.totalPrice.toLocaleString()}
-                  </p>
+  const grid = (
+    <div className="home-post-grid">
+      {posts.map((post, index) => {
+        const isFeatured = hasFeatured && index === 0;
+        return (
+          <article
+            key={post.id}
+            className={`stagger-item group flex flex-col ${isFeatured ? "home-post-tile--featured" : ""}`}
+          >
+            <div
+              className={`home-post-tile__media home-post-tile__media--renewed relative overflow-hidden ${tileAspect(index, hasFeatured)}`}
+              style={{ background: "var(--bg-wash)" }}
+            >
+              <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 block">
+                {post.thumbnail ? (
+                  <NookImage
+                    src={post.thumbnail}
+                    alt={post.title ? `${post.title}の写真` : "部屋の写真"}
+                    fill
+                    className="object-cover transition duration-300 group-hover:opacity-[0.97]"
+                    sizes={isFeatured ? "100vw" : "(max-width: 640px) 50vw, 400px"}
+                    priority={index < 4}
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                      <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                      <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
                 )}
-              </div>
-            ) : null}
-            <div className="mt-1 flex items-center justify-between gap-1">
-              <Link
-                href={`/user/${post.user.id}`}
-                className="flex min-h-9 min-w-0 flex-1 items-center gap-1 rounded-md py-0.5 transition hover:opacity-80"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold"
-                  style={{ background: "var(--bg-sunken)", color: "var(--text-secondary)" }}
-                >
-                  {(post.user.name && post.user.name.trim()[0]) || "?"}
-                </div>
-                <span className="truncate text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>
-                  {post.user.name}
-                </span>
               </Link>
-              <div className="flex shrink-0 items-center gap-0">
+              {/* 右上：保存ボタン */}
+              <div className="absolute right-0 top-0 z-10 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                <BookmarkButton postId={post.id} initialBookmarked={post.bookmarked} size="sm" />
+              </div>
+              {/* 左下：いいねボタン（写真オーバーレイ） */}
+              <div className="absolute bottom-0 left-0 z-10 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
                 <LikeButton
                   postId={post.id}
                   initialLiked={post.liked}
@@ -124,20 +107,53 @@ export default function HomePostGrid({
                   size="sm"
                   showCount={false}
                 />
-                <Link
-                  href={`/post/${post.id}`}
-                  className="-mr-1 inline-flex min-h-9 min-w-9 items-center justify-center rounded-md px-1 text-[10px] tabular-nums transition hover:opacity-80"
-                  style={{ color: "var(--text-faint)" }}
-                >
-                  <time dateTime={post.createdAt} className="tabular-nums">
-                    {formatDate(post.createdAt)}
-                  </time>
-                </Link>
               </div>
             </div>
-          </div>
-        </article>
-      ))}
+
+            <div className="mt-2 px-0 sm:mt-2.5">
+              <Link href={`/post/${post.id}`} className="block">
+                <p
+                  className="text-[13px] font-semibold leading-snug line-clamp-2 transition group-hover:opacity-88"
+                  style={{ color: "var(--text)" }}
+                >
+                  {post.title}
+                </p>
+              </Link>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <Link
+                  href={`/user/${post.user.id}`}
+                  className="flex min-h-7 min-w-0 flex-1 items-center gap-1.5 py-0.5 transition hover:opacity-80"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div
+                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-semibold"
+                    style={{ background: "var(--bg-sunken)", color: "var(--text-secondary)" }}
+                  >
+                    {(post.user.name && post.user.name.trim()[0]) || "?"}
+                  </div>
+                  <span className="truncate text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>
+                    {post.user.name}
+                  </span>
+                </Link>
+                <div className="flex shrink-0 items-center gap-1">
+                  {post.itemCount > 0 ? (
+                    <span className="text-[9px] font-medium tabular-nums" style={{ color: "var(--text-faint)" }}>
+                      {post.itemCount}点
+                    </span>
+                  ) : null}
+                  <time
+                    dateTime={post.createdAt}
+                    className="inline-flex items-center justify-end tabular-nums text-[9px]"
+                    style={{ color: "var(--text-faint)" }}
+                  >
+                    {formatDate(post.createdAt)}
+                  </time>
+                </div>
+              </div>
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 

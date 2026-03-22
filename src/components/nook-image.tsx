@@ -1,4 +1,5 @@
-import Image from "next/image";
+import NextImage from "next/image";
+import { getMoodFilter } from "@/lib/image-mood";
 
 type Props = {
   src: string;
@@ -10,6 +11,7 @@ type Props = {
   height?: number;
   sizes?: string;
   priority?: boolean;
+  mood?: string;
 };
 
 /**
@@ -24,16 +26,19 @@ export default function NookImage({
   height,
   sizes,
   priority,
+  mood,
 }: Props) {
+  const filterStyle = { filter: getMoodFilter(mood) };
   if (!src) return null;
 
   if (fill) {
     return (
-      <Image
+      <NextImage
         src={src}
         alt={alt}
         fill
         className={className}
+        style={filterStyle}
         sizes={sizes ?? "(max-width: 640px) 50vw, 400px"}
         priority={priority}
       />
@@ -41,12 +46,13 @@ export default function NookImage({
   }
 
   return (
-    <Image
+    <NextImage
       src={src}
       alt={alt}
       width={width ?? 800}
       height={height ?? 1000}
       className={className}
+      style={filterStyle}
       sizes={sizes}
       priority={priority}
     />

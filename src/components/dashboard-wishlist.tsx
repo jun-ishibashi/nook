@@ -24,7 +24,7 @@ function escapeCsvCell(value: string): string {
 function downloadWishlistCsv(items: WishlistRow[]) {
   if (typeof window === "undefined") return;
   const origin = window.location.origin;
-  const header = ["名前", "商品ページURL", "メモ", "部屋のURL"];
+  const header = ["名前", "購入先URL", "メモ", "部屋のURL"];
   const rows = items.map((w) => [
     w.name,
     w.productUrl,
@@ -109,7 +109,7 @@ export default function DashboardWishlist({ items }: { items: WishlistRow[] }) {
               rel="noopener noreferrer"
               className="btn-primary text-xs"
             >
-              商品ページを開く
+              購入先を開く
             </a>
             <button
               type="button"

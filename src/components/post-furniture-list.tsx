@@ -50,9 +50,9 @@ function PurchaseLink({
         target="_blank"
         rel="noopener noreferrer"
         className="btn-primary inline-flex min-h-[2.5rem] items-center justify-center gap-1.5 px-5 text-[11px] font-bold tracking-tight shadow-sm transition active:scale-[0.97]"
-        aria-label={`${name} の商品ページ（${meta.displayHost}）を別のタブで開く`}
+        aria-label={`${name} の購入先（${meta.displayHost}）を別のタブで開く`}
       >
-        <span>ショップを見る</span>
+        <span>購入先を開く</span>
         <svg width="11" height="11" viewBox="0 0 14 14" fill="none" className="shrink-0" aria-hidden>
           <path
             d="M5 2h7v7M12 2L2 12"

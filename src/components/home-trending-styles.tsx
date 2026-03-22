@@ -25,11 +25,14 @@ export default async function HomeTrendingStyles() {
   if (rows.length === 0) return null;
 
   return (
-    <section className="mb-6 sm:mb-7" aria-labelledby="trending-styles-heading">
-      <p id="trending-styles-heading" className="nook-section-label mb-2">
-        スタイルからさがす
+    <section className="home-tail-discover" aria-labelledby="trending-styles-heading">
+      <h2 id="trending-styles-heading" className="home-browse-label mb-0.5">
+        ムードからさがす
+      </h2>
+      <p className="home-browse-hint">
+        直近{WINDOW_DAYS}日に多かったタグです。
       </p>
-      <div className="mb-1 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         {rows.map((r) => (
           <Link
             key={r.tagSlug}

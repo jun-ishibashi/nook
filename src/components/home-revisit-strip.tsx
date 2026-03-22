@@ -6,17 +6,20 @@ export default function HomeRevisitStrip({
   wishlistCount,
   /** 件数が0でも、マイページへの軽い導線を出す（ログイン済みホーム用） */
   showEmptyHint = false,
+  /** スティッキー帯などで縦余白を詰めるとき */
+  className,
 }: {
   bookmarkCount: number;
   wishlistCount: number;
   showEmptyHint?: boolean;
+  className?: string;
 }) {
   const hasItems = bookmarkCount > 0 || wishlistCount > 0;
 
   if (!hasItems && !showEmptyHint) return null;
 
   return (
-    <div className="home-revisit-strip pb-1.5 pt-0.5">
+    <div className={`home-revisit-strip ${className ?? "pb-1.5 pt-0.5"}`}>
       <p className="text-[10px] leading-snug" style={{ color: "var(--text-faint)" }}>
         {!hasItems && showEmptyHint ? (
           <>
@@ -27,7 +30,7 @@ export default function HomeRevisitStrip({
             >
               マイページ
             </Link>
-            <span style={{ color: "var(--text-muted)" }}>（保存・欲しい）</span>
+            <span style={{ color: "var(--text-muted)" }}> — 部屋は保存、家具・雑貨は欲しい</span>
           </>
         ) : (
           <>

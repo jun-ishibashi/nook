@@ -35,8 +35,8 @@
 
 ```bash
 npm install
-cp .env.example .env   # 編集: NEXTAUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET（DATABASE_URL は `file:./prisma/dev.db` 推奨）
-npm run db:push         # 初回のみ（ローカル SQLite を生成。DB ファイルは Git に含めない）
+cp .env.example .env   # 編集: DATABASE_URL（Neon 等の postgresql://…）、NEXTAUTH_*、GOOGLE_*
+npm run db:push         # 初回のみ（リモート DB にスキーマ反映）
 npm run dev
 ```
 
@@ -69,23 +69,21 @@ Git で無視するファイル・DB の扱いは [`docs/git-and-local-data.md`]
 | UI | **React 19** |
 | スタイル | **Tailwind CSS v4** + **@tailwindcss/postcss** |
 | 認証 | **NextAuth.js v4**（Google OAuth） |
-| ORM / DB | **Prisma ORM 7**（SQLite）+ **`@prisma/adapter-better-sqlite3`** / **better-sqlite3** |
+| ORM / DB | **Prisma ORM 7**（**PostgreSQL**）+ [**`@prisma/adapter-neon`**](https://neon.tech/docs/guides/prisma) / [`@neondatabase/serverless`](https://github.com/neondatabase/serverless) |
 | 設定 | [`prisma.config.ts`](prisma.config.ts) に接続 URL（スキーマの `datasource` には `url` を書かない） |
-| 境界 | [`dashboard/page.tsx`](src/app/dashboard/page.tsx) で未ログイン時は `redirect("/login")`（Edge middleware は未使用） |
+| 境界 | [`src/lib/prisma.ts`](src/lib/prisma.ts) は **`server-only`**（DB をサーバーに閉じる） |
 | 画像 UI | react-dropzone / react-image-gallery |
 | 画像ストレージ | Cloudinary（任意） |
 | 品質 | TypeScript 5.9 / ESLint 9 + eslint-config-next 16 |
 
-## Prisma 7（SQLite）メモ
+## Prisma 7（PostgreSQL / Neon）メモ
 
-- 接続文字列は **[`prisma.config.ts`](prisma.config.ts)** の `datasource.url`（`env("DATABASE_URL")`）で管理
-- アプリからは [`src/lib/prisma.ts`](src/lib/prisma.ts) で `PrismaBetterSqlite3` アダプタ付き `PrismaClient` を生成
-- 本番で PostgreSQL 等へ切り替える場合は、[Prisma のドライバアダプタ](https://www.prisma.io/docs/orm/overview/databases/database-drivers)に合わせて `prisma.ts` を変更
+- 接続文字列は **[`prisma.config.ts`](prisma.config.ts)** の `datasource.url`（`env("DATABASE_URL")`）と **同一の** `.env` の `DATABASE_URL` をアプリが参照
+- アプリは [`src/lib/prisma.ts`](src/lib/prisma.ts) で **`new PrismaNeon({ connectionString })`**（アダプタが内部で Pool を生成）。`DATABASE_URL` は **`postgres://` または `postgresql://` で始まる必要**あり（未設定・`file:` の SQLite URL は不可）
 
 ## 本番デプロイ
 
-- **DB**: Vercel Postgres / Neon 等へ切り替え（上記アダプタ・`DATABASE_URL` を更新）
+- **DB**: **Neon**（または Vercel Postgres 等）の接続文字列を環境変数に設定
 - **画像**: Cloudinary 推奨（`.env` に `CLOUDINARY_*`）
 - **NEXTAUTH_URL**: 本番 URL（OG の `metadataBase` にも利用）
 - **Google OAuth**: 本番ドメインをリダイレクト URI に追加
-- **ネイティブモジュール**: `better-sqlite3` を使うため、デプロイ先の Node ランタイムとアーキテクチャに合わせたビルドが必要

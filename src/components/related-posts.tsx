@@ -55,9 +55,12 @@ export default async function RelatedPosts({
 
   return (
     <section className="mt-10 border-t pt-6" style={{ borderColor: "var(--hairline)" }} aria-labelledby="related-heading">
-      <h2 id="related-heading" className="nook-section-label mb-3">
+      <h2 id="related-heading" className="nook-section-label mb-1">
         似た部屋
       </h2>
+      <p className="nook-vision-subline mb-3 !mt-0 max-w-none">
+        カテゴリやスタイルが近い、ほかの部屋からムードを拾えます。
+      </p>
       <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
         {related.map((p) => (
           <div key={p.id} className="stagger-item">

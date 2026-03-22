@@ -20,10 +20,7 @@ export default function TermsPage() {
           </svg>
           みんなの部屋へ
         </Link>
-        <div
-          className="mt-6 space-y-4 rounded-[var(--radius-card)] border p-5 sm:p-6"
-          style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)", boxShadow: "var(--home-tile-shadow)" }}
-        >
+        <div className="nook-elevated-surface mt-6 space-y-4 overflow-hidden p-5 sm:p-6">
           <div>
             <p className="nook-section-label mb-2">法務（サンプル）</p>
             <h1 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>

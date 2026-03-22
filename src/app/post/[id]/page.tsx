@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getOptionalUserId } from "@/lib/session-user";
 import { getCategoryLabel } from "@/lib/categories";
 import CategoryIcon from "@/components/category-icon";
 import PostGallery from "@/components/post-gallery";
@@ -99,10 +98,7 @@ export default async function PostPage({
   const { id } = await params;
   const { new: newPostFlag } = await searchParams;
   const justPosted = newPostFlag === "1";
-  const session = await getServerSession(authOptions);
-  const currentUserId = session?.user?.email
-    ? await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } }).then((u) => u?.id)
-    : undefined;
+  const currentUserId = await getOptionalUserId();
 
   const post = await prisma.post.findUnique({
     where: { id },
@@ -151,7 +147,11 @@ export default async function PostPage({
 
   const liked = currentUserId ? post.likes.length > 0 : false;
   const bookmarked = currentUserId ? post.bookmarks.length > 0 : false;
-  const galleryItems = post.medias.map((m) => ({ original: m.path, thumbnail: m.path }));
+  const galleryItems = post.medias.map((m) => ({
+    original: m.path,
+    thumbnail: m.path,
+    mood: m.mood || "",
+  }));
   const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const shareUrl = `${baseUrl}/post/${post.id}`;
 
@@ -166,21 +166,17 @@ export default async function PostPage({
       <article className="mx-auto w-full max-w-2xl pb-16">
         <div
           className="post-detail-hero nook-gallery-cap overflow-hidden"
-          style={{ background: "var(--bg-sunken)" }}
+          style={{
+            background: "var(--bg-sunken)",
+            boxShadow: "0 8px 40px color-mix(in srgb, var(--accent-warm) 6%, transparent)",
+          }}
         >
           <PostGallery items={galleryItems} />
         </div>
 
         <div className="w-full px-4 pb-0 pt-5 sm:px-5 sm:pt-6">
           {justPosted && currentUserId === post.user.id && (
-            <div
-              className="mb-5 rounded-[var(--radius-card)] border px-3 py-3 text-[12px] leading-relaxed"
-              style={{
-                borderColor: "var(--hairline)",
-                background: "color-mix(in srgb, var(--bg-sunken) 65%, var(--bg-raised))",
-              }}
-              role="status"
-            >
+            <div className="nook-elevated-surface mb-5 px-3 py-3 text-[12px] leading-relaxed" role="status">
               <span style={{ color: "var(--text-secondary)" }}>載せました。</span>
               <Link
                 href={`/post/${post.id}/edit`}
@@ -195,7 +191,7 @@ export default async function PostPage({
 
           <header className="post-detail-header">
             <p className="nook-section-label mb-2">部屋</p>
-            <h1 className="text-xl font-semibold leading-snug tracking-tight sm:text-[1.35rem]" style={{ color: "var(--text)" }}>
+            <h1 className="text-xl font-bold leading-snug tracking-[-0.02em] sm:text-[1.35rem]" style={{ color: "var(--text)" }}>
               {post.title}
             </h1>
             <p className="mt-2 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -253,10 +249,7 @@ export default async function PostPage({
             ) : null}
 
             {post.furnitureItems.some(f => f.price !== null) && (
-              <div 
-                className="mt-6 flex flex-col items-start gap-1 rounded-2xl border px-4 py-3 sm:px-5"
-                style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
-              >
+              <div className="nook-elevated-surface mt-6 flex flex-col items-start gap-1 px-4 py-3 sm:px-5">
                 <span className="nook-section-label !mb-0 text-[10px]">Total Look / 概算費用</span>
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-[1.5rem] font-bold tracking-tighter" style={{ color: "var(--text)" }}>
@@ -271,13 +264,12 @@ export default async function PostPage({
           </header>
 
           <div
-            className="post-detail-toolbar mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-4 py-3.5 sm:px-5"
+            className="post-detail-toolbar mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-card)] border px-4 py-3.5 sm:px-5"
             style={{
               borderColor: "var(--hairline)",
-              background: "var(--bg-raised)",
-              boxShadow: "var(--home-tile-shadow)",
+              background: "color-mix(in srgb, var(--bg-raised) 80%, transparent)",
             }}
-            aria-label="部屋への反応と共有"
+            aria-label="いいね・保存・共有"
           >
             <div className="flex items-center gap-1">
               <div className="flex items-center gap-0.5 rounded-full border px-1" style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}>
@@ -296,7 +288,13 @@ export default async function PostPage({
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-5" style={{ borderColor: "var(--hairline)" }}>
+          <div
+            className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border p-4 transition-all duration-300 hover:shadow-md sm:p-5"
+            style={{
+              borderColor: "var(--hairline)",
+              background: "color-mix(in srgb, var(--bg-raised) 80%, transparent)",
+            }}
+          >
             <p className="sr-only">この部屋を載せた人</p>
             <Link href={`/user/${post.user.id}`} className="flex min-w-0 items-center gap-3 transition hover:opacity-85">
               <div
@@ -333,8 +331,11 @@ export default async function PostPage({
               <h2 id="furniture-heading" className="nook-section-label mb-1">
                 家具・雑貨
               </h2>
-              <p className="mb-3 text-[12px] leading-snug" style={{ color: "var(--text-secondary)" }}>
-                商品ページまでひと続き（{post.furnitureItems.length}）
+              <p className="mb-1 text-[12px] leading-snug" style={{ color: "var(--text-secondary)" }}>
+                購入先までひと続き（{post.furnitureItems.length}）
+              </p>
+              <p className="nook-vision-subline mb-3 !mt-0 max-w-none">
+                ボタンから外部ショップへ、そのまま開けます（在庫や価格は各店のページが正です）。
               </p>
               {shopHosts.length > 0 ? (
                 <p className="mb-4 text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>

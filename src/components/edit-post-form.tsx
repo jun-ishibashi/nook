@@ -73,7 +73,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
     const name = furnitureName.trim();
     const url = furnitureUrl.trim();
     if (!name || !url) {
-      setError("名前と商品ページのURLを入力してください。");
+      setError("名前と購入先のURLを入力してください。");
       return;
     }
     if (!url.startsWith("http")) {
@@ -190,7 +190,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
           id="edit-desc"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="こだわり・賃貸の条件など、短くて大丈夫です"
+          placeholder="こだわり・住まいの条件など、短くて大丈夫です"
           className="textarea-base text-sm"
           rows={4}
           maxLength={500}
@@ -322,7 +322,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
               onChange={(e) => setFurnitureUrl(e.target.value)}
               placeholder="https://..."
               className="input-base text-xs"
-              aria-label="商品ページのURL"
+              aria-label="購入先のURL"
             />
             {furnitureUrl.trim() && /^http:\/\//i.test(furnitureUrl.trim()) ? (
               <p className="text-[9px] leading-snug" style={{ color: "var(--text-faint)" }}>
@@ -352,7 +352,7 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
                   value={furnitureLinkRelation}
                   onChange={(e) => setFurnitureLinkRelation(e.target.value)}
                   className="input-base text-[10px]"
-                  aria-label="商品ページのリンクの位置づけ"
+                  aria-label="購入先リンクの位置づけ"
                 >
                   {FURNITURE_LINK_RELATIONS.map((r) => (
                     <option key={r.value || "rel-unset-add"} value={r.value}>

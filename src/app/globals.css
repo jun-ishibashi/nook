@@ -8,7 +8,7 @@ html {
 
 :root,
 html[data-theme="light"] {
-  /* §6 賃貸リアル・モノトーン：紙とコンクリのあいだのライトグレー（ややウォーム） */
+  /* §6 モノトーン・コンクリ寄り：紙とコンクリのあいだのライトグレー（ややウォーム） */
   --bg:          #f5f3f0;
   --bg-raised:   #fffcf9;
   --bg-sunken:   #ebe8e4;
@@ -45,7 +45,7 @@ html[data-theme="light"] {
     radial-gradient(ellipse 90% 50% at 100% 0%, rgba(232, 226, 216, 0.5) 0%, transparent 52%),
     radial-gradient(ellipse 70% 40% at 0% 18%, rgba(220, 214, 206, 0.35) 0%, transparent 45%),
     var(--bg);
-  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 2px 14px rgba(44, 40, 37, 0.06);
+  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
   --home-card-lift: 0 10px 36px rgba(44, 40, 37, 0.08);
   --home-tile-shadow: 0 2px 10px rgba(44, 40, 37, 0.05);
 
@@ -95,7 +95,7 @@ html[data-theme="dark"] {
     radial-gradient(ellipse 82% 44% at 0% 4%, rgba(72, 62, 52, 0.28) 0%, transparent 52%),
     radial-gradient(ellipse 55% 36% at 100% 12%, rgba(48, 44, 40, 0.45) 0%, transparent 50%),
     linear-gradient(180deg, #131211 0%, #0d0c0b 100%);
-  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 32px rgba(0, 0, 0, 0.5);
+  --home-bar-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
   --home-card-lift: 0 20px 60px rgba(0, 0, 0, 0.6);
   --home-tile-shadow: 0 4px 24px rgba(0, 0, 0, 0.38);
 }
@@ -282,23 +282,472 @@ body {
     letter-spacing: 0.02em;
   }
 
-  /** ホーム上部スティッキー：縦を抑え、写真エリアを食わない（§5.1） */
+  /** ホーム：操作層は境界とごく弱い面だけ（product-vision §5.1） */
   .home-sticky-feed {
     border-bottom: 1px solid var(--hairline);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    box-shadow: var(--home-bar-shadow);
   }
-  html[data-theme="dark"] .home-sticky-feed {
-    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.28);
+
+  /** ログイン後：タブと再訪を1帯に（固定操作域の高さを抑える） */
+  .home-sticky-toolbar {
+    @apply flex flex-col gap-1 py-1 sm:flex-row sm:items-end sm:justify-between sm:gap-6 sm:py-1.5;
+  }
+  .home-sticky-toolbar__tabs {
+    @apply min-w-0 shrink-0;
+  }
+  .home-sticky-toolbar__revisit {
+    @apply min-w-0 sm:max-w-[min(100%,20rem)] sm:text-right;
+  }
+
+  /** ホーム・フィード縦スタック（余白で階層 §3.3） */
+  .home-feed-stack {
+    @apply flex flex-col gap-7 sm:gap-9;
+  }
+
+  /** スティッキー内：検索＋クリアの一行 */
+  .home-sticky-search-clear {
+    @apply shrink-0 pt-2.5 text-[10px] font-semibold tracking-wide underline decoration-transparent underline-offset-4 transition hover:opacity-80 sm:pt-2;
+    color: var(--text-muted);
+  }
+  .home-sticky-search-clear:hover:not(:disabled) {
+    color: var(--text-secondary);
+  }
+  .home-sticky-search-clear:disabled {
+    opacity: 0.45;
+  }
+
+  /** 条件チップ：横スクロールで縦を固定 */
+  .home-active-chips-scroll {
+    -webkit-overflow-scrolling: touch;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  .home-active-chips-scroll__track {
+    @apply flex flex-nowrap gap-2 overflow-x-auto pb-0.5;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .home-active-chips-scroll__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /** 最近のキーワード（スティッキー外） */
+  .home-recent-search-row {
+    @apply flex flex-col gap-1.5;
+  }
+  .home-recent-search-row__label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+  }
+  .home-recent-search-row__scroll {
+    @apply flex gap-2 overflow-x-auto pb-0.5;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .home-recent-search-row__scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /** 一覧まわりの小見出し（最近・トレンド・フィード） */
+  .home-browse-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+  }
+  .home-browse-hint {
+    margin-top: 0.2rem;
+    margin-bottom: 0.75rem;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  @media (min-width: 640px) {
+    .home-browse-hint {
+      margin-bottom: 0.85rem;
+    }
+  }
+
+  /** フィード直前の区切り（写真主役の手前で一段だけ） */
+  .home-feed-ledge {
+    margin-top: 0.25rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .home-feed-ledge__title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+  }
+
+  /** 絞り込み：見出し行＋テキストトグル（操作は軽く） */
+  .home-filter-panel {
+    @apply border-t pt-4 sm:pt-5;
+    border-color: var(--hairline);
+  }
+  .home-filter-panel__bar {
+    @apply flex items-center justify-between gap-3;
+  }
+  .home-filter-panel__title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+  .home-filter-panel__toggle {
+    @apply inline-flex items-center gap-1 border-0 bg-transparent py-1 text-[11px] font-semibold transition;
+    color: var(--text-secondary);
+  }
+  .home-filter-panel__toggle:hover {
+    color: var(--text);
+  }
+  .home-filter-panel__chevron {
+    opacity: 0.55;
+    transition: transform var(--transition-base);
+  }
+  .home-filter-panel__toggle[aria-expanded="true"] .home-filter-panel__chevron {
+    transform: rotate(180deg);
+  }
+  .home-filter-panel__badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+  }
+
+  /** 入口層：上線＋グリッド。カード枠は使わない（§5.1） */
+  .home-entry {
+    @apply pb-1;
+  }
+  .home-entry__rule {
+    height: 1px;
+    width: 2.5rem;
+    margin-bottom: 1rem;
+    background: color-mix(in srgb, var(--accent-warm) 32%, var(--hairline));
+  }
+  .home-entry__grid {
+    @apply flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8;
+  }
+  .home-entry__copy {
+    @apply min-w-0 flex-1;
+  }
+  .home-entry__kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+  }
+  .home-entry__title {
+    @apply max-w-xl text-pretty font-semibold leading-[1.2] tracking-tight;
+    font-size: clamp(1.45rem, 4vw, 1.95rem);
+    color: var(--text);
+  }
+  .home-entry__lede {
+    @apply mt-2 max-w-md text-[12px] leading-relaxed sm:text-[13px];
+    color: var(--text-muted);
+  }
+  .home-entry__actions {
+    @apply flex shrink-0 flex-col items-stretch gap-2.5 sm:items-end;
+  }
+  .home-entry__cta {
+    @apply min-h-10 px-5;
+  }
+  .home-entry__link {
+    @apply text-center text-[12px] font-medium underline decoration-transparent underline-offset-4 transition hover:opacity-80 sm:text-left;
+    color: var(--text-secondary);
+  }
+  .home-entry__moods {
+    @apply mt-5 flex gap-2 overflow-x-auto pb-0.5 sm:mt-6;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .home-entry__moods::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Hero（入口層 §5.1）── */
+  .home-hero {
+    position: relative;
+    min-height: min(70vh, 480px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    border-radius: 0 0 var(--radius-card) var(--radius-card);
+    margin-left: -1rem;
+    margin-right: -1rem;
+  }
+  @media (min-width: 640px) {
+    .home-hero {
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: var(--radius-card);
+    }
+  }
+
+  .home-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .home-hero__media img {
+    object-position: center 40%;
+  }
+  .home-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(19, 18, 17, 0.88) 0%,
+      rgba(19, 18, 17, 0.55) 35%,
+      rgba(19, 18, 17, 0.18) 65%,
+      rgba(19, 18, 17, 0.06) 100%
+    );
+  }
+  html[data-theme="light"] .home-hero__overlay {
+    background: linear-gradient(
+      to top,
+      rgba(42, 38, 35, 0.82) 0%,
+      rgba(42, 38, 35, 0.45) 35%,
+      rgba(42, 38, 35, 0.12) 65%,
+      transparent 100%
+    );
+  }
+
+  .home-hero__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem 1.25rem 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .home-hero__content {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+      padding: 2.5rem 2rem 2rem;
+    }
+  }
+
+  .home-hero__body {
+    min-width: 0;
+    flex: 1;
+  }
+  .home-hero__kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.4rem;
+  }
+  .home-hero__title {
+    font-size: clamp(1.35rem, 4.5vw, 1.85rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: #f5f3f0;
+    max-width: 28rem;
+    text-wrap: balance;
+  }
+  .home-hero__lede {
+    margin-top: 0.6rem;
+    font-size: 12px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.55);
+    max-width: 22rem;
+  }
+  @media (min-width: 640px) {
+    .home-hero__lede {
+      font-size: 13px;
+    }
+  }
+
+  .home-hero__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) {
+    .home-hero__actions {
+      align-items: flex-end;
+    }
+  }
+  .home-hero__cta {
+    min-height: 2.5rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    background: rgba(245, 243, 240, 0.92);
+    color: #131211;
+  }
+  .home-hero__cta:hover {
+    background: rgba(245, 243, 240, 1);
+  }
+  .home-hero__link {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition: all 0.15s ease;
+  }
+  .home-hero__link:hover {
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration-color: rgba(255, 255, 255, 0.3);
+  }
+  @media (min-width: 640px) {
+    .home-hero__link {
+      text-align: left;
+    }
+  }
+
+  .home-hero__moods {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0 1.25rem 1.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .home-hero__moods::-webkit-scrollbar {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .home-hero__moods {
+      padding: 0 2rem 1.75rem;
+    }
+  }
+  .home-hero__mood-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.2s ease;
+  }
+  .home-hero__mood-chip:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .home-tail-discover {
+    @apply pt-1;
+  }
+
+  /** 絞り込み展開：塗りのカードを避け、線と余白だけ（§5.1 操作層） */
+  .home-filter-sheet {
+    @apply flex flex-col gap-5 py-4 sm:gap-6 sm:py-5;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  html[data-theme="dark"] .home-filter-sheet {
+    background: color-mix(in srgb, var(--bg-raised) 35%, transparent);
+  }
+
+  /** 補助一文：表層は部屋・ムード・発見を先に、購入先の価値は短く補足 */
+  .nook-vision-subline {
+    margin-top: 0.35rem;
+    max-width: 36rem;
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  /** フィード見出し行：件数をスキャンしやすいピルに */
+  .home-feed-count-pill {
+    border-radius: 9999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--bg-raised) 70%, transparent);
+    color: var(--text-secondary);
+  }
+  html[data-theme="dark"] .home-feed-count-pill {
+    background: color-mix(in srgb, var(--bg-sunken) 45%, transparent);
   }
 
   /**
-   * ホーム・ウェルカム（§5.1 入口層）：左アクセントはごく弱く。写真フィードへ視線を渡す。
+   * 横スクロール行：端をごく弱くフェード（最近見た部屋・集計スタッツなど）
    */
-  .home-welcome-editorial {
-    padding-top: 0.125rem;
+  .nook-hscroll-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 14px,
+      #000 calc(100% - 14px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 14px,
+      #000 calc(100% - 14px),
+      transparent
+    );
+  }
+  @media (min-width: 640px) {
+    .nook-hscroll-mask-sm-clear {
+      -webkit-mask-image: none !important;
+      mask-image: none !important;
+    }
   }
 
-  /** ホーム空状態：写真グリッドと同じトーンで控えめに */
+  /** マイページ：プロフィール設定の開閉矢印 */
+  .profile-settings-disclosure > summary .profile-settings-chevron {
+    transition: transform var(--transition-base);
+  }
+  .profile-settings-disclosure[open] > summary .profile-settings-chevron {
+    transform: rotate(180deg);
+  }
+
+  /** 一覧グリッド：写真の呼吸とリズム（§5 コンテンツ層） */
+  .home-post-grid {
+    @apply grid grid-cols-2 gap-3 sm:gap-5;
+  }
+  /** Featured カード: フル幅スパン（エディトリアル §5.1） */
+  .home-post-tile--featured {
+    grid-column: 1 / -1;
+  }
+
+  /** ホーム空状態：装飾は最小（§3.3） */
+  .home-empty-state {
+    border-radius: 0.75rem;
+    box-shadow: none;
+    background: transparent;
+  }
   .home-empty-state img {
     -webkit-user-drag: none;
   }
@@ -325,6 +774,7 @@ body {
     color: var(--text);
     border-color: var(--text-faint);
     background: var(--accent-warm-muted);
+    box-shadow: 0 0 8px 0 color-mix(in srgb, var(--accent-warm) 18%, transparent);
   }
 
   /** 最近：ごく薄い面でキーワードの塊だと分かる程度 */
@@ -347,11 +797,12 @@ body {
   }
 
   .home-post-tile__media {
-    border-radius: 0.5rem;
+    border-radius: 0.55rem;
     box-shadow: var(--home-tile-shadow);
     transition:
       box-shadow 0.28s ease,
-      transform 0.28s ease;
+      transform 0.28s ease,
+      border-color 0.28s ease;
   }
   @media (min-width: 640px) {
     .home-post-tile__media {
@@ -360,7 +811,22 @@ body {
   }
   .group:hover .home-post-tile__media {
     box-shadow: var(--home-card-lift);
+    transform: translateY(-1px);
+  }
+
+  /** ホーム一覧：境界は細く、写真を前に（§3.3）+ じんわり暖色グロウ（§6.3） */
+  .home-post-tile__media--renewed {
+    box-shadow: none;
+    border: 1px solid var(--hairline);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+  }
+  .group:hover .home-post-tile__media--renewed {
+    border-color: color-mix(in srgb, var(--text) 12%, var(--hairline));
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--accent-warm) 12%, transparent);
     transform: translateY(-2px);
+  }
+  html[data-theme="dark"] .group:hover .home-post-tile__media--renewed {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   /** 適用中条件チップ：細い輪郭・写真主役を損なわない（§3.3・§5.2） */
@@ -411,6 +877,12 @@ body {
   .home-feed-nav {
     border-bottom: 1px solid var(--hairline);
   }
+  .home-sticky-toolbar .home-feed-nav {
+    border-bottom: none;
+  }
+  .home-feed-nav--home .feed-tab {
+    @apply py-1 text-[11px];
+  }
 
   /**
    * ホーム「絞り込み」パネル内のチップ（横スクロール・タップしやすさ）
@@ -432,14 +904,16 @@ body {
     color: var(--text);
   }
   .home-filter-panel .filter-chip[aria-selected="true"] {
-    background: var(--text);
-    color: var(--bg);
-    border-color: var(--text);
-    font-weight: 700;
+    background: color-mix(in srgb, var(--text) 6%, transparent);
+    color: var(--text);
+    border-color: var(--text-muted);
+    font-weight: 600;
+    box-shadow: none;
   }
   html[data-theme="dark"] .home-filter-panel .filter-chip[aria-selected="true"] {
-    background: var(--text);
-    color: var(--bg);
+    background: color-mix(in srgb, var(--text) 10%, transparent);
+    color: var(--text);
+    border-color: var(--text-faint);
   }
   @media (min-width: 640px) {
     .home-filter-panel .filter-chip {
@@ -450,7 +924,7 @@ body {
 
   /** ホーム・スティッキー内のフィードタブ */
   .home-sticky-feed .feed-tab {
-    @apply py-1.5;
+    @apply py-1;
   }
   .home-top-search-clear {
     @apply py-1 text-[11px] font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-80 disabled:opacity-40;
@@ -680,6 +1154,12 @@ html[data-theme="dark"] .category-showcase-tile:hover {
   }
   .animate-fade-in {
     animation: none !important;
+  }
+  .home-filter-panel__chevron {
+    transition: none !important;
+  }
+  .profile-settings-disclosure > summary .profile-settings-chevron {
+    transition: none !important;
   }
 }
 

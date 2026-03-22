@@ -52,24 +52,14 @@ export const metadata: Metadata = {
 
 const POST_MODAL_ID = "post_modal";
 
-/** FOUC 防止: 初回ペイント前に data-theme を適用（既定: dark） */
-const THEME_INIT_SCRIPT = `
-(function(){
-  try {
-    var k = "nook-theme";
-    var t = localStorage.getItem(k);
-    if (t !== "light" && t !== "dark") t = "dark";
-    document.documentElement.setAttribute("data-theme", t);
-  } catch (e) {
-    document.documentElement.setAttribute("data-theme", "dark");
-  }
-})();`;
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`} suppressHydrationWarning>
+      <head>
+        <Script src="/nook-theme-init.js" strategy="beforeInteractive" />
+      </head>
       <body
         className={`flex min-h-screen flex-col antialiased ${notoSansJP.className}`}
         style={{
@@ -78,7 +68,6 @@ export default function RootLayout({
           fontFeatureSettings: '"palt" 1',
         }}
       >
-        <Script id="nook-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <Providers>
           <a
             href="#main"

@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CATEGORIES } from "@/lib/categories";
 import { normalizeStyleTagSlugs } from "@/lib/style-tags";
@@ -9,11 +7,8 @@ import {
   normalizeLayoutType,
   normalizeRoomContextNote,
 } from "@/lib/room-context";
-import { getProductUrlHost } from "@/lib/product-url";
-import {
-  normalizeFurnitureLinkRelation,
-  parseLinkVerifiedDate,
-} from "@/lib/furniture-link-meta";
+import { normalizeFurnitureInputs, toFurnitureCreateManyRow } from "@/lib/furniture-input";
+import { getOptionalUserId, requireApiUser } from "@/lib/session-user";
 
 export async function GET(
   _request: Request,
@@ -21,12 +16,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const session = await getServerSession(authOptions);
-  const currentUserId = session?.user
-    ? await prisma.user
-        .findUnique({ where: { email: session.user.email! }, select: { id: true } })
-        .then((u) => u?.id)
-    : undefined;
+  const currentUserId = await getOptionalUserId();
 
   const post = await prisma.post.findUnique({
     where: { id },
@@ -58,15 +48,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 401 });
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const { user } = auth;
 
   const post = await prisma.post.findUnique({ where: { id } });
   if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -101,15 +85,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 401 });
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const { user } = auth;
 
   const post = await prisma.post.findUnique({
     where: { id },
@@ -194,41 +172,11 @@ export async function PATCH(
       }
     }
     if (hasFurniture && Array.isArray(body.furniture)) {
-      const furniture = body.furniture.filter(
-        (f) =>
-          f &&
-          typeof f.name === "string" &&
-          typeof f.productUrl === "string" &&
-          f.productUrl.trim().startsWith("http")
-      );
+      const furniture = normalizeFurnitureInputs(body.furniture);
       await tx.furnitureItem.deleteMany({ where: { postId: id } });
       if (furniture.length > 0) {
         await tx.furnitureItem.createMany({
-          data: furniture.map((f, i) => {
-            const rawIdx =
-              typeof f.mediaIndex === "number" && Number.isFinite(f.mediaIndex)
-                ? Math.floor(f.mediaIndex)
-                : 0;
-            const mediaIndex =
-              mediaCount <= 0
-                ? 0
-                : Math.min(Math.max(0, rawIdx), mediaCount - 1);
-            const url = f.productUrl.trim().slice(0, 2000);
-            return {
-              postId: id,
-              name: f.name.trim().slice(0, 200),
-              productUrl: url,
-              productHost: getProductUrlHost(url),
-              note:
-                typeof f.note === "string"
-                  ? f.note.trim().slice(0, 500)
-                  : "",
-              sortOrder: i,
-              mediaIndex,
-              linkRelation: normalizeFurnitureLinkRelation(f.linkRelation),
-              linkVerifiedAt: parseLinkVerifiedDate(f.linkVerifiedDate ?? null),
-            };
-          }),
+          data: furniture.map((f, i) => toFurnitureCreateManyRow(f, i, mediaCount, id)),
         });
       }
     }

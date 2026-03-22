@@ -2,9 +2,13 @@
 
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import { getMoodFilter } from "@/lib/image-mood";
 
-export default function ImageUpload({ files, onFiles, onRemove }: {
-  files: File[]; onFiles: (files: File[]) => void; onRemove?: (index: number) => void;
+export default function ImageUpload({ files, onFiles, onRemove, mood }: {
+  files: File[];
+  onFiles: (files: File[]) => void;
+  onRemove?: (index: number) => void;
+  mood?: string;
 }) {
   const onDrop = useCallback((accepted: File[]) => { onFiles([...files, ...accepted]); }, [files, onFiles]);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { "image/*": [] }, maxFiles: 10 });
@@ -44,7 +48,12 @@ export default function ImageUpload({ files, onFiles, onRemove }: {
               style={{ background: "var(--bg-sunken)" }}
               role="listitem"
             >
-              <img src={URL.createObjectURL(file)} alt={`写真 ${i + 1}`} className="h-full w-full object-cover" />
+              <img
+                src={URL.createObjectURL(file)}
+                alt={`写真 ${i + 1}`}
+                className="h-full w-full object-cover transition-all"
+                style={{ filter: getMoodFilter(mood) }}
+              />
               {onRemove && (
                 <button
                   type="button"

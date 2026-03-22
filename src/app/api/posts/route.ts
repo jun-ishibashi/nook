@@ -1,6 +1,5 @@
+import type { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadImage } from "@/lib/upload";
 import { CATEGORIES } from "@/lib/categories";
@@ -12,11 +11,8 @@ import {
 } from "@/lib/room-context";
 import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
 import { postSearchOrConditions } from "@/lib/post-search";
-import { getProductUrlHost } from "@/lib/product-url";
-import {
-  normalizeFurnitureLinkRelation,
-  parseLinkVerifiedDate,
-} from "@/lib/furniture-link-meta";
+import { parseFurnitureJson, toFurnitureNestedCreate } from "@/lib/furniture-input";
+import { getOptionalUserId, requireApiUser } from "@/lib/session-user";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -31,14 +27,9 @@ export async function GET(request: NextRequest) {
   const minPrice = parseInt(searchParams.get("minPrice") ?? "", 10);
   const maxPrice = parseInt(searchParams.get("maxPrice") ?? "", 10);
 
-  const session = await getServerSession(authOptions);
-  const currentUserId = session?.user
-    ? await prisma.user
-        .findUnique({ where: { email: session.user.email! }, select: { id: true } })
-        .then((u) => u?.id)
-    : undefined;
+  const currentUserId = await getOptionalUserId();
 
-  const where: Record<string, any> = {};
+  const where: Prisma.PostWhereInput = {};
   if (q) {
     where.OR = postSearchOrConditions(q);
   }
@@ -56,7 +47,7 @@ export async function GET(request: NextRequest) {
 
   // 価格フィルター: 指定された範囲の価格を持つ家具が1つ以上ある投稿を抽出
   if (!isNaN(minPrice) || !isNaN(maxPrice)) {
-    const priceWhere: Record<string, any> = {};
+    const priceWhere: Prisma.IntFilter = {};
     if (!isNaN(minPrice)) priceWhere.gte = minPrice;
     if (!isNaN(maxPrice)) priceWhere.lte = maxPrice;
     
@@ -108,14 +99,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 401 });
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const { user } = auth;
 
   const formData = await request.formData();
   const title = formData.get("title") as string;
@@ -131,51 +117,7 @@ export async function POST(request: Request) {
   const validCategories = CATEGORIES.map((c) => c.value as string);
   const safeCategory = validCategories.includes(category) ? category : "other";
 
-  let furniture: {
-    name: string;
-    productUrl: string;
-    note: string;
-    price: number | null;
-    mediaIndex: number;
-    linkRelation: string;
-    linkVerifiedAt: Date | null;
-  }[] = [];
-  if (furnitureJson) {
-    try {
-      interface FurnitureInput {
-        name: string;
-        productUrl: string;
-        note?: string;
-        price?: number;
-        mediaIndex?: number;
-        linkRelation?: string;
-        linkVerifiedDate?: string | null;
-      }
-      const parsed = JSON.parse(furnitureJson) as FurnitureInput[];
-      furniture = (Array.isArray(parsed) ? parsed : [])
-        .filter(
-          (f) =>
-            f &&
-            typeof f.name === "string" &&
-            typeof f.productUrl === "string" &&
-            f.productUrl.startsWith("http")
-        )
-        .map((f) => ({
-          name: f.name,
-          productUrl: f.productUrl,
-          note: typeof f.note === "string" ? f.note.trim().slice(0, 500) : "",
-          price: typeof f.price === "number" && Number.isFinite(f.price) ? Math.max(0, Math.floor(f.price)) : null,
-          mediaIndex:
-            typeof f.mediaIndex === "number" && Number.isFinite(f.mediaIndex)
-              ? Math.max(0, Math.floor(f.mediaIndex))
-              : 0,
-          linkRelation: normalizeFurnitureLinkRelation(f.linkRelation),
-          linkVerifiedAt: parseLinkVerifiedDate(f.linkVerifiedDate),
-        }));
-    } catch {
-      furniture = [];
-    }
-  }
+  const furniture = parseFurnitureJson(furnitureJson);
 
   let styleTagSlugs = normalizeStyleTagSlugs([]);
   if (styleTagsJson) {
@@ -210,23 +152,13 @@ export async function POST(request: Request) {
       roomContextNote,
       userId: user.id,
       medias: {
-        create: paths.map((p) => ({ path: p })),
+        create: paths.map((p) => ({
+          path: p,
+          mood: (formData.get("mood") as string) || "",
+        })),
       },
       furnitureItems: {
-        create: furniture.map((f, i) => {
-          const url = f.productUrl.trim().slice(0, 2000);
-          return {
-            name: f.name.trim().slice(0, 200),
-            productUrl: url,
-            productHost: getProductUrlHost(url),
-            note: f.note.slice(0, 500),
-            price: f.price,
-            sortOrder: i,
-            mediaIndex: Math.min(f.mediaIndex ?? 0, Math.max(0, files.length - 1)),
-            linkRelation: f.linkRelation,
-            linkVerifiedAt: f.linkVerifiedAt,
-          };
-        }),
+        create: furniture.map((f, i) => toFurnitureNestedCreate(f, i, files.length)),
       },
       styleTags: {
         create: styleTagSlugs.map((tagSlug) => ({ tagSlug })),

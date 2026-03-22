@@ -1,9 +1,8 @@
-import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getOptionalSessionUser } from "@/lib/session-user";
 import EditPostForm from "@/components/edit-post-form";
 import { linkVerifiedAtToDateInputValue } from "@/lib/furniture-link-meta";
 
@@ -14,16 +13,10 @@ export const metadata: Metadata = {
 
 export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const user = await getOptionalSessionUser({ id: true });
+  if (!user) {
     redirect(`/login?callbackUrl=${encodeURIComponent(`/post/${id}/edit`)}`);
   }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true },
-  });
-  if (!user) redirect("/login");
 
   const post = await prisma.post.findUnique({
     where: { id },
@@ -60,14 +53,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page pb-16 pt-6 sm:py-10">
-        <div
-          className="rounded-[var(--radius-card)] border p-5 sm:p-6"
-          style={{
-            borderColor: "var(--hairline)",
-            background: "var(--bg-raised)",
-            boxShadow: "var(--home-tile-shadow)",
-          }}
-        >
+        <div className="nook-elevated-surface overflow-hidden p-5 sm:p-6">
           <Link
             href={`/post/${id}`}
             className="inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
@@ -88,6 +74,9 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
           <h1 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
             部屋を編集
           </h1>
+          <p className="nook-vision-subline max-w-md !mt-1">
+            写真・ムード・家具・雑貨の購入先を、あとから静かに直せます。
+          </p>
           <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--hairline)" }}>
             <EditPostForm initial={initial} />
           </div>

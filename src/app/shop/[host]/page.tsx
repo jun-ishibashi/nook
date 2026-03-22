@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getOptionalUserId } from "@/lib/session-user";
 import HomePostGrid from "@/components/home-post-grid";
 import { fetchPostsByShopHost } from "@/lib/shop-posts";
 import { isSafeShopHostParam } from "@/lib/shop-path";
@@ -25,7 +24,7 @@ export async function generateMetadata({
     : "ショップ | NOOK";
   return {
     title,
-    description: `${decoded} の商品ページが載っている、みんなの部屋`,
+    description: `${decoded} の購入先が載っている、みんなの部屋｜NOOK`,
   };
 }
 
@@ -41,12 +40,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
 
   const normalized = decoded.trim().toLowerCase();
 
-  const session = await getServerSession(authOptions);
-  const currentUserId = session?.user?.email
-    ? await prisma.user
-        .findUnique({ where: { email: session.user.email }, select: { id: true } })
-        .then((u) => u?.id)
-    : undefined;
+  const currentUserId = await getOptionalUserId();
 
   const posts = await fetchPostsByShopHost(normalized, 60, {
     interactiveUserId: currentUserId,
@@ -76,10 +70,13 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page pb-16 pt-6 sm:py-8">
-        <header className="shop-page-header mb-8 border-b pb-7 sm:mb-9 sm:pb-8" style={{ borderColor: "var(--hairline)" }}>
+        <header className="shop-page-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
           <p className="nook-section-label mb-2">ショップ別の部屋</p>
-          <p className="mb-4 max-w-lg text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            このショップの商品ページが載っている、みんなの部屋です。
+          <p className="mb-2 max-w-lg text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            このショップの購入先リンクが載っている、みんなの部屋です。
+          </p>
+          <p className="nook-vision-subline mb-4 !mt-0 max-w-lg">
+            部屋の写真からムードを拾い、開けば家具・雑貨の行き先まで辿れます。
           </p>
           <h1 className="text-lg font-semibold tracking-tight sm:text-xl" style={{ color: "var(--text)" }}>
             <span
@@ -121,10 +118,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
           {postList.length > 0 ? (
             <HomePostGrid posts={postList} ariaLabelledBy="shop-posts-heading" />
           ) : (
-            <div
-              className="flex flex-col items-center rounded-[var(--radius-card)] border py-14 text-center sm:py-16"
-              style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
-            >
+            <div className="nook-elevated-surface flex flex-col items-center px-4 py-14 text-center sm:px-6 sm:py-16">
               <div
                 className="mb-3 flex h-12 w-12 items-center justify-center rounded-full"
                 style={{ background: "var(--bg-sunken)" }}

@@ -57,8 +57,11 @@ export default function DashboardContent({
 
   return (
     <section className="dashboard-main-section" aria-labelledby="dashboard-main-heading">
-      <p id="dashboard-main-heading" className="nook-section-label mb-2">
+      <p id="dashboard-main-heading" className="nook-section-label mb-1">
         部屋・保存・欲しい
+      </p>
+      <p className="nook-vision-subline mb-3 !mt-0 max-w-none">
+        載せた写真と家具・雑貨の購入先を整理し、保存や欲しいであとから比較しやすくします。
       </p>
 
       <div
@@ -181,14 +184,14 @@ export default function DashboardContent({
               ))}
             </div>
           ) : (
-            <EmptyState icon="bookmark" title="保存した部屋はまだありません" description="気になった部屋の詳細から保存できます。" />
+            <EmptyState icon="bookmark" title="保存した部屋はまだありません" description="気になった部屋を開いて、保存するとあとですぐ戻れます。" />
           )
         )}
         {tab === "wishlist" && (
           wishlist.length > 0 ? (
             <DashboardWishlist items={wishlist} />
           ) : (
-            <EmptyState icon="wish" title="欲しいはまだありません" description="部屋の詳細から、気になった家具・雑貨を欲しいに入れられます。" />
+            <EmptyState icon="wish" title="欲しいはまだありません" description="部屋の詳細で気になった家具・雑貨を欲しいに入れて、購入前に並べておけます。" />
           )
         )}
       </div>
@@ -206,7 +209,7 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <div className="dashboard-empty-state flex flex-col items-center rounded-[var(--radius-card)] border py-16 text-center sm:py-20" style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}>
+    <div className="dashboard-empty-state nook-elevated-surface flex flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-20">
       <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "var(--bg-sunken)" }}>
         {icon === "camera" ? (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }}>

@@ -13,6 +13,7 @@ import {
   FURNITURE_LINK_RELATIONS,
   getFurnitureLinkRelationLabel,
 } from "@/lib/furniture-link-meta";
+import { IMAGE_MOODS, getMoodFilter } from "@/lib/image-mood";
 
 const MODAL_ID = "post_modal";
 const STEPS = ["写真", "家具・雑貨", "確認"];
@@ -108,6 +109,7 @@ export default function CreatePost() {
   const [housingType, setHousingType] = useState("");
   const [layoutType, setLayoutType] = useState("");
   const [roomContextNote, setRoomContextNote] = useState("");
+  const [selectedMood, setSelectedMood] = useState("");
   const [draftOffer, setDraftOffer] = useState<DraftPayload | null>(null);
 
   useEffect(() => {
@@ -207,7 +209,7 @@ export default function CreatePost() {
   function addFurniture() {
     const name = furnitureName.trim();
     const url = furnitureUrl.trim();
-    if (!name || !url) { setError("名前と商品ページのURLを入力してください。"); return; }
+    if (!name || !url) { setError("名前と購入先のURLを入力してください。"); return; }
     if (!url.startsWith("http")) { setError("リンクは https:// から入力してください。"); return; }
     setError("");
     setFurniture((prev) => [
@@ -280,6 +282,7 @@ export default function CreatePost() {
     formData.set("housingType", housingType);
     formData.set("layoutType", layoutType);
     formData.set("roomContextNote", roomContextNote.trim().slice(0, 120));
+    formData.set("mood", selectedMood);
     const res = await fetch("/api/posts", { method: "POST", body: formData });
     setLoading(false);
     if (!res.ok) {
@@ -304,6 +307,7 @@ export default function CreatePost() {
     setHousingType("");
     setLayoutType("");
     setRoomContextNote("");
+    setSelectedMood("");
     closeModal();
     if (typeof data.id === "string" && data.id) {
       router.push(`/post/${data.id}?new=1`);
@@ -397,9 +401,14 @@ export default function CreatePost() {
         <PostModalDesc>問題なければ載せてください。</PostModalDesc>
         <div
           className="min-h-[168px] overflow-hidden rounded-[var(--radius-card)] border"
-          style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
+          style={{
+            borderColor: "var(--hairline)",
+            background: "var(--bg-sunken)",
+          }}
         >
-          <ImageGallery items={galleryItems} showThumbnails={false} />
+          <div style={{ filter: getMoodFilter(selectedMood) }}>
+            <ImageGallery items={galleryItems} showThumbnails={false} />
+          </div>
         </div>
         <div
           className="mt-4 rounded-[var(--radius-card)] border p-4"
@@ -486,7 +495,7 @@ export default function CreatePost() {
                 送信中…
               </>
             ) : (
-              "載せる"
+              "写真を載せる"
             )}
           </button>
         </div>
@@ -502,7 +511,9 @@ export default function CreatePost() {
         <h2 id="modal-title" className="mb-1 text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
           家具・雑貨のリンク（任意）
         </h2>
-        <PostModalDesc>商品ページのURLがあると、みんながショップまでたどれます。なくても進められます。あとから編集で足せます。</PostModalDesc>
+        <PostModalDesc>
+          購入先のURLを添えると、みんなが外部ショップまでそのまま辿れます。なくても進められます。あとから編集で足せます。
+        </PostModalDesc>
         <div className="space-y-3">
           <div
             className="rounded-[var(--radius-card)] border p-4"
@@ -525,7 +536,7 @@ export default function CreatePost() {
                   onChange={(e) => setFurnitureUrl(e.target.value)}
                   placeholder="https://…"
                   className="input-base flex-1 text-xs"
-                  aria-label="商品ページのURL"
+                  aria-label="購入先のURL"
                   onKeyDown={(e) => e.key === "Enter" && addFurniture()}
                 />
                 <button type="button" onClick={addFurniture} className="btn-secondary shrink-0 text-xs sm:self-start">
@@ -569,7 +580,7 @@ export default function CreatePost() {
                     value={furnitureLinkRelation}
                     onChange={(e) => setFurnitureLinkRelation(e.target.value)}
                     className="input-base text-[10px]"
-                    aria-label="商品ページのリンクの位置づけ"
+                    aria-label="購入先リンクの位置づけ"
                   >
                     {FURNITURE_LINK_RELATIONS.map((r) => (
                       <option key={r.value || "rel-unset"} value={r.value}>
@@ -702,7 +713,7 @@ export default function CreatePost() {
                 スキップして次へ
               </p>
               <p className="text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>
-                リンクを足すと、気になった人が商品ページまでたどれます。
+                購入先のリンクを足すと、気になった人がショップまでそのまま辿れます。
               </p>
             </div>
           ) : null}
@@ -727,11 +738,92 @@ export default function CreatePost() {
       <h2 id="modal-title" className="mb-1 text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
         写真を載せる
       </h2>
-      <PostModalDesc>写真とタイトルがあれば大丈夫です。</PostModalDesc>
+      <PostModalDesc>
+        完璧じゃなくて大丈夫です。写真とタイトルがあれば、ムードが伝わります。
+      </PostModalDesc>
       <div className="space-y-5">
         <div>
           <span className="nook-overline nook-overline--sentence mb-1.5 block">写真（必須）</span>
-          <ImageUpload files={files} onFiles={setFiles} onRemove={removeFile} />
+          <ImageUpload files={files} onFiles={setFiles} onRemove={removeFile} mood={selectedMood} />
+          {files.length > 0 && (
+            <div className="mt-4">
+              <span className="nook-overline nook-overline--sentence mb-2 block">
+                空気感（Mood）
+                <span className="ml-1 opacity-70" style={{ color: "var(--text-faint)" }}>
+                  — 写真の質感を整える
+                </span>
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {IMAGE_MOODS.map((m) => (
+                  <button
+                    key={m.value}
+                    type="button"
+                    onClick={() => setSelectedMood(m.value)}
+                    className="group relative flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-all active:scale-[0.97]"
+                    style={{
+                      borderColor: selectedMood === m.value ? "var(--text-muted)" : "var(--hairline)",
+                      background: selectedMood === m.value ? "var(--bg-raised)" : "transparent",
+                    }}
+                    title={m.description}
+                  >
+                    <div
+                      className="h-10 w-14 overflow-hidden rounded-md border"
+                      style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
+                    >
+                      <div
+                        className="h-full w-full"
+                        style={{
+                          filter: m.filter,
+                          background:
+                            "linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), linear-gradient(45deg, #eee 25%, #fff 25%, #fff 75%, #eee 75%, #eee)",
+                          backgroundSize: "10px 10px",
+                          backgroundPosition: "0 0, 5px 5px",
+                        }}
+                      >
+                        <div className="flex h-full w-full items-center justify-center bg-black/5">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }}>
+                            <path
+                              d="M12 21a9 9 0 100-18 9 9 0 000 18z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                            />
+                            <path
+                              d="M12 7v10M7 12h10"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      className="text-[9px] font-bold tracking-wider"
+                      style={{ color: selectedMood === m.value ? "var(--text)" : "var(--text-muted)" }}
+                    >
+                      {m.label.toUpperCase()}
+                    </span>
+                    {selectedMood === m.value && (
+                      <div
+                        className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-black shadow-sm"
+                        style={{ border: "1px solid var(--hairline)" }}
+                      >
+                        <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                          <path
+                            d="M2 6l3 3 5-5"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="nook-hairline-top pt-1">
           <label htmlFor="post-title" className="nook-overline nook-overline--sentence mb-1.5 block">
@@ -759,7 +851,7 @@ export default function CreatePost() {
             id="post-desc"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="こだわり・賃貸の条件など、短くて大丈夫です"
+            placeholder="こだわり・住まいの条件など、短くて大丈夫です"
             className="textarea-base text-sm"
             rows={3}
             maxLength={500}

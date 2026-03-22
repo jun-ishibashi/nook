@@ -1,34 +1,27 @@
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getOptionalSessionUser } from "@/lib/session-user";
 import DashboardContent from "@/components/dashboard-content";
 import type { WishlistRow } from "@/components/dashboard-wishlist";
 import ProfileSettings from "@/components/profile-settings";
 
 export const metadata: Metadata = {
   title: "マイページ",
-  description: "載せた部屋・保存・欲しい・プロフィール",
+  description: "写真を載せた部屋・保存・欲しい・プロフィール。ムードと購入先をセットで残せます。",
 };
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) redirect("/login");
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      bio: true,
-      profileLink: true,
-      createdAt: true,
-      _count: { select: { followsReceived: true, followsInitiated: true } },
-    },
+  const user = await getOptionalSessionUser({
+    id: true,
+    name: true,
+    email: true,
+    bio: true,
+    profileLink: true,
+    createdAt: true,
+    _count: { select: { followsReceived: true, followsInitiated: true } },
   });
   if (!user) redirect("/login");
 
@@ -107,7 +100,7 @@ export default async function DashboardPage() {
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page py-8 sm:py-10">
-        <header className="dashboard-page-header mb-8 border-b pb-8 sm:mb-10 sm:pb-9" style={{ borderColor: "var(--hairline)" }}>
+        <header className="dashboard-page-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-10 sm:p-6">
           <p className="nook-section-label mb-3">マイページ</p>
 
           <div className="flex items-start gap-4">
@@ -140,7 +133,7 @@ export default async function DashboardPage() {
           </div>
 
           <div
-            className="dashboard-stats-row mt-6 flex overflow-x-auto scrollbar-hide border-t border-b py-4 sm:justify-center sm:overflow-visible"
+            className="dashboard-stats-row nook-hscroll-mask nook-hscroll-mask-sm-clear mt-6 flex overflow-x-auto border-t border-b py-4 scrollbar-hide sm:justify-center sm:overflow-visible"
             style={{ borderColor: "var(--hairline)" }}
             aria-label="集計"
           >
@@ -192,7 +185,7 @@ export default async function DashboardPage() {
           <DashboardContent posts={postList} bookmarks={bookmarkList} wishlist={wishlistList} />
         </Suspense>
 
-        <div className="mt-10 border-t pt-2 sm:mt-12" style={{ borderColor: "var(--hairline)" }}>
+        <div className="mt-10 sm:mt-12">
           <ProfileSettings initialBio={user.bio} initialProfileLink={user.profileLink} />
         </div>
       </div>

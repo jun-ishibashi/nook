@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getOptionalUserId } from "@/lib/session-user";
 import FollowButton from "@/components/follow-button";
 import HomePostGrid from "@/components/home-post-grid";
 import { getCategoryLabel } from "@/lib/categories";
@@ -21,10 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  const currentUserId = session?.user?.email
-    ? await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } }).then((u) => u?.id)
-    : undefined;
+  const currentUserId = await getOptionalUserId();
 
   const user = await prisma.user.findUnique({
     where: { id },
@@ -110,7 +106,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page pb-16 pt-6 sm:pt-8">
-        <header className="user-profile-header mb-8 border-b pb-7 sm:mb-9 sm:pb-8" style={{ borderColor: "var(--hairline)" }}>
+        <header className="user-profile-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
           <p className="nook-section-label mb-2">プロフィール</p>
 
           <div className="mt-1 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -170,7 +166,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
           </div>
 
           <div
-            className="mt-5 flex w-full overflow-x-auto scrollbar-hide border-t border-b py-3.5 sm:justify-start"
+            className="nook-hscroll-mask nook-hscroll-mask-sm-clear mt-5 flex w-full overflow-x-auto border-t border-b py-3.5 scrollbar-hide sm:justify-start"
             style={{ borderColor: "var(--hairline)" }}
             aria-label="集計"
           >
@@ -199,14 +195,16 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
 
         {hasDiscovery && (
           <section
-            className="mb-8 border-t border-b py-6 sm:py-7"
-            style={{ borderColor: "var(--hairline)" }}
+            className="nook-elevated-surface mb-8 overflow-hidden p-4 sm:p-5"
             aria-labelledby="discover-heading"
           >
-            <h2 id="discover-heading" className="nook-section-label mb-2">
+            <h2 id="discover-heading" className="nook-section-label mb-1">
               ほかの部屋をさがす
             </h2>
-            <div className="flex flex-col gap-3">
+            <p className="nook-vision-subline mb-3 !mt-0 max-w-none">
+              この人の部屋に多いムードやカテゴリから、近い雰囲気の部屋へすぐ飛べます。
+            </p>
+            <div className="flex flex-col gap-4">
               {discoverStyleSlugs.length > 0 && (
                 <div>
                   <p className="mb-1.5 text-[10px] font-medium" style={{ color: "var(--text-faint)" }}>
@@ -217,8 +215,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                       <Link
                         key={slug}
                         href={`/?styles=${encodeURIComponent(slug)}`}
-                        className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition hover:opacity-85"
-                        style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)" }}
+                        className="home-trending-pill active:scale-[0.98]"
                       >
                         {getStyleTagLabel(slug)}
                       </Link>
@@ -236,8 +233,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                       <Link
                         key={value}
                         href={`/?category=${encodeURIComponent(value)}`}
-                        className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition hover:opacity-85"
-                        style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)" }}
+                        className="home-trending-pill active:scale-[0.98]"
                       >
                         {getCategoryLabel(value)}
                       </Link>
@@ -256,17 +252,14 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
           {postList.length > 0 ? (
             <HomePostGrid posts={postList} ariaLabelledBy="user-posts-heading" />
           ) : (
-            <div
-              className="flex flex-col items-center rounded-[var(--radius-card)] border py-12 text-center sm:py-14"
-              style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
-            >
+            <div className="nook-elevated-surface flex flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-14">
             <p className="text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
               まだ、静かな部屋の一角です
             </p>
             <p className="mt-2 max-w-xs px-4 text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
               {isOwn
-                ? "最初の一枚を、マイページから写真を載せてみませんか。"
-                : "これから、こだわりの詰まった部屋が並ぶ予定です。"}
+                ? "一枚からで大丈夫です。マイページから写真を載せると、家具・雑貨の購入先も一緒に残せます。"
+                : "これから、ムードの近い部屋が並ぶかもしれません。"}
             </p>
               {isOwn ? (
                 <Link href="/dashboard" className="btn-secondary mt-5 text-xs">
