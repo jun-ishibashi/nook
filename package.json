@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "postinstall": "npx prisma generate",
     "db:push": "npx prisma db push",
-    "db:seed": "npx prisma db seed"
+    "db:seed": "npx prisma db seed",
+    "db:migrate-and-seed": "npx prisma migrate deploy && npx prisma db seed"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

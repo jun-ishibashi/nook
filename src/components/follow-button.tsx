@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { loginCallbackHref } from "@/lib/login-href";
@@ -23,7 +23,7 @@ export default function FollowButton({
   const pathname = usePathname();
   const [following, setFollowing] = useState(initialFollowing);
   const [followerCount, setFollowerCount] = useState(initialFollowerCount);
-  const [isPending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
   async function toggle(e: React.MouseEvent) {
     e.preventDefault();
@@ -32,27 +32,35 @@ export default function FollowButton({
       router.push(loginCallbackHref(pathname));
       return;
     }
-    const next = !following;
+    if (pending) return;
+    setPending(true);
+
+    const wasFollowing = following;
+    const prevCount = followerCount;
+    const next = !wasFollowing;
     setFollowing(next);
     setFollowerCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/follows", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
-        });
-        if (res.ok) {
-          const data = (await res.json()) as { following: boolean; followerCount: number };
-          setFollowing(data.following);
-          setFollowerCount(data.followerCount);
-          router.refresh();
-        }
-      } catch {
-        setFollowing((prev) => !prev);
-        setFollowerCount((c) => (next ? Math.max(0, c - 1) : c + 1));
+
+    try {
+      const res = await fetch("/api/follows", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { following: boolean; followerCount: number };
+        setFollowing(data.following);
+        setFollowerCount(data.followerCount);
+      } else {
+        setFollowing(wasFollowing);
+        setFollowerCount(prevCount);
       }
-    });
+    } catch {
+      setFollowing(wasFollowing);
+      setFollowerCount(prevCount);
+    } finally {
+      setPending(false);
+    }
   }
 
   const pad =
@@ -60,13 +68,17 @@ export default function FollowButton({
       ? "min-h-11 px-3 py-2 text-xs sm:min-h-0 sm:py-1 sm:text-[11px]"
       : "min-h-11 px-4 py-2 text-xs sm:min-h-0 sm:py-1.5";
 
+  const label = following
+    ? `フォロー中、フォロワー${followerCount}人`
+    : `フォローする（フォロワー${followerCount}人）`;
+
   return (
     <button
       type="button"
       onClick={toggle}
-      disabled={isPending}
-      aria-busy={isPending}
-      className={`inline-flex items-center justify-center rounded-full font-bold transition active:scale-[0.97] disabled:opacity-60 ${pad} ${className}`}
+      aria-busy={pending}
+      aria-label={label}
+      className={`inline-flex items-center justify-center rounded-full font-bold transition active:scale-[0.97] ${pending ? "pointer-events-none opacity-80" : ""} ${pad} ${className}`}
       style={
         following
           ? {
@@ -82,7 +94,7 @@ export default function FollowButton({
       }
       aria-pressed={following}
     >
-      {following ? "フォロー中" : "フォロー"}
+      <span aria-hidden>{following ? "フォロー中" : "フォロー"}</span>
       <span className="ml-1.5 tabular-nums opacity-80" aria-hidden>
         {followerCount}
       </span>

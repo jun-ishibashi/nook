@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { loginCallbackHref } from "@/lib/login-href";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 type Props = {
   productUrl: string;
@@ -25,7 +25,7 @@ export default function WishlistItemButton({
   const { status } = useSession();
   const router = useRouter();
   const [saved, setSaved] = useState(initialSaved);
-  const [isPending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
   const isSm = size === "sm";
   const pad = isSm
@@ -39,29 +39,37 @@ export default function WishlistItemButton({
       router.push(loginCallbackHref(`/post/${postId}`));
       return;
     }
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/wishlist", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productUrl, name, note, postId }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && typeof data.saved === "boolean") {
-          setSaved(data.saved);
-          router.refresh();
-        }
-      } catch {}
-    });
+    if (pending) return;
+    setPending(true);
+
+    const was = saved;
+    setSaved(!was);
+
+    try {
+      const res = await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productUrl, name, note, postId }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { saved?: boolean };
+      if (res.ok && typeof data.saved === "boolean") {
+        setSaved(data.saved);
+      } else {
+        setSaved(was);
+      }
+    } catch {
+      setSaved(was);
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      disabled={isPending}
-      aria-busy={isPending}
-      className={`shrink-0 rounded-full font-semibold transition active:scale-[0.97] disabled:opacity-50 ${pad}`}
+      aria-busy={pending}
+      className={`shrink-0 rounded-full font-semibold transition active:scale-[0.97] ${pending ? "pointer-events-none opacity-80" : ""} ${pad}`}
       style={
         saved
           ? {
@@ -78,7 +86,7 @@ export default function WishlistItemButton({
       aria-pressed={saved}
       aria-label={saved ? "欲しいから外す" : "欲しいに追加"}
     >
-      {isPending ? "…" : "欲しい"}
+      欲しい
     </button>
   );
 }

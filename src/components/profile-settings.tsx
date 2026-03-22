@@ -65,7 +65,7 @@ export default function ProfileSettings({
         </span>
       </summary>
       <div className="border-t px-4 pb-4 pt-3 nook-border-hairline">
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3" aria-busy={loading}>
           <div>
             <label htmlFor="profile-display-name" className="nook-fg-muted nook-caption-sm font-bold">
               表示名
@@ -122,7 +122,13 @@ export default function ProfileSettings({
               {error}
             </p>
           ) : null}
-          <button type="submit" disabled={loading} className="btn-primary text-sm sm:text-xs disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={loading}
+            aria-busy={loading}
+            aria-label={loading ? "保存しています" : undefined}
+            className="btn-primary text-sm sm:text-xs disabled:opacity-50"
+          >
             {loading ? "保存中…" : "保存"}
           </button>
         </form>

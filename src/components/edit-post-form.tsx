@@ -549,7 +549,13 @@ export default function EditPostForm({ initial }: { initial: EditPostInitial }) 
       ) : null}
 
       <div className="flex flex-wrap gap-3">
-        <button type="submit" disabled={loading} className="btn-primary text-sm sm:text-xs disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={loading}
+          aria-busy={loading}
+          aria-label={loading ? "更新しています" : undefined}
+          className="btn-primary text-sm sm:text-xs disabled:opacity-50"
+        >
           {loading ? "更新中…" : "更新する"}
         </button>
         <Link href={`/post/${initial.id}`} className="btn-secondary text-sm sm:text-xs">

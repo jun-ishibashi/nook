@@ -37,13 +37,29 @@
 ```bash
 npm install
 cp .env.example .env   # 編集: DATABASE_URL（Neon 等の postgresql://…）、NEXTAUTH_*、GOOGLE_*
-npm run db:push         # 初回のみ（リモート DB にスキーマ反映）
-# 任意: サンプル部屋・フォロー・いいね等を入れる（開発 DB のみ。既存 User はすべて削除されます）
-# npm run db:seed
+npm run db:push         # 初回のみ（リモート DB にスキーマ反映）。マイグレーション運用なら下記シード節を参照
 npm run dev
 ```
 
 Git で無視するファイル・DB の扱いは [`docs/git-and-local-data.md`](docs/git-and-local-data.md) を参照。
+
+### サンプルデータ（シード）
+
+[`prisma/seed.ts`](prisma/seed.ts) で **ユーザー 3 名・投稿・フォロー・いいね・保存・欲しい** を投入します。**実行すると既存の `User` はすべて削除**され、関連データは Cascade で消えます。本番で実ユーザーを抱えた DB では **絶対に実行しない**でください。
+
+**手順（Neon などリモート含む）**
+
+1. `.env` の `DATABASE_URL` を対象 DB に向ける  
+2. スキーマを最新にする: `npx prisma migrate deploy`  
+3. シード: `npm run db:seed`（内部で `npx prisma db seed` → `tsx prisma/seed.ts`）
+
+まとめて実行する場合:
+
+```bash
+npm run db:migrate-and-seed
+```
+
+画像 URL は Unsplash（[`next.config.mjs`](next.config.mjs) の `remotePatterns` 済み）。シードのメール（`seed-*@nook.example`）は **Google ログインではそのまま使えない**ことが多いですが、**未ログインでも**ホーム・部屋詳細・プロフィールの表示確認に使えます。
 
 ブラウザで http://localhost:3001 を開く（`package.json` の dev ポート）。
 
@@ -62,8 +78,9 @@ Git で無視するファイル・DB の扱いは [`docs/git-and-local-data.md`]
 | `npm run build` | 本番ビルド（`prisma generate` → `next build`） |
 | `npm run start` | 本番サーバー |
 | `npm run lint` | ESLint（Flat Config: [`eslint.config.mjs`](eslint.config.mjs)） |
-| `npm run db:push` | DB スキーマ反映 |
+| `npm run db:push` | DB スキーマ反映（マイグレーション未使用の開発向け） |
 | `npm run db:seed` | 開発用シード（**全ユーザーを削除**してから投入。[`prisma/seed.ts`](prisma/seed.ts)） |
+| `npm run db:migrate-and-seed` | `migrate deploy` のあと `db:seed`（空の Neon などに一括） |
 
 ## 技術スタック（主要パッケージ）
 
@@ -89,6 +106,8 @@ Git で無視するファイル・DB の扱いは [`docs/git-and-local-data.md`]
 ## 本番デプロイ
 
 - **DB**: **Neon**（または Vercel Postgres 等）の接続文字列を環境変数に設定
+- **マイグレーション**: 初回・更新時に `npx prisma migrate deploy`（本番パイプラインまたは手元から `DATABASE_URL` 指定）
 - **画像**: Cloudinary 推奨（`.env` に `CLOUDINARY_*`）
 - **NEXTAUTH_URL**: 本番 URL（OG の `metadataBase` にも利用）
 - **Google OAuth**: 本番ドメインをリダイレクト URI に追加
+- **シード**: ステージング用の空 DB など **限定的な用途**でのみ `npm run db:migrate-and-seed` を検討（手順は上記「サンプルデータ（シード）」）。**実ユーザーのいる本番 DB では実行しない**

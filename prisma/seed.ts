@@ -3,6 +3,7 @@
  * 本番 DB では実行しないでください。
  *
  * 画像・プロフィール写真は next.config の remotePatterns に含まれる Unsplash の URL を使用。
+ * （Unsplash 側で写真が削除されると 404 になるため、表示できないときは URL を差し替えてください。）
  * ログインは Google OAuth のため、シードのメールでそのままログインできるとは限りません。
  * 未ログインでもホーム・部屋詳細・プロフィールの表示確認に使えます。
  */
@@ -19,6 +20,10 @@ const IMG = {
   kitchen: "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1200&q=80",
   oneroom: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
   plants: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=1200&q=80",
+  dining: "https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=1200&q=80",
+  hallway: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80",
+  bookshelf:
+    "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80",
 } as const;
 
 /** プロフィールアイコン（next.config の Unsplash のみ） */
@@ -27,6 +32,7 @@ const AVATAR = {
     "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=256&h=256&q=80",
   kota: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&h=256&q=80",
   mina: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+  ren: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
 } as const;
 
 function createPrisma(): PrismaClient {
@@ -78,11 +84,28 @@ async function main() {
     },
   });
 
+  const ren = await prisma.user.create({
+    data: {
+      id: "seed_user_ren",
+      name: "レン",
+      email: "seed-ren@nook.example",
+      image: AVATAR.ren,
+      bio: "2LDK・ダイニング中心に過ごしています。",
+      profileLink: "",
+    },
+  });
+
   await prisma.follow.createMany({
     data: [
       { followerId: alice.id, followingId: kota.id },
       { followerId: kota.id, followingId: mina.id },
       { followerId: mina.id, followingId: alice.id },
+      { followerId: ren.id, followingId: alice.id },
+      { followerId: ren.id, followingId: kota.id },
+      { followerId: ren.id, followingId: mina.id },
+      { followerId: alice.id, followingId: ren.id },
+      { followerId: kota.id, followingId: ren.id },
+      { followerId: mina.id, followingId: ren.id },
     ],
   });
 
@@ -309,11 +332,197 @@ async function main() {
     },
   });
 
+  const postAlice3 = await prisma.post.create({
+    data: {
+      title: "キッチンは白ベース",
+      description: "調理はコンパクトに。見せる収納は同系色だけにしています。",
+      category: "kitchen",
+      housingType: "rental",
+      layoutType: "1ldk",
+      roomContextNote: "",
+      userId: alice.id,
+      medias: {
+        create: [
+          { path: IMG.kitchen, mood: "warm" },
+          { path: IMG.dining, mood: "ambient_light" },
+        ],
+      },
+      styleTags: {
+        create: [
+          { tagSlug: "tidying" },
+          { tagSlug: "compact" },
+          { tagSlug: "rental" },
+          { tagSlug: "budget_mix" },
+        ],
+      },
+      furnitureItems: {
+        create: [
+          {
+            name: "キッチンマット",
+            brand: "ニトリ",
+            brandSlug: "",
+            productUrl: "https://www.nitori-net.jp/ec/",
+            productHost: "nitori-net.jp",
+            note: "1枚目の足元",
+            sortOrder: 0,
+            mediaIndex: 0,
+            pinX: 0.4,
+            pinY: 0.78,
+            price: 1990,
+            linkRelation: "purchased",
+            linkVerifiedAt: new Date("2024-08-20T00:00:00.000Z"),
+          },
+          {
+            name: "ダイニングチェア",
+            brand: "",
+            brandSlug: "",
+            productUrl: "https://www.muji.com/jp/ja/store",
+            productHost: "muji.com",
+            note: "2枚目",
+            sortOrder: 1,
+            mediaIndex: 1,
+            pinX: 0.55,
+            pinY: 0.42,
+            price: 12900,
+            linkRelation: "same_model",
+            linkVerifiedAt: null,
+          },
+        ],
+      },
+    },
+  });
+
+  const postMina2 = await prisma.post.create({
+    data: {
+      title: "読書用の壁一面",
+      description: "電子より紙派。新刊は積まずに読み終えたら出す。",
+      category: "study",
+      housingType: "rental",
+      layoutType: "1k_1dk",
+      roomContextNote: "",
+      userId: mina.id,
+      medias: { create: [{ path: IMG.bookshelf, mood: "ambient_light" }] },
+      styleTags: {
+        create: [
+          { tagSlug: "reading" },
+          { tagSlug: "minimalist" },
+          { tagSlug: "ambient_light" },
+          { tagSlug: "solo_living" },
+        ],
+      },
+      furnitureItems: {
+        create: [
+          {
+            name: "読書灯",
+            brand: "",
+            brandSlug: "",
+            productUrl: "https://www.amazon.co.jp/",
+            productHost: "amazon.co.jp",
+            note: "",
+            sortOrder: 0,
+            mediaIndex: 0,
+            pinX: 0.33,
+            pinY: 0.4,
+            price: 4980,
+            linkRelation: "purchased",
+            linkVerifiedAt: new Date("2025-02-01T00:00:00.000Z"),
+          },
+        ],
+      },
+    },
+  });
+
+  const postRen1 = await prisma.post.create({
+    data: {
+      title: "週末のダイニング",
+      description: "友人が来るときはこのテーブルを中心に。平日は片付けて広く。",
+      category: "dining",
+      housingType: "rental",
+      layoutType: "2ldk",
+      roomContextNote: "",
+      userId: ren.id,
+      medias: { create: [{ path: IMG.dining, mood: "warm" }] },
+      styleTags: {
+        create: [
+          { tagSlug: "warm" },
+          { tagSlug: "solo_living" },
+          { tagSlug: "nakameguro" },
+          { tagSlug: "budget_retail" },
+        ],
+      },
+      furnitureItems: {
+        create: [
+          {
+            name: "ダイニングテーブル",
+            brand: "",
+            brandSlug: "",
+            productUrl: "https://www.ikea.com/jp/ja/",
+            productHost: "ikea.com",
+            note: "",
+            sortOrder: 0,
+            mediaIndex: 0,
+            pinX: 0.5,
+            pinY: 0.48,
+            price: 34990,
+            linkRelation: "purchased",
+            linkVerifiedAt: new Date("2024-05-01T00:00:00.000Z"),
+          },
+        ],
+      },
+    },
+  });
+
+  const postRen2 = await prisma.post.create({
+    data: {
+      title: "玄関からリビングへの動線",
+      description: "靴箱はスリム型。鏡で奥行きを補っています。",
+      category: "entrance",
+      housingType: "rental",
+      layoutType: "2ldk",
+      roomContextNote: "",
+      userId: ren.id,
+      medias: { create: [{ path: IMG.hallway, mood: "concrete" }] },
+      styleTags: {
+        create: [
+          { tagSlug: "compact" },
+          { tagSlug: "mukishitsu" },
+          { tagSlug: "rental" },
+          { tagSlug: "tidying" },
+        ],
+      },
+      furnitureItems: {
+        create: [
+          {
+            name: "壁掛けミラー",
+            brand: "",
+            brandSlug: "",
+            productUrl: "https://www.nitori-net.jp/ec/",
+            productHost: "nitori-net.jp",
+            note: "",
+            sortOrder: 0,
+            mediaIndex: 0,
+            pinX: 0.62,
+            pinY: 0.35,
+            price: 5990,
+            linkRelation: "reference",
+            linkVerifiedAt: null,
+          },
+        ],
+      },
+    },
+  });
+
   await prisma.like.createMany({
     data: [
       { userId: alice.id, postId: postKota1.id },
       { userId: kota.id, postId: postAlice1.id },
       { userId: mina.id, postId: postAlice2.id },
+      { userId: ren.id, postId: postAlice1.id },
+      { userId: ren.id, postId: postMina2.id },
+      { userId: alice.id, postId: postRen1.id },
+      { userId: kota.id, postId: postRen2.id },
+      { userId: mina.id, postId: postAlice3.id },
+      { userId: kota.id, postId: postMina2.id },
     ],
   });
 
@@ -321,6 +530,9 @@ async function main() {
     data: [
       { userId: mina.id, postId: postAlice1.id },
       { userId: alice.id, postId: postMina1.id },
+      { userId: kota.id, postId: postAlice3.id },
+      { userId: mina.id, postId: postRen1.id },
+      { userId: ren.id, postId: postKota2.id },
     ],
   });
 
@@ -342,9 +554,37 @@ async function main() {
     });
   }
 
+  const minaReadingLamp = await prisma.furnitureItem.findFirst({
+    where: { postId: postMina2.id, name: "読書灯" },
+    select: { productUrl: true },
+  });
+  if (minaReadingLamp) {
+    await prisma.itemWishlist.create({
+      data: {
+        userId: kota.id,
+        name: "読書灯",
+        productUrl: minaReadingLamp.productUrl,
+        note: "寝室のサイドに",
+        sourcePostId: postMina2.id,
+        price: 4980,
+        buyRank: 2,
+      },
+    });
+  }
+
   console.log("Seed OK:", {
-    users: [alice.email, kota.email, mina.email],
-    posts: [postAlice1.id, postAlice2.id, postKota1.id, postKota2.id, postMina1.id],
+    users: [alice.email, kota.email, mina.email, ren.email],
+    posts: [
+      postAlice1.id,
+      postAlice2.id,
+      postAlice3.id,
+      postKota1.id,
+      postKota2.id,
+      postMina1.id,
+      postMina2.id,
+      postRen1.id,
+      postRen2.id,
+    ],
   });
 }
 

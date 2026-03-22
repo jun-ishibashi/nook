@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import DashboardPosts from "./dashboard-posts";
 import DashboardWishlist, { type WishlistRow } from "./dashboard-wishlist";
 import Link from "next/link";
@@ -41,9 +41,12 @@ export default function DashboardContent({
     spTab === "bookmarks" || spTab === "wishlist" || spTab === "posts" ? spTab : "posts";
   const [postCategory, setPostCategory] = useState<string>("");
   const [postQuery, setPostQuery] = useState("");
+  const [, startNavTransition] = useTransition();
 
   function goTab(next: "posts" | "bookmarks" | "wishlist") {
-    router.replace(next === "posts" ? "/dashboard" : `/dashboard?tab=${next}`, { scroll: false });
+    startNavTransition(() => {
+      router.replace(next === "posts" ? "/dashboard" : `/dashboard?tab=${next}`, { scroll: false });
+    });
   }
 
   const filteredPosts = useMemo(() => {
@@ -56,7 +59,7 @@ export default function DashboardContent({
   }, [posts, postCategory, postQuery]);
 
   return (
-    <section className="dashboard-main-section" aria-labelledby="dashboard-main-heading">
+    <section aria-labelledby="dashboard-main-heading">
       <h2 id="dashboard-main-heading" className="nook-section-label mb-3 mt-0">
         部屋・保存・欲しい
       </h2>
@@ -190,7 +193,7 @@ export default function DashboardContent({
           ) : (
             <EmptyState
               icon="wish"
-              title="欲しいに、まだありません。"
+              title="欲しいは、まだありません"
               description="気になった家具・雑貨を入れておくと、あとからまとめて見返せます。"
             />
           )

@@ -182,11 +182,15 @@ export default function NavbarClient({
 
         <div className="flex items-center gap-2 sm:hidden">
           <ThemeToggle />
-          {!session && status !== "loading" && (
+          {status === "loading" ? (
+            <span className="nook-bg-sunken flex h-11 w-11 items-center justify-center rounded-full" aria-hidden>
+              <span className="nook-skeleton-pulse h-2 w-2 rounded-full" />
+            </span>
+          ) : !session ? (
             <Link href="/login" className={NAVBAR_LOGIN_LINK_CLASS}>
               ログイン
             </Link>
-          )}
+          ) : null}
           <button
             ref={menuButtonRef}
             type="button"

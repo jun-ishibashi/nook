@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
-import { getOptionalUserId } from "@/lib/session-user";
 import FollowButton from "@/components/follow-button";
 import HomePostGrid from "@/components/home-post-grid";
+import PageBackLink from "@/components/page-back-link";
+import { prisma } from "@/lib/prisma";
+import { getOptionalUserId } from "@/lib/session-user";
 import { getCategoryLabel } from "@/lib/categories";
 import { getStyleTagLabel } from "@/lib/style-tags";
 import { formatYearMonthJa } from "@/lib/format-date-ja";
@@ -107,7 +108,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page nook-safe-page-pb pt-6 sm:pt-8">
-        <header className="user-profile-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
+        <header className="nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
           <p className="nook-section-label mb-2">プロフィール</p>
 
           <div className="mt-1 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -133,6 +134,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                     target="_blank"
                     rel="noopener noreferrer"
                     className="nook-fg-muted mt-3 inline-flex min-h-11 items-center gap-1 rounded-md px-1 py-2 text-xs font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-85 sm:min-h-0 sm:px-0 sm:py-0"
+                    aria-label="プロフィールのリンクを別のタブで開く"
                   >
                     リンクを開く
                     <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -260,6 +262,10 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
             </div>
           )}
         </section>
+
+        <div className="mt-10 border-t pt-6 nook-border-hairline">
+          <PageBackLink />
+        </div>
       </div>
     </div>
   );

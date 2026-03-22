@@ -84,6 +84,8 @@ export default function PostGallery({ items }: Props) {
         showBullets={false}
         showIndex={multi}
         indexSeparator=" / "
+        /** ライブラリ既定の <img>（サムネ等）向け。メインスライドは NookImage が別途フォールバック */
+        onErrorImageURL="/empty-state.png"
         renderLeftNav={renderNookGalleryLeftNav}
         renderRightNav={renderNookGalleryRightNav}
       />

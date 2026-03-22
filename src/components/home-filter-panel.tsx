@@ -6,10 +6,23 @@ import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
 import CategoryFilter from "@/components/category-filter";
 import StyleTagFilter from "@/components/style-tag-filter";
 import PriceFilter from "@/components/price-filter";
+import { HomeFilterDraftProvider, useHomeFilterDraft } from "@/components/home-filter-draft";
 
-/** 発見の補助：既定は閉じ、操作は線と文字で軽く */
 export default function HomeFilterPanel() {
   const searchParams = useSearchParams();
+  const searchKey = searchParams.toString();
+
+  return (
+    <HomeFilterDraftProvider key={searchKey}>
+      <HomeFilterPanelInner />
+    </HomeFilterDraftProvider>
+  );
+}
+
+function HomeFilterPanelInner() {
+  const searchParams = useSearchParams();
+  const { flushNow } = useHomeFilterDraft();
+
   const hasActive = useMemo(() => {
     const cat = searchParams.get("category")?.trim();
     const minP = searchParams.get("minPrice");
@@ -33,7 +46,7 @@ export default function HomeFilterPanel() {
       aria-describedby="home-filters-help"
     >
       <p id="home-filters-help" className="sr-only">
-        カテゴリ・スタイル・予算の条件で、部屋の一覧を絞り込めます。
+        カテゴリ・スタイル・予算の条件で、部屋の一覧を絞り込めます。スタイルは続けて選んでも、少し待てばまとめて反映されます。
       </p>
       <div className="home-filter-panel__bar">
         <h2 id="home-filters-heading" className="home-filter-panel__title">
@@ -46,7 +59,13 @@ export default function HomeFilterPanel() {
             aria-expanded={filtersOpen}
             aria-controls="home-filters-body"
             aria-label={filtersOpen ? "絞り込みを閉じる" : "ムードで絞る"}
-            onClick={() => setExpanded((v) => !v)}
+            onClick={() => {
+              setExpanded((v) => {
+                const next = !v;
+                if (v && !next) flushNow();
+                return next;
+              });
+            }}
           >
             <span>{filtersOpen ? "閉じる" : "開く"}</span>
             <svg
@@ -74,7 +93,7 @@ export default function HomeFilterPanel() {
       </div>
       {showCollapsedHint ? (
         <p className="home-filter-panel__collapsed-hint nook-fg-muted mt-1.5 text-[11px] leading-snug sm:mt-2">
-          カテゴリ・スタイル・予算で、好みのムードに近づけられます。
+          カテゴリ・スタイル・予算で、好みのムードに近づけられます。続けて選んでもまとめて反映されます。
         </p>
       ) : null}
       {showFilterBody ? (

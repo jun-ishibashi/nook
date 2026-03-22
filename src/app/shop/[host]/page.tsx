@@ -60,15 +60,15 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page nook-safe-page-pb pt-6 sm:pt-8">
-        <header className="shop-page-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
+        <header className="nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
           <p className="nook-section-label mb-2">ショップ別</p>
           <h1 className="nook-fg text-lg font-semibold tracking-tight sm:text-xl">
-            <span className="nook-shop-host-chip shop-page-host block break-words rounded-[var(--radius-card)] border px-3 py-2.5 text-[0.8125rem] font-medium leading-snug tracking-normal sm:px-3.5 sm:py-3 sm:text-sm">
+            <span className="nook-shop-host-chip block break-words rounded-[var(--radius-card)] border px-3 py-2.5 text-[0.8125rem] font-medium leading-snug tracking-normal sm:px-3.5 sm:py-3 sm:text-sm">
               {decoded}
             </span>
           </h1>
           <div
-            className="shop-page-stats nook-fg-muted mt-4 flex w-full flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-b py-3 text-[11px] tabular-nums nook-border-hairline"
+            className="nook-fg-muted mt-4 flex w-full flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-b py-3 text-[11px] tabular-nums nook-border-hairline"
             aria-label="件数"
           >
             <span className="nook-fg text-sm font-semibold">
@@ -78,7 +78,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
           </div>
         </header>
 
-        <section className="shop-page-grid-section" aria-labelledby="shop-posts-heading">
+        <section aria-labelledby="shop-posts-heading">
           <h2 id="shop-posts-heading" className="nook-section-label mb-1">
             部屋
           </h2>
@@ -102,7 +102,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
                 まだ部屋がありません
               </p>
               <p className="nook-fg-muted mt-1 max-w-xs px-4 text-xs leading-relaxed">
-                このショップの商品ページが載った部屋はまだないようです。みんなの部屋から探してみてください。
+                このショップの商品ページが載っている部屋は、まだありません。みんなの部屋からさがせます。
               </p>
               <Link href="/" className="btn-secondary mt-6 text-sm sm:text-xs">
                 みんなの部屋を見る
