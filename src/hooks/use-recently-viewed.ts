@@ -90,5 +90,16 @@ export function useRecentlyViewed() {
     bump();
   }, []);
 
-  return { recentPosts, addPost };
+  const clearRecentlyViewed = useCallback(() => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    cached = EMPTY;
+    bump();
+  }, []);
+
+  return { recentPosts, addPost, clearRecentlyViewed };
 }

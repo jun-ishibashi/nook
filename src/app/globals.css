@@ -875,6 +875,15 @@ summary {
   }
 
   /** 一覧まわりの小見出し（最近・トレンド・フィード） */
+  /** 最近見た部屋：履歴クリア（§5 操作は軽く・home-sticky-search-clear と同系） */
+  .home-recent-rooms__reset {
+    @apply inline-flex shrink-0 min-h-[var(--touch)] items-center text-[10px] font-semibold tracking-wide underline decoration-transparent underline-offset-4 transition hover:opacity-80 sm:min-h-0;
+    color: var(--text-muted);
+  }
+  .home-recent-rooms__reset:hover {
+    color: var(--text-secondary);
+  }
+
   .home-browse-label {
     font-size: 10px;
     font-weight: 600;

@@ -5,16 +5,24 @@ import NookImage from "@/components/nook-image";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 
 export default function HomeRecentRooms() {
-  const { recentPosts } = useRecentlyViewed();
+  const { recentPosts, clearRecentlyViewed } = useRecentlyViewed();
 
   if (recentPosts.length === 0) return null;
 
   return (
     <section className="home-recent-rooms" aria-labelledby="recent-rooms-heading">
-      <div className="mb-2 flex items-baseline justify-between gap-3 sm:mb-2.5">
+      <div className="mb-2 flex items-center justify-between gap-3 sm:mb-2.5">
         <h2 id="recent-rooms-heading" className="home-browse-label">
           最近見た部屋
         </h2>
+        <button
+          type="button"
+          onClick={clearRecentlyViewed}
+          className="home-recent-rooms__reset shrink-0"
+          aria-label="最近見た部屋の履歴を消す"
+        >
+          履歴を消す
+        </button>
       </div>
       <div className="nook-hscroll-mask nook-hscroll-mask-sm-clear -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide sm:-mx-0 sm:gap-3.5 sm:px-0 sm:pb-2">
         {recentPosts.map((post) => (
