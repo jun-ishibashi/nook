@@ -5,10 +5,13 @@ import { toast } from "sonner";
 
 export default function ShareButtons({ title, url }: { title: string; url: string }) {
   const [copied, setCopied] = useState(false);
+  const [copying, setCopying] = useState(false);
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
 
   async function copyLink() {
+    if (copying) return;
+    setCopying(true);
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -16,6 +19,8 @@ export default function ShareButtons({ title, url }: { title: string; url: strin
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("コピーできませんでした");
+    } finally {
+      setCopying(false);
     }
   }
 
@@ -33,7 +38,9 @@ export default function ShareButtons({ title, url }: { title: string; url: strin
       <button
         type="button"
         onClick={copyLink}
-        className={`${btnClass} ${copied ? "nook-fg-secondary" : "nook-fg-muted"}`}
+        aria-busy={copying}
+        disabled={copying}
+        className={`${btnClass} ${copying ? "opacity-70" : ""} ${copied ? "nook-fg-secondary" : "nook-fg-muted"}`}
         aria-label={copied ? "コピーしました" : "この部屋のリンクをコピー"}
       >
         {copied ? (

@@ -140,6 +140,11 @@ export default function DashboardWishlist({ items }: { items: WishlistRow[] }) {
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary text-sm sm:text-xs"
+              aria-label={
+                urlMeta
+                  ? `${w.name} の商品ページ（${urlMeta.displayHost}）を別のタブで開く`
+                  : `${w.name} の商品ページを別のタブで開く`
+              }
             >
               商品ページを開く
             </a>
@@ -149,7 +154,7 @@ export default function DashboardWishlist({ items }: { items: WishlistRow[] }) {
               disabled={removing === w.id}
               aria-busy={removing === w.id}
               className="btn-secondary text-sm sm:text-xs disabled:opacity-50"
-              aria-label={`${w.name} を欲しいから外す`}
+              aria-label={removing === w.id ? "外しています" : `${w.name} を欲しいから外す`}
             >
               {removing === w.id ? "…" : "外す"}
             </button>

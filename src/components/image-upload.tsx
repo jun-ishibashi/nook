@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { getMoodFilter } from "@/lib/image-mood";
+import { BrokenImagePlaceholder } from "@/components/broken-image-placeholder";
 
 /** blob URL は親で Map 管理（子ごとの useMemo + revoke が Strict Mode と競合しやすい） */
 function FilePreviewThumb({
@@ -16,17 +17,30 @@ function FilePreviewThumb({
   index: number;
   onRemove?: (index: number) => void;
 }) {
+  const [failed, setFailed] = useState(false);
+
   return (
     <div
       className="nook-bg-sunken group relative h-[5.25rem] w-[5.25rem] overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)] sm:h-28 sm:w-28"
       role="listitem"
     >
-      <img
-        src={src}
-        alt={`写真 ${index + 1}`}
-        className="h-full w-full object-cover transition-all"
-        style={{ filter: getMoodFilter(mood) }}
-      />
+      {failed ? (
+        <BrokenImagePlaceholder
+          label={`写真 ${index + 1} を表示できません`}
+          mood={mood}
+          compact
+          absoluteFill
+          className="rounded-[var(--radius-sm)]"
+        />
+      ) : (
+        <img
+          src={src}
+          alt={`写真 ${index + 1}`}
+          className="h-full w-full object-cover transition-all"
+          style={{ filter: getMoodFilter(mood) }}
+          onError={() => setFailed(true)}
+        />
+      )}
       {onRemove ? (
         <button
           type="button"
@@ -90,7 +104,7 @@ export default function ImageUpload({ files, onFiles, onRemove, mood }: {
     <div>
       <div
         {...getRootProps()}
-        className={`flex min-h-[min(132px,28dvh)] cursor-pointer flex-col items-center justify-center rounded-[var(--radius-card)] border border-dashed transition duration-150 sm:min-h-[132px] ${isDragActive ? "nook-dropzone-active" : "nook-dropzone-idle"}`}
+        className={`flex min-h-[min(132px,28dvh)] cursor-pointer flex-col items-center justify-center rounded-[var(--radius-card)] border border-dashed transition duration-150 active:scale-[0.99] sm:min-h-[132px] sm:active:scale-100 ${isDragActive ? "nook-dropzone-active" : "nook-dropzone-idle"}`}
         role="button"
         tabIndex={0}
         aria-label="写真を足す"
@@ -112,7 +126,7 @@ export default function ImageUpload({ files, onFiles, onRemove, mood }: {
         <div className="mt-3 flex flex-wrap gap-2" role="list">
           {files.map((_, i) => (
             <FilePreviewThumb
-              key={previewUrls[i]}
+              key={`${previewUrls[i]}-${i}`}
               src={previewUrls[i]!}
               mood={mood}
               index={i}

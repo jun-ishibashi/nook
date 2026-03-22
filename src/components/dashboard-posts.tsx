@@ -90,6 +90,8 @@ export default function DashboardPosts({ posts }: { posts: Post[] }) {
                     type="button"
                     onClick={() => handleDelete(post.id)}
                     disabled={!!deleting}
+                    aria-busy={deleting === post.id}
+                    aria-label={deleting === post.id ? "削除しています" : undefined}
                     className={`nook-dash-post-btn-danger ${DASH_POST_ACTION_CLASS} disabled:opacity-50`}
                   >
                     {deleting === post.id ? "…" : "削除する"}
@@ -110,6 +112,7 @@ export default function DashboardPosts({ posts }: { posts: Post[] }) {
                       e.preventDefault();
                       setConfirmId(post.id);
                     }}
+                    aria-label={post.title ? `「${post.title}」を削除` : "この部屋を削除"}
                     className={`nook-dash-post-btn-ghost ${DASH_POST_ACTION_CLASS}`}
                   >
                     削除

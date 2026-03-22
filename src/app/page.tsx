@@ -253,7 +253,7 @@ export default async function HomePage({
               {followingFeed
                 ? "フォロー中の部屋は、まだありません"
                 : isFiltered
-                  ? "該当する部屋は、まだ見つからないようです"
+                  ? "該当する部屋は、まだありません"
                   : "まだ部屋がありません"}
             </p>
             <p className="nook-fg-muted mt-2 text-[13px] leading-relaxed">

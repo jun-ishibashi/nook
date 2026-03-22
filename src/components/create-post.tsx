@@ -582,7 +582,7 @@ export default function CreatePost() {
       <div className="create-post-flow animate-fade-in">
         {stepBar}
         <p className="nook-section-label mb-1">確認</p>
-        <h2 id="modal-title" className="nook-fg mb-1 text-base font-semibold tracking-tight">
+        <h2 className="nook-fg mb-1 text-base font-semibold tracking-tight">
           送信前の確認
         </h2>
         <PostModalDesc>問題なければ載せてください。</PostModalDesc>
@@ -596,6 +596,7 @@ export default function CreatePost() {
               showFullscreenButton={false}
               showNav={confirmGalleryItems.length > 1}
               showBullets={false}
+              onErrorImageURL="/empty-state.png"
               renderLeftNav={renderNookGalleryLeftNav}
               renderRightNav={renderNookGalleryRightNav}
             />
@@ -711,7 +712,7 @@ export default function CreatePost() {
       <div className="create-post-flow animate-fade-in">
         {stepBar}
         <p className="nook-section-label mb-1">家具・雑貨</p>
-        <h2 id="modal-title" className="nook-fg mb-1 text-base font-semibold tracking-tight">
+        <h2 className="nook-fg mb-1 text-base font-semibold tracking-tight">
           家具・雑貨のリンク（任意）
         </h2>
         <PostModalDesc>
@@ -980,7 +981,7 @@ export default function CreatePost() {
       ) : null}
       {stepBar}
       <p className="nook-section-label mb-1">載せる</p>
-      <h2 id="modal-title" className="nook-fg mb-1 text-base font-semibold tracking-tight">
+      <h2 className="nook-fg mb-1 text-base font-semibold tracking-tight">
         写真を載せる
       </h2>
       <PostModalDesc>

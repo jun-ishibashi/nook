@@ -12,6 +12,7 @@ export default function PageBackLink({
   return (
     <Link
       href={href}
+      scroll={false}
       className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 text-sm font-medium transition hover:opacity-75 sm:text-xs"
     >
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>

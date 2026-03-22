@@ -122,6 +122,15 @@ body {
   touch-action: manipulation;
 }
 
+/** モバイルのタップ時フラッシュをニュートラルに（§6 コンクリ寄り） */
+button,
+[role="button"],
+a[href],
+label[for],
+summary {
+  -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
 /** layout.tsx の body に付与（インラインの集約） */
 .nook-body-surface {
   background: var(--bg);

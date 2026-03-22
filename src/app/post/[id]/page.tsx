@@ -270,7 +270,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           </div>
 
           <div className="nook-post-toolbar-surface mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border p-4 sm:p-5">
-            <p className="sr-only">この部屋の写真を載せた人</p>
+            <p className="sr-only">この部屋を載せた人</p>
             <Link href={`/user/${post.user.id}`} className="flex min-w-0 items-center gap-3 transition hover:opacity-85">
               <div className="nook-avatar-letter h-11 w-11 shrink-0 !text-sm">
                 {(post.user.name && post.user.name.trim()[0]) || "?"}

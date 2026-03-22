@@ -1,4 +1,3 @@
-import NookImage from "@/components/nook-image";
 import WishlistItemButton from "@/components/wishlist-item-button";
 import { getProductUrlMeta } from "@/lib/product-url";
 import {
@@ -17,6 +16,7 @@ type Item = {
   price: number | null;
   currency: string;
   mediaIndex: number;
+  sortOrder: number;
   linkRelation: string;
   linkVerifiedAt: Date | null;
 };
@@ -170,74 +170,16 @@ export default function PostFurnitureList({
 
   if (items.length === 0) return null;
 
-  if (n <= 1) {
-    return (
-      <div className="space-y-3">
-        <p className="nook-fg-muted text-[11px] leading-relaxed">
-          この部屋の写真に写っている（または近い）家具・雑貨です。
-        </p>
-        <ul className="space-y-2" role="list">
-          {items.map((item) => renderItemRow(item, "stagger-item"))}
-        </ul>
-      </div>
-    );
-  }
-
-  const byIdx = new Map<number, Item[]>();
-  for (const item of items) {
-    const idx = clampIdx(item.mediaIndex, n);
-    if (!byIdx.has(idx)) byIdx.set(idx, []);
-    byIdx.get(idx)!.push(item);
-  }
-  const ordered = [...byIdx.keys()].sort((a, b) => a - b);
+  const sorted = [...items].sort((a, b) => {
+    const ai = clampIdx(a.mediaIndex, n);
+    const bi = clampIdx(b.mediaIndex, n);
+    if (ai !== bi) return ai - bi;
+    return a.sortOrder - b.sortOrder;
+  });
 
   return (
-    <div className="space-y-8">
-      <p className="nook-fg-muted text-[11px] leading-relaxed">
-        ギャラリーを切り替えると、右上に{" "}
-        <span className="tabular-nums font-medium text-[var(--text-secondary)]">1 / {n}</span>{" "}
-        のように番号が出ます。この数字と、下の「○ 枚目」は対応しています。
-        <a
-          href="#post-room-gallery"
-          className="ml-1 font-medium text-[var(--text-secondary)] underline decoration-transparent underline-offset-2 transition hover:decoration-[var(--text-faint)]"
-        >
-          写真をもう一度見る
-        </a>
-      </p>
-      {ordered.map((idx) => {
-        const group = byIdx.get(idx)!;
-        const thumb = medias[idx]?.path;
-        const num = idx + 1;
-        return (
-          <section
-            key={idx}
-            id={`post-furniture-photo-${num}`}
-            className="scroll-mt-[calc(var(--nav-height)+0.5rem)]"
-            aria-labelledby={`furniture-photo-heading-${num}`}
-          >
-            <h3 id={`furniture-photo-heading-${num}`} className="nook-overline nook-overline--sentence mb-1">
-              {num} 枚目の家具・雑貨
-            </h3>
-            <p className="nook-fg-faint mb-2 text-[10px] leading-snug">
-              ギャラリーで <span className="tabular-nums font-medium">{num}</span> / {n} と出る写真と同じ組です。
-            </p>
-            {thumb ? (
-              <div className="nook-bg-sunken relative mb-3 aspect-[4/5] w-full max-w-[min(100%,240px)] overflow-hidden rounded-[var(--radius-sm)] border nook-border-hairline sm:max-w-[200px]">
-                <NookImage
-                  src={thumb}
-                  alt={`ギャラリーの${num}枚目の写真（この下の家具・雑貨の参考）`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 639px) 240px, 200px"
-                />
-              </div>
-            ) : null}
-            <ul className="space-y-4" role="list">
-              {group.map((item) => renderItemRow(item, "stagger-item"))}
-            </ul>
-          </section>
-        );
-      })}
-    </div>
+    <ul className="space-y-2" role="list">
+      {sorted.map((item) => renderItemRow(item, "stagger-item"))}
+    </ul>
   );
 }

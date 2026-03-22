@@ -42,9 +42,24 @@ function LoginForm() {
 
       {/* 右：フォーム面 */}
       <div className="w-full max-w-md flex-1">
+        {/* スマホのみ：入口層の温度感（§5.1）。左カラムと同じ写真で軽くムードを足す */}
+        <div className="relative mb-5 aspect-[16/10] w-full overflow-hidden rounded-[var(--radius-card)] shadow-[var(--home-tile-shadow)] sm:hidden">
+          <Image
+            src={HOME_HERO_IMAGE_SRC}
+            alt=""
+            fill
+            className="object-cover object-[center_40%]"
+            sizes="(max-width: 639px) 100vw, 0px"
+            priority
+            quality={90}
+          />
+          <div className="login-visual-scrim absolute inset-0" />
+          <p className="login-hero-caption absolute bottom-3 left-4 right-4 text-[11px] font-medium leading-relaxed">
+            自分の部屋を、もう少し好きになる。
+          </p>
+        </div>
         <div className="nook-elevated-surface space-y-6 overflow-hidden p-5 sm:p-7">
-          {/* 入口層：ムードと部屋を先に。チラシ感は出さない */}
-          <header className="login-entry-header">
+          <header>
             <div className="mb-5 flex items-center gap-3">
               <span className="nook-fg" aria-hidden>
                 <Logo size={40} />

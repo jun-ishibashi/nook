@@ -109,7 +109,7 @@ export default async function DashboardPage() {
   return (
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page nook-safe-page-pb pt-8 sm:pt-10">
-        <header className="dashboard-page-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-10 sm:p-6">
+        <header className="nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-10 sm:p-6">
           <div className="flex items-start gap-4">
             <div className="nook-avatar-letter h-16 w-16 shrink-0">
               {(user.name && user.name.trim()[0]) || "?"}

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useCallback, useState } from "react";
 import { getStyleTagLabel, type StyleTagSlug } from "@/lib/style-tags";
 import { HOME_HERO_IMAGE_SRC } from "@/lib/site-images";
 
@@ -20,6 +21,8 @@ const WELCOME_MOOD_SHORTCUTS: readonly StyleTagSlug[] = [
 /** 未ログイン向けヒーロー：写真主役・短文コピー・ムード近道 */
 export default function WelcomeBanner() {
   const { data: session } = useSession();
+  const [heroFailed, setHeroFailed] = useState(false);
+  const onHeroError = useCallback(() => setHeroFailed(true), []);
 
   if (session) return null;
 
@@ -28,15 +31,20 @@ export default function WelcomeBanner() {
       {/* 背景写真 */}
       <div className="home-hero__media" aria-hidden>
         {/* 表示幅に対して元画像が小さいと拡大で荒れる。差し替え時は幅 1280px 以上を推奨 */}
-        <Image
-          src={HOME_HERO_IMAGE_SRC}
-          alt=""
-          fill
-          className="object-cover"
-          sizes="(max-width: 639px) 100vw, 672px"
-          priority
-          quality={95}
-        />
+        {heroFailed ? (
+          <div className="absolute inset-0 nook-bg-wash" />
+        ) : (
+          <Image
+            src={HOME_HERO_IMAGE_SRC}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 639px) 100vw, 672px"
+            priority
+            quality={95}
+            onError={onHeroError}
+          />
+        )}
         <div className="home-hero__overlay" />
       </div>
 

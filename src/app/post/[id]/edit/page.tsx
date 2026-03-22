@@ -62,6 +62,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
         <div className="nook-elevated-surface overflow-hidden p-5 sm:p-6">
           <Link
             href={`/post/${id}`}
+            scroll={false}
             className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>

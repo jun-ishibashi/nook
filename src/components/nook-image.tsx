@@ -1,5 +1,9 @@
+"use client";
+
+import { useCallback, useState } from "react";
 import NextImage from "next/image";
 import { getMoodFilter } from "@/lib/image-mood";
+import { BrokenImagePlaceholder } from "@/components/broken-image-placeholder";
 
 type Props = {
   src: string;
@@ -15,7 +19,8 @@ type Props = {
 };
 
 /**
- * Cloudinary・同一オリジン `/uploads` 向けに next/image をラップ
+ * Cloudinary・同一オリジン `/uploads` 向けに next/image をラップ。
+ * 最適化 API の 500・元画像の 404 などでプレースホルダーに切り替える。
  */
 export default function NookImage({
   src,
@@ -28,9 +33,35 @@ export default function NookImage({
   priority,
   mood,
 }: Props) {
-  const filterStyle = { filter: getMoodFilter(mood) };
+  const [failed, setFailed] = useState(false);
+  const onError = useCallback(() => {
+    setFailed(true);
+  }, []);
+
   if (!src) return null;
 
+  if (failed) {
+    if (fill) {
+      return (
+        <BrokenImagePlaceholder
+          label={alt || undefined}
+          mood={mood}
+          absoluteFill
+          className={className}
+        />
+      );
+    }
+    return (
+      <BrokenImagePlaceholder
+        label={alt || undefined}
+        mood={mood}
+        className={className}
+        style={{ width: width ?? 800, height: height ?? 1000 }}
+      />
+    );
+  }
+
+  const filterStyle = { filter: getMoodFilter(mood) };
   if (fill) {
     return (
       <NextImage
@@ -41,6 +72,7 @@ export default function NookImage({
         style={filterStyle}
         sizes={sizes ?? "(max-width: 640px) 50vw, 400px"}
         priority={priority}
+        onError={onError}
       />
     );
   }
@@ -55,6 +87,7 @@ export default function NookImage({
       style={filterStyle}
       sizes={sizes}
       priority={priority}
+      onError={onError}
     />
   );
 }
