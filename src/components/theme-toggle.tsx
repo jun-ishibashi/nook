@@ -74,11 +74,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
     <button
       type="button"
       onClick={toggle}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-[var(--bg-sunken)] ${className}`}
-      style={{
-        background: "transparent",
-        color: "var(--text-muted)",
-      }}
+      className={`nook-hover-bg-sunken flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-transparent transition nook-fg-muted ${className}`}
       aria-label={theme === "dark" ? "ライトモードに切り替え" : "ダークモードに切り替え"}
       title={theme === "dark" ? "ライトモード" : "ダークモード"}
     >

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/** §8.1 保存・欲しいからの再訪（通知なし・短文のみ） */
+/** 保存・欲しいリストからの再訪導線（短文・通知なし） */
 export default function HomeRevisitStrip({
   bookmarkCount,
   wishlistCount,
@@ -20,21 +20,19 @@ export default function HomeRevisitStrip({
 
   return (
     <div className={`home-revisit-strip ${className ?? "pb-1.5 pt-0.5"}`}>
-      <p className="text-[10px] leading-snug" style={{ color: "var(--text-faint)" }}>
+      <p className="nook-fg-faint text-[10px] leading-snug">
         {!hasItems && showEmptyHint ? (
           <>
             <Link
               href="/dashboard"
-              className="font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
-              style={{ color: "var(--text-muted)" }}
+              className="nook-fg-muted font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
             >
               マイページ
             </Link>
-            <span style={{ color: "var(--text-muted)" }}> — 部屋は保存、家具・雑貨は欲しい</span>
           </>
         ) : (
           <>
-            <span className="font-medium" style={{ color: "var(--text-muted)" }}>
+            <span className="nook-fg-muted font-medium">
               マイページ
             </span>
             {bookmarkCount > 0 ? (
@@ -44,8 +42,7 @@ export default function HomeRevisitStrip({
                 </span>
                 <Link
                   href="/dashboard?tab=bookmarks"
-                  className="font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
-                  style={{ color: "var(--text-muted)" }}
+                  className="nook-fg-muted font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
                 >
                   保存
                   <span className="tabular-nums opacity-80">（{bookmarkCount}）</span>
@@ -59,8 +56,7 @@ export default function HomeRevisitStrip({
                 </span>
                 <Link
                   href="/dashboard?tab=wishlist"
-                  className="font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
-                  style={{ color: "var(--text-muted)" }}
+                  className="nook-fg-muted font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
                 >
                   欲しい
                   <span className="tabular-nums opacity-80">（{wishlistCount}）</span>

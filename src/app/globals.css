@@ -113,6 +113,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/** layout.tsx の body に付与（インラインの集約） */
+.nook-body-surface {
+  background: var(--bg);
+  color: var(--text);
+  font-feature-settings: "palt" 1;
+}
+
 @layer components {
   .btn-primary {
     @apply inline-flex min-h-[var(--touch)] items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition duration-150 active:scale-[0.98];
@@ -164,6 +171,308 @@ body {
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium;
     background: var(--bg-sunken);
+    color: var(--text-secondary);
+  }
+
+  /** テーマ追随の前景色（インライン style の集約・a11y でコントラストはトークン側で担保） */
+  .nook-fg {
+    color: var(--text);
+  }
+  .nook-fg-secondary {
+    color: var(--text-secondary);
+  }
+  .nook-fg-muted {
+    color: var(--text-muted);
+  }
+  .nook-fg-faint {
+    color: var(--text-faint);
+  }
+
+  .nook-bg-wash {
+    background: var(--bg-wash);
+  }
+  .nook-bg-sunken {
+    background: var(--bg-sunken);
+  }
+  .nook-bg-raised {
+    background: var(--bg-raised);
+  }
+
+  /** create-post ステッパー（状態はクラス切り替え） */
+  .nook-create-step-connector {
+    background: var(--hairline);
+  }
+  .nook-create-step-connector--on {
+    background: var(--text-muted);
+  }
+  .nook-create-step-badge-done {
+    border: 1px solid var(--hairline);
+    background: var(--bg-sunken);
+    color: var(--text-secondary);
+  }
+  .nook-create-step-badge-active {
+    border: 1px solid var(--text);
+    background: var(--text);
+    color: var(--text-inverse);
+  }
+  .nook-create-step-badge-pending {
+    border: 1px solid var(--hairline);
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  /** 投稿モーダル：手順の線形プログレス */
+  .nook-create-post-progress {
+    height: 3px;
+    width: 100%;
+    border-radius: 9999px;
+    background: var(--bg-sunken);
+    overflow: hidden;
+  }
+  .nook-create-post-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--text);
+    transition: width 0.28s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nook-create-post-progress-fill {
+      transition: none;
+    }
+  }
+
+  /** btn-primary 上の送信中スピナー */
+  .nook-spinner-btn-inverse {
+    @apply h-4 w-4 animate-spin rounded-full border-2 border-t-transparent;
+    border-color: var(--text-inverse);
+    border-top-color: transparent;
+  }
+
+  /** Mood チップ（選択は data または修飾クラス） */
+  .nook-mood-chip {
+    border-color: var(--hairline);
+    background: transparent;
+  }
+  .nook-mood-chip--selected {
+    border-color: var(--text-muted);
+    background: var(--bg-raised);
+  }
+  .nook-mood-swatch-frame {
+    border: 1px solid var(--hairline);
+    background: var(--bg-sunken);
+  }
+  /** ムードチップ内プレビュー（ライト/ダークで #eee/#fff に依存しない） */
+  .nook-mood-swatch-checker {
+    background-color: var(--bg-sunken);
+    background-image:
+      linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text) 8%, transparent) 25%,
+        transparent 25%,
+        transparent 75%,
+        color-mix(in srgb, var(--text) 8%, transparent) 75%
+      ),
+      linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text) 8%, transparent) 25%,
+        var(--bg-raised) 25%,
+        var(--bg-raised) 75%,
+        color-mix(in srgb, var(--text) 8%, transparent) 75%
+      );
+    background-size: 10px 10px;
+    background-position: 0 0, 5px 5px;
+  }
+  .nook-mood-check-badge {
+    border: 1px solid var(--hairline);
+  }
+
+  /** 画像プレビュー上の削除ボタン */
+  .nook-image-remove-btn {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+  }
+
+  /** ダッシュボード：サムネ下部のガラス帯・白テキスト上の操作 */
+  .nook-dash-post-bar {
+    background: rgba(14, 16, 18, 0.66);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .nook-dash-post-btn-outline {
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .nook-dash-post-btn-outline-soft {
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .nook-dash-post-btn-danger {
+    background: color-mix(in srgb, var(--like-active) 82%, transparent);
+  }
+  .nook-dash-post-btn-ghost {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  /** ホーム：カテゴリショーケースの gap-px グリッド枠 */
+  .nook-category-showcase-frame {
+    border-color: var(--hairline);
+    background: var(--hairline);
+  }
+
+  /** いいね：オン時の色（トークン） */
+  .nook-like-fg-on {
+    color: var(--like-active);
+  }
+
+  /** ホーム・ダッシュボードの統計タイル */
+  .nook-stat-tile {
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-sunken) 55%, var(--bg-raised));
+  }
+
+  /** 投稿詳細：操作帯・著者カードなど */
+  .nook-post-toolbar-surface {
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-raised) 80%, transparent);
+  }
+
+  /** 家具リスト1行 */
+  .nook-furniture-row {
+    border-color: var(--hairline);
+    background: var(--bg-raised);
+  }
+
+  .nook-style-pill {
+    border-color: var(--hairline);
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .nook-like-bookmark-cluster {
+    border-color: var(--hairline);
+    background: var(--bg-sunken);
+  }
+
+  .nook-dropzone-idle {
+    border-color: var(--hairline);
+    background: var(--bg-sunken);
+  }
+  .nook-dropzone-active {
+    border-color: var(--text-muted);
+    background: color-mix(in srgb, var(--bg-raised) 88%, var(--bg-wash));
+  }
+
+  .nook-room-context-panel {
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-sunken) 40%, var(--bg-raised));
+  }
+
+  .nook-shop-host-chip {
+    border-color: var(--hairline);
+    background: color-mix(in srgb, var(--bg-sunken) 55%, var(--bg-raised));
+    color: var(--text-secondary);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  /** スケルトン・ローディングプレースホルダ */
+  .nook-skeleton-pulse {
+    @apply animate-pulse rounded-sm;
+    background: var(--bg-sunken);
+  }
+
+  /** 境界色の短縮（border クラスと併用） */
+  .nook-border-hairline {
+    border-color: var(--hairline);
+  }
+  .nook-border-subtle {
+    border-color: var(--border-subtle);
+  }
+
+  .nook-signal-dot {
+    background: var(--signal-soft);
+  }
+
+  .nook-nav-avatar-trigger {
+    background: var(--bg-raised);
+    border: 1px solid var(--hairline);
+    color: var(--text-secondary);
+  }
+
+  /** ホバーで沈む面（アイコンボタンなど） */
+  .nook-hover-bg-sunken:hover {
+    background-color: var(--bg-sunken);
+  }
+
+  /** ナビ・ドロップダウン */
+  .nook-menu-surface {
+    background: var(--bg-raised);
+    border: 1px solid var(--hairline);
+  }
+  .nook-menu-header-row {
+    border-bottom: 1px solid var(--hairline);
+    background: var(--bg-sunken);
+  }
+  .nook-menu-item {
+    @apply flex items-center gap-3 px-4 py-3 text-left text-[13px] font-medium transition duration-200;
+    color: var(--text-secondary);
+  }
+  .nook-menu-item:hover,
+  .nook-menu-item:focus-visible {
+    background: var(--bg-sunken);
+    outline: none;
+  }
+  .nook-menu-item:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--hairline);
+  }
+
+  .nook-mobile-nav-sheet {
+    border-top: 1px solid var(--hairline);
+    background: var(--bg);
+  }
+  .nook-mobile-nav-divider {
+    border-bottom: 1px solid var(--hairline);
+  }
+  .nook-mobile-nav-row {
+    @apply flex w-full min-h-11 items-center rounded-md px-3 py-2.5 text-sm font-medium transition;
+    color: var(--text-secondary);
+  }
+  .nook-mobile-nav-row:hover,
+  .nook-mobile-nav-row:focus-visible {
+    background: var(--bg-sunken);
+    outline: none;
+  }
+
+  /** モーダル（投稿など） */
+  .nook-modal-dialog-surface {
+    background: var(--bg-raised);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--home-card-lift);
+  }
+  .nook-modal-header-surface {
+    border-color: var(--hairline);
+    background: var(--bg-raised);
+  }
+  .nook-modal-drag-indicator {
+    background: var(--border-subtle);
+  }
+
+  /** フローティング戻る（セーフエリア込み位置はクラスで固定） */
+  .nook-back-to-top {
+    bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    right: max(1.25rem, env(safe-area-inset-right, 0px));
+    background: var(--bg-raised);
+    border-color: var(--hairline);
+    color: var(--text-secondary);
+    box-shadow: var(--home-tile-shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /** プロフィールアバター（イニシャル） */
+  .nook-avatar-letter {
+    @apply flex shrink-0 items-center justify-center rounded-full text-xl font-semibold;
+    background: var(--bg-raised);
+    border: 1px solid var(--hairline);
     color: var(--text-secondary);
   }
 
@@ -250,9 +559,17 @@ body {
     -webkit-backdrop-filter: blur(14px);
   }
 
+  /** 投稿詳細：ギャラリー帯の面（背景。影は下の複合セレクタで .nook-gallery-cap より後勝ち） */
+  .nook-post-hero-surface {
+    background: var(--bg-sunken);
+  }
+
   /** 投稿詳細：ギャラリー帯に軽い奥行き（§5 写真主役・境界は細く） */
   .nook-gallery-cap {
     box-shadow: var(--home-tile-shadow);
+  }
+  .post-detail-hero.nook-gallery-cap.nook-post-hero-surface {
+    box-shadow: 0 8px 40px color-mix(in srgb, var(--accent-warm) 6%, transparent);
   }
   .post-detail-hero.nook-gallery-cap {
     border-bottom: 1px solid var(--hairline);
@@ -269,12 +586,48 @@ body {
   }
 
   /** ログイン・Google 続行（§5 操作は軽く・Google ブランドマークはボタン内に限定） */
+  .login-google-btn {
+    background: var(--bg-raised);
+    color: var(--text);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--home-tile-shadow);
+  }
   .login-google-btn:hover:not(:disabled) {
     border-color: var(--text-faint);
   }
   .login-google-btn:focus-visible {
     outline: 2px solid var(--text-muted);
     outline-offset: 2px;
+  }
+
+  .login-visual-scrim {
+    background: linear-gradient(
+      to top,
+      rgba(19, 18, 17, 0.7) 0%,
+      rgba(19, 18, 17, 0.15) 50%,
+      transparent 100%
+    );
+  }
+  .login-hero-caption {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .nook-spinner-muted {
+    border: 2px solid var(--text-muted);
+    border-top-color: transparent;
+  }
+
+  /** ホームスティッキー帯の面（インライン集約） */
+  .home-sticky-feed-surface {
+    background: var(--sticky-surface);
+  }
+
+  /** 細い区切り（ツールバー内など） */
+  .nook-vdivider {
+    height: 1rem;
+    width: 1px;
+    opacity: 0.2;
+    background: var(--text-muted);
   }
 
   /** ログイン済みホーム・再訪1行：操作帯と同化しすぎないようごく弱い字間 */
@@ -1041,6 +1394,12 @@ body {
     border-bottom-color: var(--text-muted);
   }
 
+  /** 法務ページ：条文ブロックの境界と本文色 */
+  .prose-nook-block {
+    border-color: var(--hairline);
+    color: var(--text-secondary);
+  }
+
   /**
    * 法務ページ：本文は正確さ優先（§4）。見出し階層だけアプリの軽さに寄せる。
    */
@@ -1147,6 +1506,10 @@ html[data-theme="dark"] .category-showcase-tile:hover {
 .stagger-item:nth-child(12) { animation-delay: 480ms; }
 
 @media (prefers-reduced-motion: reduce) {
+  .nook-skeleton-pulse {
+    animation: none !important;
+    opacity: 0.88;
+  }
   .stagger-item {
     animation: none !important;
     opacity: 1 !important;

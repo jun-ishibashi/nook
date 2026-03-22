@@ -33,8 +33,7 @@ export default function LikeButton({ postId, initialLiked, initialCount, size = 
       onClick={toggleLike}
       disabled={isPending}
       aria-busy={isPending}
-      className={`group inline-flex items-center justify-center gap-1 transition active:scale-[0.96] ${size === "sm" ? "min-h-9 min-w-9 rounded-md px-1 py-1 text-[11px]" : "px-2 py-1.5 text-xs"}`}
-      style={{ color: liked ? "var(--like-active)" : "var(--text-muted)" }}
+      className={`group inline-flex items-center justify-center gap-1 transition active:scale-[0.96] ${liked ? "nook-like-fg-on" : "nook-fg-muted"} ${size === "sm" ? "min-h-9 min-w-9 rounded-md px-1 py-1 text-[11px]" : "px-2 py-1.5 text-xs"}`}
       aria-label={liked ? "いいねを取り消す" : "いいねする"} aria-pressed={liked}
     >
       <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" aria-hidden>

@@ -31,8 +31,7 @@ export default function BookmarkButton({ postId, initialBookmarked, size = "md" 
       onClick={toggleBookmark}
       disabled={isPending}
       aria-busy={isPending}
-      className={`group inline-flex items-center justify-center transition active:scale-[0.96] ${size === "sm" ? "min-h-9 min-w-9 rounded-md p-1" : "px-2 py-1.5"}`}
-      style={{ color: bookmarked ? "var(--text)" : "var(--text-muted)" }}
+      className={`group inline-flex items-center justify-center transition active:scale-[0.96] ${bookmarked ? "nook-fg" : "nook-fg-muted"} ${size === "sm" ? "min-h-9 min-w-9 rounded-md p-1" : "px-2 py-1.5"}`}
       aria-label={bookmarked ? "保存を取り消す" : "保存する"} aria-pressed={bookmarked}
     >
       <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" aria-hidden>

@@ -1,4 +1,4 @@
-/** 同じショップ（ドメイン）の部屋一覧へ（§8.2） */
+/** 同じショップ（ドメイン）の投稿一覧へ */
 export function shopExploreHref(displayHost: string): string {
   return `/shop/${encodeURIComponent(displayHost)}`;
 }

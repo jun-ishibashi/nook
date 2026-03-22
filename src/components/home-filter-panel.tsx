@@ -7,9 +7,7 @@ import CategoryFilter from "@/components/category-filter";
 import StyleTagFilter from "@/components/style-tag-filter";
 import PriceFilter from "@/components/price-filter";
 
-/**
- * 発見の補助（原則 1・4）：既定は閉じ、操作は線と文字で軽く（§5.1 操作層）
- */
+/** 発見の補助：既定は閉じ、操作は線と文字で軽く */
 export default function HomeFilterPanel() {
   const searchParams = useSearchParams();
   const hasActive = useMemo(() => {
@@ -72,6 +70,11 @@ export default function HomeFilterPanel() {
           </span>
         )}
       </div>
+      {!open && !hasActive ? (
+        <p className="home-filter-panel__collapsed-hint nook-fg-muted mt-1.5 text-[11px] leading-snug sm:mt-2">
+          カテゴリ・スタイル・予算で、好みのムードに近づけます。
+        </p>
+      ) : null}
       {!open && !hasActive ? null : open ? (
         <div id="home-filters-body" className="home-filter-sheet mt-3 sm:mt-3.5">
           <CategoryFilter />

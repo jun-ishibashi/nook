@@ -8,7 +8,7 @@ import { linkVerifiedAtToDateInputValue } from "@/lib/furniture-link-meta";
 
 export const metadata: Metadata = {
   title: "部屋を編集",
-  description: "タイトル・キャプション・家具・雑貨・タグを更新",
+  description: "部屋の写真に添える文言や家具・雑貨の購入先を更新",
 };
 
 export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -56,8 +56,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
         <div className="nook-elevated-surface overflow-hidden p-5 sm:p-6">
           <Link
             href={`/post/${id}`}
-            className="inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
-            style={{ color: "var(--text-muted)" }}
+            className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path
@@ -71,13 +70,11 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
             部屋に戻る
           </Link>
           <p className="nook-section-label mb-1 mt-5">編集</p>
-          <h1 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-            部屋を編集
-          </h1>
+          <h1 className="nook-fg text-lg font-semibold tracking-tight">部屋を編集</h1>
           <p className="nook-vision-subline max-w-md !mt-1">
-            写真・ムード・家具・雑貨の購入先を、あとから静かに直せます。
+            写真に添える文言や、家具・雑貨の購入先URLをあとから整えられます。
           </p>
-          <div className="mt-6 border-t pt-6" style={{ borderColor: "var(--hairline)" }}>
+          <div className="mt-6 border-t pt-6 nook-border-hairline">
             <EditPostForm initial={initial} />
           </div>
         </div>

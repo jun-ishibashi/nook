@@ -20,7 +20,7 @@ type MyPost = {
 type BookmarkedPost = { id: string; title: string; thumbnail: string | null; userName: string; itemCount: number; likeCount: number; createdAt: string };
 
 const TABS = [
-  { id: "posts" as const, label: "部屋", countKey: "posts" as const },
+  { id: "posts" as const, label: "投稿", countKey: "posts" as const },
   { id: "bookmarks" as const, label: "保存", countKey: "bookmarks" as const },
   { id: "wishlist" as const, label: "欲しい", countKey: "wishlist" as const },
 ];
@@ -57,19 +57,11 @@ export default function DashboardContent({
 
   return (
     <section className="dashboard-main-section" aria-labelledby="dashboard-main-heading">
-      <p id="dashboard-main-heading" className="nook-section-label mb-1">
-        部屋・保存・欲しい
-      </p>
-      <p className="nook-vision-subline mb-3 !mt-0 max-w-none">
-        載せた写真と家具・雑貨の購入先を整理し、保存や欲しいであとから比較しやすくします。
+      <p id="dashboard-main-heading" className="nook-section-label mb-3">
+        投稿・保存・欲しい
       </p>
 
-      <div
-        className="flex"
-        role="tablist"
-        aria-label="マイページのタブ"
-        style={{ borderBottom: "1px solid var(--hairline)" }}
-      >
+      <div className="flex border-b nook-border-hairline" role="tablist" aria-label="マイページのタブ">
         {TABS.map((t) => {
           const count =
             t.countKey === "posts"
@@ -106,7 +98,7 @@ export default function DashboardContent({
                 onChange={(e) => setPostQuery(e.target.value)}
                 placeholder="タイトルの一部…"
                 className="nook-input-line"
-                aria-label="自分の部屋をタイトルでさがす"
+                aria-label="自分の投稿をタイトルでさがす"
               />
             </label>
             <div>
@@ -137,7 +129,7 @@ export default function DashboardContent({
               </div>
             </div>
             {(postQuery || postCategory) && (
-              <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+              <p className="nook-fg-muted text-[11px]">
                 表示 {filteredPosts.length}・全 {posts.length}
               </p>
             )}
@@ -148,12 +140,12 @@ export default function DashboardContent({
             filteredPosts.length > 0 ? (
               <DashboardPosts posts={filteredPosts} />
             ) : (
-              <p className="py-12 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-                該当する部屋がありません
+              <p className="nook-fg-muted py-12 text-center text-sm">
+                該当する投稿がありません
               </p>
             )
           ) : (
-            <EmptyState icon="camera" title="まだ写真を載せていません" description="写真を載せると、自分の部屋がここに並びます。" />
+            <EmptyState icon="camera" title="まだ投稿がありません" description="一枚からで大丈夫です。写真を載せると、ここに並びます。" />
           )
         )}
         {tab === "bookmarks" && (
@@ -163,8 +155,7 @@ export default function DashboardContent({
                 <Link
                   key={bm.id}
                   href={`/post/${bm.id}`}
-                  className="relative aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)]"
-                  style={{ background: "var(--bg-sunken)" }}
+                  className="nook-bg-sunken relative aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)]"
                 >
                   {bm.thumbnail ? (
                     <img
@@ -174,7 +165,7 @@ export default function DashboardContent({
                       loading="lazy"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                    <div className="nook-fg-faint flex h-full items-center justify-center">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                       </svg>
@@ -184,14 +175,14 @@ export default function DashboardContent({
               ))}
             </div>
           ) : (
-            <EmptyState icon="bookmark" title="保存した部屋はまだありません" description="気になった部屋を開いて、保存するとあとですぐ戻れます。" />
+            <EmptyState icon="bookmark" title="保存した部屋はまだありません" description="気になった部屋を保存しておくと、あとから見返せます。" />
           )
         )}
         {tab === "wishlist" && (
           wishlist.length > 0 ? (
             <DashboardWishlist items={wishlist} />
           ) : (
-            <EmptyState icon="wish" title="欲しいはまだありません" description="部屋の詳細で気になった家具・雑貨を欲しいに入れて、購入前に並べておけます。" />
+            <EmptyState icon="wish" title="欲しいはまだありません" description="気になった家具・雑貨を入れておくと、あとからゆっくり見返せます。" />
           )
         )}
       </div>
@@ -210,15 +201,15 @@ function EmptyState({
 }) {
   return (
     <div className="dashboard-empty-state nook-elevated-surface flex flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-20">
-      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "var(--bg-sunken)" }}>
+      <div className="nook-bg-sunken mb-3 flex h-14 w-14 items-center justify-center rounded-full">
         {icon === "camera" ? (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="nook-fg-faint">
             <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
             <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
             <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         ) : icon === "bookmark" ? (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="nook-fg-faint">
             <path
               d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"
               stroke="currentColor"
@@ -228,7 +219,7 @@ function EmptyState({
             />
           </svg>
         ) : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }} aria-hidden>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="nook-fg-faint" aria-hidden>
             <path
               d="M12 21s-7-4.35-7-10a4 4 0 017-2.5A4 4 0 0119 11c0 5.65-7 10-7 10z"
               stroke="currentColor"
@@ -239,10 +230,8 @@ function EmptyState({
           </svg>
         )}
       </div>
-      <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
-        {title}
-      </p>
-      <p className="mt-1 max-w-xs px-4 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+      <p className="nook-fg text-sm font-semibold">{title}</p>
+      <p className="nook-fg-muted mt-1 max-w-xs px-4 text-xs leading-relaxed">
         {description}
       </p>
       {icon === "camera" ? (

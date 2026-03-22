@@ -6,7 +6,7 @@ export type ProductUrlMeta = {
   displayHost: string;
   /** 実際に開く href */
   href: string;
-  /** https か（http のとき弱い注意表示用・§8.2） */
+  /** https か（http のとき弱い注意表示用） */
   isSecure: boolean;
 };
 

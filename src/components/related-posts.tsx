@@ -54,20 +54,16 @@ export default async function RelatedPosts({
   const related = scored.slice(0, 6).map((x) => x.p);
 
   return (
-    <section className="mt-10 border-t pt-6" style={{ borderColor: "var(--hairline)" }} aria-labelledby="related-heading">
-      <h2 id="related-heading" className="nook-section-label mb-1">
+    <section className="mt-10 border-t pt-6 nook-border-hairline" aria-labelledby="related-heading">
+      <h2 id="related-heading" className="nook-section-label mb-3">
         似た部屋
       </h2>
-      <p className="nook-vision-subline mb-3 !mt-0 max-w-none">
-        カテゴリやスタイルが近い、ほかの部屋からムードを拾えます。
-      </p>
       <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
         {related.map((p) => (
           <div key={p.id} className="stagger-item">
             <Link
               href={`/post/${p.id}`}
-              className="relative block aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)] transition hover:opacity-92"
-              style={{ background: "var(--bg-sunken)" }}
+              className="nook-bg-sunken relative block aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)] transition hover:opacity-92"
             >
               {p.medias[0]?.path ? (
                 <NookImage
@@ -78,7 +74,7 @@ export default async function RelatedPosts({
                   sizes="120px"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                <div className="nook-fg-faint flex h-full items-center justify-center">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                   </svg>

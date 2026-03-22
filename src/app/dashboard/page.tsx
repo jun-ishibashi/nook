@@ -10,7 +10,7 @@ import ProfileSettings from "@/components/profile-settings";
 
 export const metadata: Metadata = {
   title: "マイページ",
-  description: "写真を載せた部屋・保存・欲しい・プロフィール。ムードと購入先をセットで残せます。",
+  description: "自分の投稿や保存した部屋を見返しながら、部屋づくりを続けられるページです。",
 };
 
 export default async function DashboardPage() {
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
   }));
 
   const statItems = [
-    { n: stats.postCount, l: "部屋" },
+    { n: stats.postCount, l: "投稿" },
     { n: user._count.followsReceived, l: "フォロワー" },
     { n: user._count.followsInitiated, l: "フォロー中" },
     { n: stats.totalLikes, l: "いいね" },
@@ -101,52 +101,39 @@ export default async function DashboardPage() {
     <div className="nook-app-canvas min-h-screen">
       <div className="nook-page py-8 sm:py-10">
         <header className="dashboard-page-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-10 sm:p-6">
-          <p className="nook-section-label mb-3">マイページ</p>
-
           <div className="flex items-start gap-4">
-            <div
-              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-semibold"
-              style={{
-                background: "var(--bg-raised)",
-                border: "1px solid var(--hairline)",
-                color: "var(--text-secondary)",
-              }}
-            >
+            <div className="nook-avatar-letter h-16 w-16 shrink-0">
               {(user.name && user.name.trim()[0]) || "?"}
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+              <h1 className="nook-fg text-lg font-semibold tracking-tight">
                 {user.name}
               </h1>
-              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="nook-fg-muted mt-0.5 text-xs">
                 {user.email}
               </p>
               {user.bio?.trim() ? (
-                <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                <p className="nook-fg-secondary mt-2 text-sm leading-relaxed">
                   {user.bio.trim()}
                 </p>
               ) : null}
-              <p className="mt-2 text-[10px]" style={{ color: "var(--text-faint)" }}>
+              <p className="nook-fg-faint mt-2 text-[10px]">
                 NOOK 利用開始 {user.createdAt.toLocaleDateString("ja-JP", { year: "numeric", month: "long" })}
               </p>
             </div>
           </div>
 
           <div
-            className="dashboard-stats-row nook-hscroll-mask nook-hscroll-mask-sm-clear mt-6 flex overflow-x-auto border-t border-b py-4 scrollbar-hide sm:justify-center sm:overflow-visible"
-            style={{ borderColor: "var(--hairline)" }}
+            className="dashboard-stats-row nook-hscroll-mask nook-hscroll-mask-sm-clear mt-6 flex overflow-x-auto border-t border-b py-4 scrollbar-hide nook-border-hairline sm:justify-center sm:overflow-visible"
             aria-label="集計"
           >
             {statItems.map((s, i) => (
               <div
                 key={s.l}
-                className={`min-w-[3.75rem] shrink-0 px-2.5 text-center sm:min-w-[4rem] sm:px-4 ${i > 0 ? "border-l" : ""}`}
-                style={{ borderColor: "var(--hairline)" }}
+                className={`min-w-[3.75rem] shrink-0 px-2.5 text-center sm:min-w-[4rem] sm:px-4 ${i > 0 ? "border-l nook-border-hairline" : ""}`}
               >
-                <p className="text-lg font-semibold tabular-nums" style={{ color: "var(--text)" }}>
-                  {s.n}
-                </p>
-                <p className="text-[10px] font-medium sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
+                <p className="nook-fg text-lg font-semibold tabular-nums">{s.n}</p>
+                <p className="nook-fg-muted text-[10px] font-medium sm:text-[11px]">
                   {s.l}
                 </p>
               </div>
@@ -167,19 +154,15 @@ export default async function DashboardPage() {
               フォロー中
             </Link>
             <Link href={`/user/${user.id}`} className="btn-secondary text-xs">
-              プロフィールを見る
+              プロフィール
             </Link>
           </div>
         </header>
 
-        {/* §5 写真・一覧を先に。プロフィール編集は下へ */}
+        {/* 写真・一覧を先に。プロフィール編集は下へ */}
         <Suspense
           fallback={
-            <div
-              className="mb-8 h-40 animate-pulse rounded-xl border"
-              style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
-              aria-hidden
-            />
+            <div className="nook-skeleton-pulse mb-8 h-40 rounded-xl border nook-border-hairline" aria-hidden />
           }
         >
           <DashboardContent posts={postList} bookmarks={bookmarkList} wishlist={wishlistList} />

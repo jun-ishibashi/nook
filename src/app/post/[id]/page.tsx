@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
   if (categoryLabel) descParts.push(categoryLabel);
   if (styleBits.length > 0) descParts.push(styleBits.join("・"));
-  descParts.push("部屋の写真と家具・雑貨の商品ページまで｜NOOK");
+  descParts.push("部屋の写真と家具・雑貨の購入先まで｜NOOK");
   const description = truncateMetaDescription(descParts.join("・"));
 
   return {
@@ -163,42 +163,35 @@ export default async function PostPage({
 
   return (
     <div className="nook-app-canvas min-h-screen">
+      {/* 幅は .nook-page と同じ max-w-2xl。ギャラリーは横パディングなし、本文ブロックのみ px */}
       <article className="mx-auto w-full max-w-2xl pb-16">
-        <div
-          className="post-detail-hero nook-gallery-cap overflow-hidden"
-          style={{
-            background: "var(--bg-sunken)",
-            boxShadow: "0 8px 40px color-mix(in srgb, var(--accent-warm) 6%, transparent)",
-          }}
-        >
+        <div className="post-detail-hero nook-gallery-cap nook-post-hero-surface overflow-hidden">
           <PostGallery items={galleryItems} />
         </div>
 
         <div className="w-full px-4 pb-0 pt-5 sm:px-5 sm:pt-6">
           {justPosted && currentUserId === post.user.id && (
             <div className="nook-elevated-surface mb-5 px-3 py-3 text-[12px] leading-relaxed" role="status">
-              <span style={{ color: "var(--text-secondary)" }}>載せました。</span>
+              <span className="nook-fg-secondary">載せました。</span>
               <Link
                 href={`/post/${post.id}/edit`}
-                className="mx-0.5 font-semibold underline decoration-transparent transition hover:opacity-80"
-                style={{ color: "var(--text)" }}
+                className="nook-fg mx-0.5 font-semibold underline decoration-transparent transition hover:opacity-80"
               >
                 編集
               </Link>
-              <span style={{ color: "var(--text-secondary)" }}>で追記できます。</span>
+              <span className="nook-fg-secondary">で追記できます。</span>
             </div>
           )}
 
           <header className="post-detail-header">
             <p className="nook-section-label mb-2">部屋</p>
-            <h1 className="text-xl font-bold leading-snug tracking-[-0.02em] sm:text-[1.35rem]" style={{ color: "var(--text)" }}>
+            <h1 className="nook-fg text-xl font-bold leading-snug tracking-[-0.02em] sm:text-[1.35rem]">
               {post.title}
             </h1>
-            <p className="mt-2 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            <p className="nook-fg-muted mt-2 text-[11px] leading-relaxed">
               <Link
                 href={`/user/${post.user.id}`}
-                className="font-medium transition hover:opacity-80"
-                style={{ color: "var(--text-secondary)" }}
+                className="nook-fg-secondary font-medium transition hover:opacity-80"
               >
                 {post.user.name}
               </Link>
@@ -223,12 +216,7 @@ export default async function PostPage({
                 <Link
                   key={slug}
                   href={`/?styles=${encodeURIComponent(slug)}`}
-                  className="rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition hover:opacity-85"
-                  style={{
-                    borderColor: "var(--hairline)",
-                    background: "transparent",
-                    color: "var(--text-secondary)",
-                  }}
+                  className="nook-style-pill rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition hover:opacity-85"
                   title="同じスタイルの部屋を見る"
                 >
                   {getStyleTagLabel(slug)}
@@ -237,13 +225,13 @@ export default async function PostPage({
             </div>
 
             {roomContextBits.length > 0 && (
-              <p className="mt-2.5 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              <p className="nook-fg-muted mt-2.5 text-[11px] leading-relaxed">
                 {roomContextBits.join("・")}
               </p>
             )}
 
             {post.description ? (
-              <p className="mt-4 text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--text-secondary)" }}>
+              <p className="nook-fg-secondary mt-4 text-sm leading-relaxed whitespace-pre-line">
                 {post.description}
               </p>
             ) : null}
@@ -252,10 +240,10 @@ export default async function PostPage({
               <div className="nook-elevated-surface mt-6 flex flex-col items-start gap-1 px-4 py-3 sm:px-5">
                 <span className="nook-section-label !mb-0 text-[10px]">Total Look / 概算費用</span>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-[1.5rem] font-bold tracking-tighter" style={{ color: "var(--text)" }}>
+                  <span className="nook-fg text-[1.5rem] font-bold tracking-tighter">
                     ¥{post.furnitureItems.reduce((acc, f) => acc + (f.price ?? 0), 0).toLocaleString()}
                   </span>
-                  <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>
+                  <span className="nook-fg-muted text-[10px] font-medium">
                     （掲載時の参考価格）
                   </span>
                 </div>
@@ -264,17 +252,13 @@ export default async function PostPage({
           </header>
 
           <div
-            className="post-detail-toolbar mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-card)] border px-4 py-3.5 sm:px-5"
-            style={{
-              borderColor: "var(--hairline)",
-              background: "color-mix(in srgb, var(--bg-raised) 80%, transparent)",
-            }}
+            className="post-detail-toolbar nook-post-toolbar-surface mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-card)] border px-4 py-3.5 sm:px-5"
             aria-label="いいね・保存・共有"
           >
             <div className="flex items-center gap-1">
-              <div className="flex items-center gap-0.5 rounded-full border px-1" style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}>
+              <div className="nook-like-bookmark-cluster flex items-center gap-0.5 rounded-full border px-1">
                 <LikeButton postId={post.id} initialLiked={liked} initialCount={post._count.likes} />
-                <div className="h-4 w-[1px] opacity-20" style={{ background: "var(--text-muted)" }} />
+                <div className="nook-vdivider" aria-hidden />
                 <BookmarkButton postId={post.id} initialBookmarked={bookmarked} />
               </div>
             </div>
@@ -288,30 +272,15 @@ export default async function PostPage({
             </div>
           </div>
 
-          <div
-            className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border p-4 transition-all duration-300 hover:shadow-md sm:p-5"
-            style={{
-              borderColor: "var(--hairline)",
-              background: "color-mix(in srgb, var(--bg-raised) 80%, transparent)",
-            }}
-          >
-            <p className="sr-only">この部屋を載せた人</p>
+          <div className="nook-post-toolbar-surface mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border p-4 transition-all duration-300 hover:shadow-md sm:p-5">
+            <p className="sr-only">この部屋の写真を載せた人</p>
             <Link href={`/user/${post.user.id}`} className="flex min-w-0 items-center gap-3 transition hover:opacity-85">
-              <div
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
-                style={{
-                  background: "var(--bg-raised)",
-                  border: "1px solid var(--hairline)",
-                  color: "var(--text-secondary)",
-                }}
-              >
+              <div className="nook-avatar-letter h-11 w-11 shrink-0 !text-sm">
                 {(post.user.name && post.user.name.trim()[0]) || "?"}
               </div>
               <div className="min-w-0 text-left">
-                <p className="text-[10px] font-medium tracking-wide" style={{ color: "var(--text-faint)" }}>
-                  この部屋の人
-                </p>
-                <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+                <p className="nook-fg-faint text-[10px] font-medium tracking-wide">この部屋の人</p>
+                <p className="nook-fg text-sm font-semibold">
                   {post.user.name}
                 </p>
               </div>
@@ -327,18 +296,18 @@ export default async function PostPage({
           </div>
 
           {post.furnitureItems.length > 0 && (
-            <section className="mt-8 border-t pt-6" style={{ borderColor: "var(--hairline)" }} aria-labelledby="furniture-heading">
+            <section className="mt-8 border-t pt-6 nook-border-hairline" aria-labelledby="furniture-heading">
               <h2 id="furniture-heading" className="nook-section-label mb-1">
                 家具・雑貨
               </h2>
-              <p className="mb-1 text-[12px] leading-snug" style={{ color: "var(--text-secondary)" }}>
-                購入先までひと続き（{post.furnitureItems.length}）
+              <p className="nook-fg-secondary mb-1 text-[12px] leading-snug">
+                この部屋で使っている家具・雑貨（{post.furnitureItems.length}）
               </p>
               <p className="nook-vision-subline mb-3 !mt-0 max-w-none">
-                ボタンから外部ショップへ、そのまま開けます（在庫や価格は各店のページが正です）。
+                気になった家具・雑貨は、外部ショップのページも見られます（在庫や価格は各店のページが正です）。
               </p>
               {shopHosts.length > 0 ? (
-                <p className="mb-4 text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>
+                <p className="nook-fg-faint mb-4 text-[10px] leading-relaxed">
                   {shopHosts.map((h, i) => (
                     <span key={h}>
                       {i > 0 ? (
@@ -348,8 +317,7 @@ export default async function PostPage({
                       ) : null}
                       <Link
                         href={shopExploreHref(h)}
-                        className="font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
-                        style={{ color: "var(--text-muted)" }}
+                        className="nook-fg-muted font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
                       >
                         {h}の部屋を見る
                       </Link>
@@ -372,11 +340,10 @@ export default async function PostPage({
 
           <RelatedPosts postId={post.id} category={post.category} styleTagSlugs={styleTagSlugs} />
 
-          <div className="mt-10 border-t pt-6" style={{ borderColor: "var(--hairline)" }}>
+          <div className="mt-10 border-t pt-6 nook-border-hairline">
             <Link
               href="/"
-              className="inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
-              style={{ color: "var(--text-muted)" }}
+              className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
                 <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

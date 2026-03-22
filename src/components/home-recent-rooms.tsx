@@ -15,9 +15,6 @@ export default function HomeRecentRooms() {
         <h2 id="recent-rooms-heading" className="home-browse-label">
           最近見た部屋
         </h2>
-        <span className="text-[10px] font-medium tracking-wide" style={{ color: "var(--text-faint)" }}>
-          すぐ戻る
-        </span>
       </div>
       <div className="nook-hscroll-mask nook-hscroll-mask-sm-clear -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide sm:-mx-0 sm:gap-3.5 sm:px-0 sm:pb-2">
         {recentPosts.map((post) => (
@@ -26,10 +23,7 @@ export default function HomeRecentRooms() {
             href={`/post/${post.id}`}
             className="group relative flex w-[5.5rem] shrink-0 flex-col gap-1 transition active:scale-[0.98] sm:w-24"
           >
-            <div
-              className="relative aspect-square overflow-hidden rounded-md border transition-all duration-300 group-hover:shadow-md"
-              style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
-            >
+            <div className="relative aspect-square overflow-hidden rounded-md border transition-all duration-300 group-hover:shadow-md nook-border-hairline nook-bg-sunken">
               {post.thumbnail ? (
                 <NookImage
                   src={post.thumbnail}
@@ -39,14 +33,14 @@ export default function HomeRecentRooms() {
                   sizes="96px"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                <div className="nook-fg-faint flex h-full items-center justify-center">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
                 </div>
               )}
             </div>
-            <p className="truncate text-[10px] font-medium leading-snug" style={{ color: "var(--text-muted)" }}>
+            <p className="nook-fg-muted truncate text-[10px] font-medium leading-snug">
               {post.title}
             </p>
           </Link>

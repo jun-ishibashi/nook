@@ -25,8 +25,16 @@ export default function PriceFilter() {
 
   return (
     <div className="price-filter">
-      <p className="nook-overline nook-overline--sentence mb-2">価格帯（家具1点あたり）</p>
-      <div className="-mx-1 flex gap-0 overflow-x-auto px-1 pb-0.5 scrollbar-hide" role="radiogroup" aria-label="価格帯で絞り込み">
+      <p className="nook-overline nook-overline--sentence mb-2">価格帯（家具・雑貨1件あたり）</p>
+      <p id="price-filter-help" className="sr-only">
+        家具・雑貨1件の参考価格の範囲を選ぶと、該当する投稿に絞り込みます。
+      </p>
+      <div
+        className="-mx-1 flex gap-0 overflow-x-auto px-1 pb-0.5 scrollbar-hide"
+        role="radiogroup"
+        aria-label="価格帯で絞り込み"
+        aria-describedby="price-filter-help"
+      >
         {FURNITURE_ITEM_PRICE_BRACKETS.map((b) => {
           const active = 
             (b.min === null ? !currentMin : currentMin === b.min.toString()) &&

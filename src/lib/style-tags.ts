@@ -1,10 +1,10 @@
 /**
- * スタイルタグ（[`docs/product-vision.md`](../../docs/product-vision.md) §6.2 コンセプト語彙と整合）。
+ * スタイルタグ（[`docs/product-vision.md`](../../docs/product-vision.md) のコンセプト語彙と整合）。
  * 並びは「住まい→素材→暮らし→感性→エリア」の読みやすさ優先。
  * **slug は既存投稿と URL の正** — リネームは DB マイグレまたは互換レイヤが必要。
  */
 export const STYLE_TAGS = [
-  // —— 住まい・スケール（§6.2 生活・スケール）
+  // —— 住まい・スケール（6.2 生活・スケール）
   { slug: "rental", label: "賃貸" },
   { slug: "oneroom", label: "ワンルーム" },
   { slug: "solo_living", label: "一人暮らし" },
@@ -13,7 +13,7 @@ export const STYLE_TAGS = [
   { slug: "minimal_volume", label: "物量すくなめ" },
   { slug: "minimal", label: "ミニマル" },
 
-  // —— 素材・トーン（§6.2 素材・トーン／§6.3 コンクリート感＝ムード）
+  // —— 素材・トーン（6.2 素材・トーン／6.3 コンクリート感＝ムード）
   { slug: "concrete", label: "コンクリ" },
   { slug: "mukishitsu", label: "無機質" },
   { slug: "gray_tone", label: "グレー階調" },
@@ -23,7 +23,7 @@ export const STYLE_TAGS = [
   { slug: "warm", label: "ウォーム" },
   { slug: "cool", label: "クール" },
 
-  // —— 生活のレイヤー（§6.2 生活のレイヤー／モノ・知識感）
+  // —— 生活のレイヤー（6.2 生活のレイヤー／モノ・知識感）
   { slug: "coffee", label: "コーヒー" },
   { slug: "plants", label: "観葉植物" },
   { slug: "desk", label: "デスク" },
@@ -33,29 +33,29 @@ export const STYLE_TAGS = [
   { slug: "tidying", label: "掃除・整頓" },
   { slug: "gadget", label: "ガジェット・家電" },
 
-  // —— 予算・手入れ（§6.2 予算・入手。ブランド名タグは付けない — §6.1 注釈と同型）
+  // —— 予算・手入れ（6.2 予算・入手。ブランド名タグは付けない — 6.1 注釈と同型）
   { slug: "budget_retail", label: "ニトリ・IKEA" },
   { slug: "budget_mix", label: "予算ミックス" },
   { slug: "diy", label: "DIY" },
 
-  // —— 感性・価値観（§6.2 感性・価値観）
+  // —— 感性・価値観（6.2 感性・価値観）
   { slug: "high_sense", label: "ハイセンス" },
   { slug: "kodawari", label: "こだわり" },
   { slug: "mindful", label: "丁寧に生きる" },
   { slug: "kakkoii", label: "かっこいい" },
   { slug: "otokorashii", label: "男らしい" },
 
-  // —— ファッション連動（§6.2。モテ部屋＝俗称タグ）
+  // —— ファッション連動（6.2。モテ部屋＝俗称タグ）
   { slug: "fashion", label: "ファッション感" },
   { slug: "furugi", label: "古着" },
   { slug: "mens_stylish", label: "おしゃれ男子" },
   { slug: "mote_room", label: "モテ部屋" },
 
-  // —— ライフ・属性参照（§6.2。利用条件ラベルではない）
+  // —— ライフ・属性参照（6.2。利用条件ラベルではない）
   { slug: "tokyo_student", label: "都内大学生" },
   { slug: "salaryman", label: "サラリーマン" },
 
-  // —— エリア・ストリート（§6.2。想起・活動圏のイメージ）
+  // —— エリア・ストリート（6.2。想起・活動圏のイメージ）
   { slug: "ikejiri", label: "池尻大橋" },
   { slug: "nakameguro", label: "中目黒" },
   { slug: "daikanyama", label: "代官山" },
@@ -69,7 +69,7 @@ export const STYLE_TAGS = [
   { slug: "sangenjaya", label: "三軒茶屋" },
   { slug: "shimokitazawa", label: "下北沢" },
 
-  // —— 世界観の補助（§6.2 表外だが若年層ニーズ。百科化しない）
+  // —— 世界観の補助（6.2 表外だが若年層ニーズ。百科化しない）
   { slug: "korean", label: "韓国インテ" },
 ] as const;
 

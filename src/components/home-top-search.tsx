@@ -53,7 +53,7 @@ function ClearFiltersButton({ compact }: { compact?: boolean }) {
   );
 }
 
-/** 適用中の条件（スティッキー内は横スクロールで縦を抑える §5.1） */
+/** 適用中の条件チップ（スティッキー内は横スクロールで縦を抑える） */
 function ActiveFilterChips() {
   const searchParams = useSearchParams();
 
@@ -193,8 +193,8 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
       <div
         className={`search-field w-full sm:min-h-[2.5rem] ${isPending ? "search-field--pending" : ""}`}
       >
-        <span className="search-field__icon pl-0.5" aria-hidden>
-          <svg width="17" height="17" viewBox="0 0 18 18" fill="none" style={{ color: "var(--text-muted)" }}>
+        <span className="search-field__icon nook-fg-muted pl-0.5" aria-hidden>
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
             <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
             <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
@@ -218,7 +218,6 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
             type="button"
             onClick={handleClearInput}
             className="search-clear-btn"
-            style={{ color: "var(--text-muted)" }}
             aria-label="入力をクリア"
           >
             <svg width="16" height="16" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -237,9 +236,7 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
   );
 }
 
-/**
- * スティッキー外：最近のキーワードのみ（固定帯の縦を食わない §5.1）
- */
+/** スティッキー外：最近のキーワードのみ（操作帯の縦を増やさない） */
 export function HomeRecentSearchRow() {
   const searchParams = useSearchParams();
   const urlQ = searchParams.get("q")?.trim() ?? "";
@@ -280,9 +277,7 @@ export function HomeRecentSearchRow() {
   );
 }
 
-/**
- * 操作層：検索＋条件チップのみ。線と文字を基調、縦を最小に（product-vision §5.1）
- */
+/** ホーム上部：検索＋条件チップ。線と文字を基調、縦を抑える */
 export default function HomeTopSearch() {
   const searchParams = useSearchParams();
   const urlQ = searchParams.get("q") ?? "";

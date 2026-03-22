@@ -5,9 +5,7 @@ import { getStyleTagLabel } from "@/lib/style-tags";
 const WINDOW_DAYS = 45;
 const MAX_TAGS = 5;
 
-/**
- * 説明可能なスタイル導線（§8.1）：期間内の部屋でタグ件数が多い順。意図を短文で示す。
- */
+/** 期間内の投稿でタグ件数が多い順のスタイル導線（意図を短文で示す） */
 export default async function HomeTrendingStyles() {
   const since = new Date();
   since.setDate(since.getDate() - WINDOW_DAYS);
@@ -26,12 +24,9 @@ export default async function HomeTrendingStyles() {
 
   return (
     <section className="home-tail-discover" aria-labelledby="trending-styles-heading">
-      <h2 id="trending-styles-heading" className="home-browse-label mb-0.5">
+      <h2 id="trending-styles-heading" className="home-browse-label mb-2">
         ムードからさがす
       </h2>
-      <p className="home-browse-hint">
-        直近{WINDOW_DAYS}日に多かったタグです。
-      </p>
       <div className="flex flex-wrap gap-2">
         {rows.map((r) => (
           <Link

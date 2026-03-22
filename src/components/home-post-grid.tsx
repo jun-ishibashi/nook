@@ -36,7 +36,7 @@ function formatDate(dateStr: string) {
 }
 
 /**
- * アスペクト比パターン: 雑誌的リズム（§5.1 コンテンツ層）
+ * アスペクト比パターン: 雑誌的リズム（フィードの視線導線）
  * featured (index=0): フル幅 16:9
  * 奇数: 3:4（やや縦長）
  * 偶数: 4:5（標準）
@@ -71,8 +71,7 @@ export default function HomePostGrid({
             className={`stagger-item group flex flex-col ${isFeatured ? "home-post-tile--featured" : ""}`}
           >
             <div
-              className={`home-post-tile__media home-post-tile__media--renewed relative overflow-hidden ${tileAspect(index, hasFeatured)}`}
-              style={{ background: "var(--bg-wash)" }}
+              className={`home-post-tile__media home-post-tile__media--renewed nook-bg-wash relative overflow-hidden ${tileAspect(index, hasFeatured)}`}
             >
               <Link href={`/post/${post.id}`} className="absolute inset-0 z-0 block">
                 {post.thumbnail ? (
@@ -85,7 +84,7 @@ export default function HomePostGrid({
                     priority={index < 4}
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center" style={{ color: "var(--text-faint)" }}>
+                  <div className="nook-fg-faint flex h-full items-center justify-center">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                       <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                       <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
@@ -112,10 +111,7 @@ export default function HomePostGrid({
 
             <div className="mt-2 px-0 sm:mt-2.5">
               <Link href={`/post/${post.id}`} className="block">
-                <p
-                  className="text-[13px] font-semibold leading-snug line-clamp-2 transition group-hover:opacity-88"
-                  style={{ color: "var(--text)" }}
-                >
+                <p className="nook-fg text-[13px] font-semibold leading-snug line-clamp-2 transition group-hover:opacity-88">
                   {post.title}
                 </p>
               </Link>
@@ -125,26 +121,25 @@ export default function HomePostGrid({
                   className="flex min-h-7 min-w-0 flex-1 items-center gap-1.5 py-0.5 transition hover:opacity-80"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div
-                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-semibold"
-                    style={{ background: "var(--bg-sunken)", color: "var(--text-secondary)" }}
-                  >
+                  <div className="nook-bg-sunken nook-fg-secondary flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-semibold">
                     {(post.user.name && post.user.name.trim()[0]) || "?"}
                   </div>
-                  <span className="truncate text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>
+                  <span className="nook-fg-muted truncate text-[10px] font-medium">
                     {post.user.name}
                   </span>
                 </Link>
                 <div className="flex shrink-0 items-center gap-1">
                   {post.itemCount > 0 ? (
-                    <span className="text-[9px] font-medium tabular-nums" style={{ color: "var(--text-faint)" }}>
-                      {post.itemCount}点
+                    <span
+                      className="nook-fg-faint text-[9px] font-medium tabular-nums"
+                      title="家具・雑貨（購入リンクの行）"
+                    >
+                      {post.itemCount}
                     </span>
                   ) : null}
                   <time
                     dateTime={post.createdAt}
-                    className="inline-flex items-center justify-end tabular-nums text-[9px]"
-                    style={{ color: "var(--text-faint)" }}
+                    className="nook-fg-faint inline-flex items-center justify-end tabular-nums text-[9px]"
                   >
                     {formatDate(post.createdAt)}
                   </time>

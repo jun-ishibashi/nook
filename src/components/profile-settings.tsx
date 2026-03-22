@@ -39,10 +39,7 @@ export default function ProfileSettings({
 
   return (
     <details className="profile-settings-disclosure nook-elevated-surface group overflow-hidden">
-      <summary
-        className="cursor-pointer list-none px-4 py-3.5 text-sm outline-none marker:content-none [&::-webkit-details-marker]:hidden"
-        style={{ color: "var(--text-secondary)" }}
-      >
+      <summary className="nook-fg-secondary cursor-pointer list-none px-4 py-3.5 text-sm outline-none marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="flex items-center justify-between gap-2">
           <span id="profile-settings-heading" className="nook-section-label !mb-0 font-semibold normal-case tracking-normal">
             プロフィール設定
@@ -65,10 +62,10 @@ export default function ProfileSettings({
           </svg>
         </span>
       </summary>
-      <div className="border-t px-4 pb-4 pt-3" style={{ borderColor: "var(--hairline)" }}>
+      <div className="border-t px-4 pb-4 pt-3 nook-border-hairline">
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label htmlFor="profile-bio" className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>
+            <label htmlFor="profile-bio" className="nook-fg-muted text-[10px] font-bold">
               ひとこと
             </label>
             <textarea
@@ -80,12 +77,12 @@ export default function ProfileSettings({
               placeholder="例: 1LDK・コンクリ好き"
               maxLength={160}
             />
-            <p className="mt-0.5 text-right text-[10px]" style={{ color: "var(--text-faint)" }}>
+            <p className="nook-fg-faint mt-0.5 text-right text-[10px]">
               {bio.length}/160
             </p>
           </div>
           <div>
-            <label htmlFor="profile-link" className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>
+            <label htmlFor="profile-link" className="nook-fg-muted text-[10px] font-bold">
               リンク（任意）
             </label>
             <input
@@ -105,9 +102,7 @@ export default function ProfileSettings({
             </p>
           ) : null}
           {saved ? (
-            <p className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-              保存しました
-            </p>
+            <p className="nook-fg-secondary text-xs font-medium">保存しました</p>
           ) : null}
           <button type="submit" disabled={loading} className="btn-primary text-xs disabled:opacity-50">
             {loading ? "保存中…" : "保存"}

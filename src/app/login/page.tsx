@@ -29,9 +29,10 @@ function LoginForm() {
 
   return (
     <div className="login-page mx-auto flex min-h-[85vh] w-full max-w-5xl flex-col items-center justify-center px-4 py-10 sm:min-h-[80vh] sm:flex-row sm:gap-10 sm:py-14 lg:gap-16">
-      {/* 左：ビジュアル面（§5.1 写真が主役） */}
+      {/* 入口層: max-w-5xl は左ビジュアル＋右フォームの2列用（標準 .nook-page より広い意図的例外） */}
+      {/* 左：ビジュアル面（写真が主役） */}
       <div className="login-visual hidden w-full max-w-md flex-1 sm:block">
-        <div className="relative overflow-hidden rounded-[var(--radius-card)]" style={{ aspectRatio: "3/4" }}>
+        <div className="relative aspect-[3/4] overflow-hidden rounded-[var(--radius-card)]">
           <Image
             src="/hero-home.png"
             alt="コンクリート壁の間接照明が灯るワンルーム"
@@ -41,15 +42,10 @@ function LoginForm() {
             priority
             quality={80}
           />
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to top, rgba(19,18,17,0.7) 0%, rgba(19,18,17,0.15) 50%, transparent 100%)",
-            }}
-          />
+          <div className="login-visual-scrim absolute inset-0" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
-            <p className="text-[11px] font-medium leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-              リアルな部屋写真から、家具の購入先まで。
+            <p className="login-hero-caption text-[11px] font-medium leading-relaxed">
+              一人暮らしの部屋を、もう少し好きになる。
             </p>
           </div>
         </div>
@@ -61,17 +57,17 @@ function LoginForm() {
           {/* 入口層：ムードと部屋を先に。チラシ感は出さない */}
           <header className="login-entry-header">
             <div className="mb-5 flex items-center gap-3">
-              <span style={{ color: "var(--text)" }} aria-hidden>
+              <span className="nook-fg" aria-hidden>
                 <Logo size={40} />
               </span>
               <p className="nook-section-label">NOOK</p>
             </div>
-            <h1 className="text-pretty text-xl font-bold leading-tight tracking-tighter sm:text-2xl" style={{ color: "var(--text)" }}>
-              静かに、こだわりを重ねる。
+            <h1 className="nook-fg text-pretty text-xl font-bold leading-tight tracking-tighter sm:text-2xl">
+              部屋にこだわってみる。
             </h1>
-          <p className="mt-3 max-w-sm text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            みんなの部屋のムードから入って、気に入った家具・雑貨の購入先までひと続きで辿れます。<br />
-            保存や欲しいで、あとで静かに見返せます。
+          <p className="nook-fg-muted mt-3 max-w-sm text-[12px] leading-relaxed">
+            一人暮らしの部屋を見ながら、好きな雰囲気や家具・雑貨を見つけていけます。<br />
+            気になったものは、購入先もあわせて見られます。
           </p>
           </header>
 
@@ -90,12 +86,6 @@ function LoginForm() {
             }}
             disabled={loading}
             className="login-google-btn flex min-h-[var(--touch)] w-full items-center justify-center gap-3 rounded-full px-4 py-3 text-sm font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
-            style={{
-              background: "var(--bg-raised)",
-              color: "var(--text)",
-              border: "1px solid var(--hairline)",
-              boxShadow: "var(--home-tile-shadow)",
-            }}
             aria-busy={loading}
             aria-label={loading ? "Google との接続中" : "Google アカウントでログイン"}
           >
@@ -107,11 +97,7 @@ function LoginForm() {
             </svg>
             {loading ? (
               <span className="flex items-center gap-2">
-                <span
-                  className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"
-                  style={{ borderColor: "var(--text-muted)", borderTopColor: "transparent" }}
-                  aria-hidden
-                />
+                <span className="nook-spinner-muted h-4 w-4 animate-spin rounded-full" aria-hidden />
                 接続中です
               </span>
             ) : (
@@ -126,13 +112,13 @@ function LoginForm() {
           className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium sm:mt-10"
           aria-label="ほかのページ"
         >
-          <Link href="/" className="transition hover:opacity-70" style={{ color: "var(--text-muted)" }}>
+          <Link href="/" className="nook-fg-muted transition hover:opacity-70">
             みんなの部屋へ
           </Link>
-          <Link href="/terms" className="transition hover:opacity-70" style={{ color: "var(--text-faint)" }}>
+          <Link href="/terms" className="nook-fg-faint transition hover:opacity-70">
             利用規約
           </Link>
-          <Link href="/privacy" className="transition hover:opacity-70" style={{ color: "var(--text-faint)" }}>
+          <Link href="/privacy" className="nook-fg-faint transition hover:opacity-70">
             プライバシー
           </Link>
         </nav>
@@ -150,13 +136,13 @@ export default function LoginPage() {
             <div className="nook-elevated-surface space-y-5 overflow-hidden p-5 sm:p-7">
               <div className="space-y-3">
                 <div className="flex gap-3">
-                  <div className="h-10 w-10 animate-pulse rounded-lg" style={{ background: "var(--bg-sunken)" }} />
-                  <div className="h-3 w-16 animate-pulse rounded-sm self-center" style={{ background: "var(--bg-sunken)" }} />
+                  <div className="nook-skeleton-pulse h-10 w-10 rounded-lg" />
+                  <div className="nook-skeleton-pulse h-3 w-16 self-center" />
                 </div>
-                <div className="h-6 w-32 animate-pulse rounded-sm" style={{ background: "var(--bg-sunken)" }} />
-                <div className="h-10 w-full animate-pulse rounded-md" style={{ background: "var(--bg-sunken)" }} />
+                <div className="nook-skeleton-pulse h-6 w-32" />
+                <div className="nook-skeleton-pulse h-10 w-full rounded-md" />
               </div>
-              <div className="h-12 w-full animate-pulse rounded-full" style={{ background: "var(--bg-sunken)" }} />
+              <div className="nook-skeleton-pulse h-12 w-full rounded-full" />
             </div>
             <span className="sr-only">読み込み中</span>
           </div>

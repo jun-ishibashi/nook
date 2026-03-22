@@ -21,7 +21,7 @@ const DRAFT_STORAGE_KEY = "nook-create-post-draft-v1";
 
 function PostModalDesc({ children }: { children: React.ReactNode }) {
   return (
-    <p id="post-modal-desc" className="mb-4 max-w-md text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+    <p id="post-modal-desc" className="nook-fg-muted mb-4 max-w-md text-[12px] leading-relaxed">
       {children}
     </p>
   );
@@ -209,7 +209,7 @@ export default function CreatePost() {
   function addFurniture() {
     const name = furnitureName.trim();
     const url = furnitureUrl.trim();
-    if (!name || !url) { setError("名前と購入先のURLを入力してください。"); return; }
+    if (!name || !url) { setError("名前と商品ページのURLを入力してください。"); return; }
     if (!url.startsWith("http")) { setError("リンクは https:// から入力してください。"); return; }
     setError("");
     setFurniture((prev) => [
@@ -317,53 +317,64 @@ export default function CreatePost() {
 
   const galleryItems = files.map((f) => ({ original: URL.createObjectURL(f), thumbnail: URL.createObjectURL(f) }));
 
+  const stepProgressPct = Math.round(((step + 1) / STEPS.length) * 100);
+
   const stepBar = (
-    <nav className="create-post-stepper mb-5 border-b pb-3.5" style={{ borderColor: "var(--hairline)" }} aria-label="載せる手順">
-      <ol className="flex list-none items-stretch gap-0 p-0">
-        {STEPS.map((label, i) => {
-          const done = i < step;
+    <nav className="create-post-stepper mb-4 border-b pb-3 nook-border-hairline sm:mb-5 sm:pb-3.5" aria-label="投稿の手順">
+      <div
+        className="mb-3"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={stepProgressPct}
+        aria-valuetext={`手順 ${step + 1} / ${STEPS.length}：${STEPS[step] ?? ""}`}
+        aria-label="投稿の手順の進捗"
+      >
+        <div className="nook-create-post-progress">
+          <div className="nook-create-post-progress-fill" style={{ width: `${stepProgressPct}%` }} />
+        </div>
+      </div>
+      <ol className="flex list-none flex-wrap items-center justify-center gap-x-2 gap-y-1.5 p-0 sm:gap-x-2.5">
+        {STEPS.flatMap((label, i) => {
+          const done = step > i;
           const active = i === step;
           const pending = i > step;
-          return (
-            <li key={label} className="flex min-w-0 flex-1 items-center">
-              {i > 0 ? (
+          const connector =
+            i > 0 ? (
+              <li key={`step-conn-${i}`} className="flex list-none items-center" aria-hidden>
                 <span
-                  className="mx-1 h-px min-w-[4px] flex-1 sm:mx-1.5"
-                  style={{ background: done || active ? "var(--text-faint)" : "var(--hairline)" }}
-                  aria-hidden
+                  className={`block h-0.5 w-4 shrink-0 rounded-full sm:w-5 ${done || active ? "nook-create-step-connector--on" : "nook-create-step-connector"}`}
                 />
-              ) : null}
-              <div
-                className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 sm:justify-start ${pending ? "opacity-[0.4]" : ""}`}
+              </li>
+            ) : null;
+          const stepItem = (
+            <li
+              key={label}
+              className={`flex list-none items-center gap-1.5 ${pending ? "opacity-[0.4]" : ""}`}
+              aria-label={`手順 ${i + 1}: ${label}`}
+            >
+              <span
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold tabular-nums ${
+                  done ? "nook-create-step-badge-done" : active ? "nook-create-step-badge-active" : "nook-create-step-badge-pending"
+                }`}
+                aria-current={active ? "step" : undefined}
               >
-                <span
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold tabular-nums"
-                  style={
-                    done
-                      ? { background: "var(--bg-sunken)", color: "var(--text-secondary)", border: "1px solid var(--hairline)" }
-                      : active
-                        ? { background: "var(--text)", color: "var(--text-inverse)", border: "1px solid var(--text)" }
-                        : { border: "1px solid var(--hairline)", color: "var(--text-muted)", background: "transparent" }
-                  }
-                  aria-current={active ? "step" : undefined}
-                >
-                  {done ? (
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  ) : (
-                    i + 1
-                  )}
-                </span>
-                <span
-                  className="hidden truncate text-[10px] font-medium sm:inline"
-                  style={{ color: done || active ? "var(--text)" : "var(--text-muted)" }}
-                >
-                  {label}
-                </span>
-              </div>
+                {done ? (
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
+                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  i + 1
+                )}
+              </span>
+              <span
+                className={`max-w-[5.5rem] truncate text-[9px] font-medium leading-tight sm:max-w-none sm:text-[10px] ${done || active ? "nook-fg" : "nook-fg-muted"}`}
+              >
+                {label}
+              </span>
             </li>
           );
+          return connector ? [connector, stepItem] : [stepItem];
         })}
       </ol>
     </nav>
@@ -372,11 +383,10 @@ export default function CreatePost() {
   const draftBanner =
     draftOffer && step === 0 ? (
       <div
-        className="mb-4 flex flex-col gap-2.5 rounded-[var(--radius-card)] border px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
-        style={{ borderColor: "var(--hairline)", background: "color-mix(in srgb, var(--bg-sunken) 65%, var(--bg-raised))" }}
+        className="nook-stat-tile mb-4 flex flex-col gap-2.5 rounded-[var(--radius-card)] border px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
         role="status"
       >
-        <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+        <p className="nook-fg-secondary text-[11px] leading-relaxed">
           下書きがあります（端末のみ）。
         </p>
         <div className="flex shrink-0 gap-2">
@@ -395,25 +405,16 @@ export default function CreatePost() {
       <div className="create-post-flow animate-fade-in">
         {stepBar}
         <p className="nook-section-label mb-1">確認</p>
-        <h2 id="modal-title" className="mb-1 text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+        <h2 id="modal-title" className="nook-fg mb-1 text-base font-semibold tracking-tight">
           送信前の確認
         </h2>
         <PostModalDesc>問題なければ載せてください。</PostModalDesc>
-        <div
-          className="min-h-[168px] overflow-hidden rounded-[var(--radius-card)] border"
-          style={{
-            borderColor: "var(--hairline)",
-            background: "var(--bg-sunken)",
-          }}
-        >
+        <div className="min-h-[168px] overflow-hidden rounded-[var(--radius-card)] border nook-border-hairline nook-bg-sunken">
           <div style={{ filter: getMoodFilter(selectedMood) }}>
             <ImageGallery items={galleryItems} showThumbnails={false} />
           </div>
         </div>
-        <div
-          className="mt-4 rounded-[var(--radius-card)] border p-4"
-          style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
-        >
+        <div className="mt-4 rounded-[var(--radius-card)] border nook-border-hairline nook-bg-raised p-4">
           {category !== "other" && (
             <span className="badge mb-2">
               <CategoryIcon value={category} size={10} />
@@ -421,7 +422,7 @@ export default function CreatePost() {
             </span>
           )}
           {(housingType || layoutType || roomContextNote.trim()) && (
-            <p className="mb-2 text-[11px]" style={{ color: "var(--text-muted)" }}>
+            <p className="nook-fg-muted mb-2 text-[11px]">
               {[
                 housingType ? HOUSING_TYPES.find((h) => h.value === housingType)?.label : null,
                 layoutType ? LAYOUT_TYPES.find((l) => l.value === layoutType)?.label : null,
@@ -431,11 +432,11 @@ export default function CreatePost() {
                 .join("・")}
             </p>
           )}
-          <p className="font-semibold" style={{ color: "var(--text)" }}>
+          <p className="nook-fg font-semibold">
             {title}
           </p>
           {description ? (
-            <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            <p className="nook-fg-secondary mt-1 text-sm leading-relaxed">
               {description}
             </p>
           ) : null}
@@ -447,29 +448,28 @@ export default function CreatePost() {
               {furniture.map((f, i) => (
                 <li
                   key={i}
-                  className="flex flex-col gap-0.5 rounded-[var(--radius-sm)] border px-3 py-2.5 text-sm"
-                  style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
+                  className="flex flex-col gap-0.5 rounded-[var(--radius-sm)] border px-3 py-2.5 text-sm nook-border-hairline nook-bg-sunken"
                 >
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <span className="font-medium" style={{ color: "var(--text)" }}>
+                    <span className="nook-fg font-medium">
                       {f.name}
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
+                    <span className="nook-fg-muted min-w-0 flex-1 truncate text-[11px]">
                       {f.productUrl}
                     </span>
                     {f.price !== null && (
-                      <span className="text-[11px] font-bold" style={{ color: "var(--text-secondary)" }}>
+                      <span className="nook-fg-secondary text-[11px] font-bold">
                         ¥{f.price.toLocaleString()}
                       </span>
                     )}
                   </div>
                   {f.note ? (
-                    <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                    <p className="nook-fg-secondary text-[11px] leading-relaxed">
                       {f.note}
                     </p>
                   ) : null}
                   {(f.linkRelation || f.linkVerifiedDate) && (
-                    <p className="text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>
+                    <p className="nook-fg-faint text-[10px] leading-relaxed">
                       {f.linkRelation ? getFurnitureLinkRelationLabel(f.linkRelation) : null}
                       {f.linkRelation && f.linkVerifiedDate ? "・" : null}
                       {f.linkVerifiedDate ? `リンク確認 ${f.linkVerifiedDate}` : null}
@@ -481,17 +481,14 @@ export default function CreatePost() {
           </div>
         )}
         {error ? <p className="nook-form-error mt-3" role="alert">{error}</p> : null}
-        <div className="mt-6 flex justify-between gap-3 border-t pt-4" style={{ borderColor: "var(--hairline)" }}>
+        <div className="mt-6 flex justify-between gap-3 border-t pt-4 nook-border-hairline">
           <button type="button" onClick={() => setStep(1)} className="btn-secondary text-xs">
             戻る
           </button>
           <button type="button" onClick={submit} disabled={loading} className="btn-primary text-xs disabled:opacity-50" aria-busy={loading}>
             {loading ? (
               <>
-                <span
-                  className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"
-                  style={{ borderColor: "var(--text-inverse)", borderTopColor: "transparent" }}
-                />
+                <span className="nook-spinner-btn-inverse" aria-hidden />
                 送信中…
               </>
             ) : (
@@ -508,17 +505,14 @@ export default function CreatePost() {
       <div className="create-post-flow animate-fade-in">
         {stepBar}
         <p className="nook-section-label mb-1">家具・雑貨</p>
-        <h2 id="modal-title" className="mb-1 text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+        <h2 id="modal-title" className="nook-fg mb-1 text-base font-semibold tracking-tight">
           家具・雑貨のリンク（任意）
         </h2>
         <PostModalDesc>
-          購入先のURLを添えると、みんなが外部ショップまでそのまま辿れます。なくても進められます。あとから編集で足せます。
+          購入先のURLを添えると、見た人が家具・雑貨をあとから探しやすくなります。なくても進められます。あとから編集で足せます。
         </PostModalDesc>
         <div className="space-y-3">
-          <div
-            className="rounded-[var(--radius-card)] border p-4"
-            style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
-          >
+          <div className="rounded-[var(--radius-card)] border p-4 nook-border-hairline nook-bg-sunken">
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                 <input
@@ -536,7 +530,7 @@ export default function CreatePost() {
                   onChange={(e) => setFurnitureUrl(e.target.value)}
                   placeholder="https://…"
                   className="input-base flex-1 text-xs"
-                  aria-label="購入先のURL"
+                  aria-label="商品ページのURL"
                   onKeyDown={(e) => e.key === "Enter" && addFurniture()}
                 />
                 <button type="button" onClick={addFurniture} className="btn-secondary shrink-0 text-xs sm:self-start">
@@ -544,7 +538,7 @@ export default function CreatePost() {
                 </button>
               </div>
               {furnitureUrl.trim() && /^http:\/\//i.test(furnitureUrl.trim()) ? (
-                <p className="text-[10px] leading-snug" style={{ color: "var(--text-faint)" }}>
+                <p className="nook-fg-faint text-[10px] leading-snug">
                   可能なら https:// から入れてください。
                 </p>
               ) : null}
@@ -566,21 +560,15 @@ export default function CreatePost() {
                 aria-label="価格"
                 onKeyDown={(e) => e.key === "Enter" && addFurniture()}
               />
-              <div
-                className="mt-1 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:flex-wrap"
-                style={{ borderColor: "var(--hairline)" }}
-              >
-                <label
-                  className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
-                  style={{ color: "var(--text-muted)" }}
-                >
+              <div className="mt-1 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:flex-wrap nook-border-hairline">
+                <label className="nook-fg-muted flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]">
                   リンクについて
-                  <span style={{ color: "var(--text-faint)" }}>（次に追加する行・任意）</span>
+                  <span className="nook-fg-faint">（次に追加する行・任意）</span>
                   <select
                     value={furnitureLinkRelation}
                     onChange={(e) => setFurnitureLinkRelation(e.target.value)}
                     className="input-base text-[10px]"
-                    aria-label="購入先リンクの位置づけ"
+                    aria-label="商品ページリンクの位置づけ"
                   >
                     {FURNITURE_LINK_RELATIONS.map((r) => (
                       <option key={r.value || "rel-unset"} value={r.value}>
@@ -589,12 +577,9 @@ export default function CreatePost() {
                     ))}
                   </select>
                 </label>
-                <label
-                  className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
-                  style={{ color: "var(--text-muted)" }}
-                >
+                <label className="nook-fg-muted flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]">
                   リンク確認日
-                  <span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                  <span className="nook-fg-faint">（任意）</span>
                   <input
                     type="date"
                     value={furnitureLinkVerifiedDate}
@@ -612,29 +597,28 @@ export default function CreatePost() {
               {furniture.map((f, i) => (
                 <li
                   key={i}
-                  className="flex flex-col gap-2 rounded-[var(--radius-sm)] border px-3 py-2.5 text-sm"
-                  style={{ borderColor: "var(--hairline)", background: "var(--bg-raised)" }}
+                  className="nook-furniture-row flex flex-col gap-2 rounded-[var(--radius-sm)] border px-3 py-2.5 text-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium" style={{ color: "var(--text)" }}>
+                      <p className="nook-fg truncate font-medium">
                         {f.name}
                       </p>
-                      <p className="truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
+                      <p className="nook-fg-muted truncate text-[11px]">
                         {f.productUrl}
                       </p>
                       {f.note ? (
-                        <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                        <p className="nook-fg-secondary mt-1 text-[11px] leading-relaxed">
                           {f.note}
                         </p>
                       ) : null}
                       {f.price !== null && (
-                        <p className="mt-1 text-[11px] font-bold" style={{ color: "var(--text)" }}>
+                        <p className="nook-fg mt-1 text-[11px] font-bold">
                           ¥{f.price.toLocaleString()}
                         </p>
                       )}
                       {(f.linkRelation || f.linkVerifiedDate) && (
-                        <p className="mt-1 text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>
+                        <p className="nook-fg-faint mt-1 text-[10px] leading-relaxed">
                           {f.linkRelation ? getFurnitureLinkRelationLabel(f.linkRelation) : null}
                           {f.linkRelation && f.linkVerifiedDate ? "・" : null}
                           {f.linkVerifiedDate ? `リンク確認 ${f.linkVerifiedDate}` : null}
@@ -644,8 +628,7 @@ export default function CreatePost() {
                     <button
                       type="button"
                       onClick={() => removeFurniture(i)}
-                      className="shrink-0 rounded-full p-1.5 transition hover:opacity-90"
-                      style={{ color: "var(--text-muted)" }}
+                      className="nook-fg-muted shrink-0 rounded-full p-1.5 transition hover:opacity-90"
                       aria-label={`${f.name} を削除`}
                     >
                       <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -654,7 +637,7 @@ export default function CreatePost() {
                     </button>
                   </div>
                   {files.length > 1 && (
-                    <label className="flex flex-wrap items-center gap-2 text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+                    <label className="nook-fg-muted flex flex-wrap items-center gap-2 text-[10px] font-semibold">
                       写っている写真
                       <select
                         value={f.mediaIndex}
@@ -671,11 +654,8 @@ export default function CreatePost() {
                     </label>
                   )}
                   <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                    <label
-                      className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      リンクについて<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                    <label className="nook-fg-muted flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]">
+                      リンクについて<span className="nook-fg-faint">（任意）</span>
                       <select
                         value={f.linkRelation}
                         onChange={(e) => updateFurnitureTrust(i, { linkRelation: e.target.value })}
@@ -689,11 +669,8 @@ export default function CreatePost() {
                         ))}
                       </select>
                     </label>
-                    <label
-                      className="flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      リンク確認日<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+                    <label className="nook-fg-muted flex min-w-0 flex-1 flex-col gap-0.5 text-[10px] font-semibold sm:max-w-[12rem]">
+                      リンク確認日<span className="nook-fg-faint">（任意）</span>
                       <input
                         type="date"
                         value={f.linkVerifiedDate}
@@ -708,17 +685,17 @@ export default function CreatePost() {
             </ul>
           )}
           {furniture.length === 0 ? (
-            <div className="space-y-2 rounded-[var(--radius-sm)] border border-dashed px-3 py-6 text-center" style={{ borderColor: "var(--hairline)" }}>
-              <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+            <div className="space-y-2 rounded-[var(--radius-sm)] border border-dashed px-3 py-6 text-center nook-border-hairline">
+              <p className="nook-fg-muted text-[11px]">
                 スキップして次へ
               </p>
-              <p className="text-[10px] leading-relaxed" style={{ color: "var(--text-faint)" }}>
-                購入先のリンクを足すと、気になった人がショップまでそのまま辿れます。
+              <p className="nook-fg-faint text-[10px] leading-relaxed">
+                購入先のリンクを足すと、あとから見返しやすくなります。
               </p>
             </div>
           ) : null}
         </div>
-        <div className="mt-6 flex justify-between gap-3 border-t pt-4" style={{ borderColor: "var(--hairline)" }}>
+        <div className="mt-6 flex justify-between gap-3 border-t pt-4 nook-border-hairline">
           <button type="button" onClick={() => setStep(0)} className="btn-secondary text-xs">
             戻る
           </button>
@@ -734,12 +711,12 @@ export default function CreatePost() {
     <div className="create-post-flow animate-fade-in">
       {draftBanner}
       {stepBar}
-      <p className="nook-section-label mb-1">載せる</p>
-      <h2 id="modal-title" className="mb-1 text-base font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+      <p className="nook-section-label mb-1">部屋を投稿</p>
+      <h2 id="modal-title" className="nook-fg mb-1 text-base font-semibold tracking-tight">
         写真を載せる
       </h2>
       <PostModalDesc>
-        完璧じゃなくて大丈夫です。写真とタイトルがあれば、ムードが伝わります。
+        タイトルと写真があれば十分です。家具のリンクやムードは、あとからでも足せます。
       </PostModalDesc>
       <div className="space-y-5">
         <div>
@@ -749,7 +726,7 @@ export default function CreatePost() {
             <div className="mt-4">
               <span className="nook-overline nook-overline--sentence mb-2 block">
                 空気感（Mood）
-                <span className="ml-1 opacity-70" style={{ color: "var(--text-faint)" }}>
+                <span className="nook-fg-faint ml-1 opacity-70">
                   — 写真の質感を整える
                 </span>
               </span>
@@ -759,29 +736,15 @@ export default function CreatePost() {
                     key={m.value}
                     type="button"
                     onClick={() => setSelectedMood(m.value)}
-                    className="group relative flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-all active:scale-[0.97]"
-                    style={{
-                      borderColor: selectedMood === m.value ? "var(--text-muted)" : "var(--hairline)",
-                      background: selectedMood === m.value ? "var(--bg-raised)" : "transparent",
-                    }}
+                    className={`group relative flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-all active:scale-[0.97] ${
+                      selectedMood === m.value ? "nook-mood-chip--selected" : "nook-mood-chip"
+                    }`}
                     title={m.description}
                   >
-                    <div
-                      className="h-10 w-14 overflow-hidden rounded-md border"
-                      style={{ borderColor: "var(--hairline)", background: "var(--bg-sunken)" }}
-                    >
-                      <div
-                        className="h-full w-full"
-                        style={{
-                          filter: m.filter,
-                          background:
-                            "linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), linear-gradient(45deg, #eee 25%, #fff 25%, #fff 75%, #eee 75%, #eee)",
-                          backgroundSize: "10px 10px",
-                          backgroundPosition: "0 0, 5px 5px",
-                        }}
-                      >
+                    <div className="nook-mood-swatch-frame h-10 w-14 overflow-hidden rounded-md">
+                      <div className="nook-mood-swatch-checker h-full w-full" style={{ filter: m.filter }}>
                         <div className="flex h-full w-full items-center justify-center bg-black/5">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: "var(--text-faint)" }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="nook-fg-faint">
                             <path
                               d="M12 21a9 9 0 100-18 9 9 0 000 18z"
                               stroke="currentColor"
@@ -798,16 +761,12 @@ export default function CreatePost() {
                       </div>
                     </div>
                     <span
-                      className="text-[9px] font-bold tracking-wider"
-                      style={{ color: selectedMood === m.value ? "var(--text)" : "var(--text-muted)" }}
+                      className={`text-[9px] font-bold tracking-wider ${selectedMood === m.value ? "nook-fg" : "nook-fg-muted"}`}
                     >
                       {m.label.toUpperCase()}
                     </span>
                     {selectedMood === m.value && (
-                      <div
-                        className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-black shadow-sm"
-                        style={{ border: "1px solid var(--hairline)" }}
-                      >
+                      <div className="nook-mood-check-badge nook-bg-raised nook-fg absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full shadow-sm">
                         <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
                           <path
                             d="M2 6l3 3 5-5"
@@ -839,13 +798,13 @@ export default function CreatePost() {
             autoComplete="off"
             maxLength={100}
           />
-          <p className="mt-1 text-right text-[10px]" style={{ color: "var(--text-muted)" }}>
+          <p className="nook-fg-muted mt-1 text-right text-[10px]">
             {title.length}/100
           </p>
         </div>
         <div>
           <label htmlFor="post-desc" className="nook-overline nook-overline--sentence mb-1.5 block">
-            キャプション<span style={{ color: "var(--text-faint)" }}>（任意）</span>
+            キャプション<span className="nook-fg-faint">（任意）</span>
           </label>
           <textarea
             id="post-desc"
@@ -877,7 +836,7 @@ export default function CreatePost() {
         </div>
         <div>
           <span className="nook-overline nook-overline--sentence mb-1.5 block">
-            スタイル<span style={{ color: "var(--text-faint)" }}>（任意・最大8）</span>
+            スタイル<span className="nook-fg-faint">（任意・最大8）</span>
           </span>
           <p id="create-style-hint" className="sr-only">
             タップで複数選べます。同じタグをもう一度押すと外れます。
@@ -904,13 +863,10 @@ export default function CreatePost() {
             })}
           </div>
         </div>
-        <div
-          className="rounded-[var(--radius-card)] border p-4"
-          style={{ borderColor: "var(--hairline)", background: "color-mix(in srgb, var(--bg-sunken) 40%, var(--bg-raised))" }}
-        >
+        <div className="nook-room-context-panel rounded-[var(--radius-card)] border p-4">
           <p className="nook-overline nook-overline--sentence mb-2">部屋の文脈（任意）</p>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <label className="flex flex-1 flex-col gap-1 text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+            <label className="nook-fg-muted flex flex-1 flex-col gap-1 text-[10px] font-semibold">
               住まい
               <select
                 value={housingType}
@@ -925,7 +881,7 @@ export default function CreatePost() {
                 ))}
               </select>
             </label>
-            <label className="flex flex-1 flex-col gap-1 text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+            <label className="nook-fg-muted flex flex-1 flex-col gap-1 text-[10px] font-semibold">
               間取りの目安
               <select
                 value={layoutType}
@@ -941,7 +897,7 @@ export default function CreatePost() {
               </select>
             </label>
           </div>
-          <label htmlFor="room-context-note" className="mt-3 block text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+          <label htmlFor="room-context-note" className="nook-fg-muted mt-3 block text-[10px] font-semibold">
             ひとこと（角部屋・築年など）
           </label>
           <input
@@ -957,7 +913,7 @@ export default function CreatePost() {
         </div>
       </div>
       {error ? <p className="nook-form-error mt-4" role="alert">{error}</p> : null}
-      <div className="mt-6 flex justify-between gap-3 border-t pt-4" style={{ borderColor: "var(--hairline)" }}>
+      <div className="mt-6 flex justify-between gap-3 border-t pt-4 nook-border-hairline">
         <label htmlFor={MODAL_ID} className="btn-secondary cursor-pointer text-xs">
           閉じる
         </label>
