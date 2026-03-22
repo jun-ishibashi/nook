@@ -16,3 +16,25 @@ export function breakConsecutiveSameAuthor<T extends { user: { id: string } }>(p
   }
   return out;
 }
+
+/** 同じカテゴリが連続しすぎないよう軽く入れ替える（other も対象） */
+export function breakConsecutiveSameCategory<T extends { category: string }>(posts: T[]): T[] {
+  if (posts.length < 3) return posts;
+  const out = [...posts];
+  for (let i = 1; i < out.length; i++) {
+    if (out[i].category === out[i - 1].category) {
+      const j = out.findIndex((p, k) => k > i && p.category !== out[i - 1].category);
+      if (j !== -1) {
+        const t = out[i];
+        out[i] = out[j];
+        out[j] = t;
+      }
+    }
+  }
+  return out;
+}
+
+/** みんなの部屋（未フィルター）向け：投稿者ミックス → カテゴリミックス */
+export function mixHomeFeedPosts<T extends { user: { id: string }; category: string }>(posts: T[]): T[] {
+  return breakConsecutiveSameCategory(breakConsecutiveSameAuthor(posts));
+}

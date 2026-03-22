@@ -2,7 +2,8 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { loginCallbackHref } from "@/lib/login-href";
+import { useState, useTransition } from "react";
 
 type Props = {
   productUrl: string;
@@ -24,40 +25,42 @@ export default function WishlistItemButton({
   const { status } = useSession();
   const router = useRouter();
   const [saved, setSaved] = useState(initialSaved);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const isSm = size === "sm";
-  const pad = isSm ? "px-2 py-1 text-[10px]" : "px-3 py-1.5 text-xs";
+  const pad = isSm
+    ? "min-h-11 px-3 py-2 text-xs sm:min-h-0 sm:px-2 sm:py-1 sm:text-[10px]"
+    : "min-h-11 px-4 py-2 text-xs sm:min-h-0 sm:px-4 sm:py-1.5";
 
   async function handleClick(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (status !== "authenticated") {
-      router.push(`/login?callbackUrl=${encodeURIComponent(`/post/${postId}`)}`);
+      router.push(loginCallbackHref(`/post/${postId}`));
       return;
     }
-    setLoading(true);
-    try {
-      const res = await fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productUrl, name, note, postId }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && typeof data.saved === "boolean") {
-        setSaved(data.saved);
-        router.refresh();
-      }
-    } finally {
-      setLoading(false);
-    }
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productUrl, name, note, postId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && typeof data.saved === "boolean") {
+          setSaved(data.saved);
+          router.refresh();
+        }
+      } catch {}
+    });
   }
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      disabled={loading}
+      disabled={isPending}
+      aria-busy={isPending}
       className={`shrink-0 rounded-full font-semibold transition active:scale-[0.97] disabled:opacity-50 ${pad}`}
       style={
         saved
@@ -75,7 +78,7 @@ export default function WishlistItemButton({
       aria-pressed={saved}
       aria-label={saved ? "欲しいから外す" : "欲しいに追加"}
     >
-      {loading ? "…" : "欲しい"}
+      {isPending ? "…" : "欲しい"}
     </button>
   );
 }

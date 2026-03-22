@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Logo from "./logo";
 import ThemeToggle from "./theme-toggle";
 
 const ACCOUNT_MENU_ID = "navbar-account-menu";
 const MOBILE_PANEL_ID = "navbar-mobile-panel";
+
+const NAVBAR_LOGIN_LINK_CLASS =
+  "nook-fg-secondary inline-flex min-h-[var(--touch)] shrink-0 items-center justify-center px-3 text-xs font-medium underline decoration-transparent underline-offset-4 transition hover:decoration-[var(--text-faint)] sm:text-[11px]";
 
 export default function NavbarClient({
   postModalId,
@@ -20,6 +23,11 @@ export default function NavbarClient({
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const prevMobileOpen = useRef(false);
+
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -39,12 +47,42 @@ export default function NavbarClient({
     };
   }, []);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (mobileOpen && mobilePanelRef.current) {
+      const el = mobilePanelRef.current.querySelector<HTMLElement>(
+        "a[href], button:not([disabled]), label[for]"
+      );
+      requestAnimationFrame(() => el?.focus());
+    }
+    if (prevMobileOpen.current && !mobileOpen) {
+      menuButtonRef.current?.focus();
+    }
+    prevMobileOpen.current = mobileOpen;
+  }, [mobileOpen]);
+
   return (
     <nav
-      className="glass-surface sticky top-0 z-40"
+      className="glass-surface sticky top-0 z-40 max-sm:pt-[env(safe-area-inset-top,0px)]"
       aria-label="メインナビゲーション"
     >
-      <div className="nook-page flex h-14 items-center justify-between">
+      {mobileOpen ? (
+        <button
+          type="button"
+          className="nook-mobile-nav-backdrop sm:hidden"
+          aria-label="メニューを閉じる"
+          onClick={closeMobile}
+        />
+      ) : null}
+      <div className="nook-page relative z-[3] flex h-14 items-center justify-between">
         <Link
           href="/"
           className="hover-glow nook-fg flex min-h-[var(--touch)] items-center gap-1.5 rounded-md px-2 py-1 text-base font-semibold tracking-tight transition hover:opacity-70 sm:min-h-0"
@@ -81,7 +119,7 @@ export default function NavbarClient({
             </label>
           )}
           {status === "loading" ? (
-            <span className="nook-bg-sunken flex h-10 w-10 items-center justify-center rounded-full sm:h-9 sm:w-9">
+            <span className="nook-bg-sunken flex h-11 w-11 items-center justify-center rounded-full sm:h-9 sm:w-9">
               <span className="nook-skeleton-pulse h-2 w-2 rounded-full" />
             </span>
           ) : session ? (
@@ -93,7 +131,7 @@ export default function NavbarClient({
                 aria-haspopup="menu"
                 {...(open ? { "aria-controls": ACCOUNT_MENU_ID } : {})}
                 aria-label={`${session.user?.name ?? "アカウント"}のメニュー`}
-                className="nook-nav-avatar-trigger flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold transition hover:opacity-90 sm:h-9 sm:w-9"
+                className="nook-nav-avatar-trigger flex h-11 w-11 items-center justify-center rounded-full text-xs font-semibold transition hover:opacity-90 sm:h-9 sm:w-9"
               >
                 <span aria-hidden>{session.user?.name?.[0] ?? "?"}</span>
               </button>
@@ -136,10 +174,7 @@ export default function NavbarClient({
               )}
             </div>
           ) : (
-            <Link
-              href="/login"
-              className="nook-fg-secondary inline-flex min-h-[var(--touch)] shrink-0 items-center justify-center px-3 text-[11px] font-medium underline decoration-transparent underline-offset-4 transition hover:decoration-[var(--text-faint)] sm:min-h-9"
-            >
+            <Link href="/login" className={`${NAVBAR_LOGIN_LINK_CLASS} sm:min-h-9`}>
               ログイン
             </Link>
           )}
@@ -148,16 +183,14 @@ export default function NavbarClient({
         <div className="flex items-center gap-2 sm:hidden">
           <ThemeToggle />
           {!session && status !== "loading" && (
-            <Link
-              href="/login"
-              className="nook-fg-secondary inline-flex min-h-[var(--touch)] shrink-0 items-center justify-center px-3 text-[11px] font-medium underline decoration-transparent underline-offset-4 transition hover:decoration-[var(--text-faint)]"
-            >
+            <Link href="/login" className={NAVBAR_LOGIN_LINK_CLASS}>
               ログイン
             </Link>
           )}
           <button
+            ref={menuButtonRef}
             type="button"
-            className="nook-fg flex h-10 w-10 items-center justify-center rounded-md transition sm:h-9 sm:w-9"
+            className="nook-fg flex h-11 w-11 items-center justify-center rounded-md transition sm:h-9 sm:w-9"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-expanded={mobileOpen}
             {...(mobileOpen ? { "aria-controls": MOBILE_PANEL_ID } : {})}
@@ -176,13 +209,15 @@ export default function NavbarClient({
         </div>
       </div>
 
-      {mobileOpen && (
+      {mobileOpen ? (
         <div
+          ref={mobilePanelRef}
           id={MOBILE_PANEL_ID}
-          className="nook-mobile-nav-sheet px-4 pb-5 pt-3 sm:hidden animate-fade-in"
+          className="nook-mobile-nav-sheet px-4 pt-2 sm:hidden animate-fade-in"
           role="region"
           aria-label="モバイルメニュー"
         >
+          <div className="nook-mobile-nav-drag-indicator mb-2" aria-hidden />
           {session ? (
             <>
               <div className="nook-mobile-nav-divider mb-3 pb-3">
@@ -192,7 +227,7 @@ export default function NavbarClient({
                   <Link
                     href="/?feed=following"
                     className="nook-fg-muted mt-2 inline-flex min-h-11 items-center gap-2 text-[11px] font-medium"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={closeMobile}
                   >
                     <span className="nook-signal-dot h-1.5 w-1.5 rounded-full" aria-hidden />
                     フォロー新着
@@ -204,19 +239,22 @@ export default function NavbarClient({
               </div>
               <label
                 htmlFor={postModalId}
-                className="nook-mobile-nav-row cursor-pointer"
-                onClick={() => setMobileOpen(false)}
+                className="nook-mobile-nav-row nook-mobile-nav-row--with-icon cursor-pointer"
+                onClick={closeMobile}
               >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 opacity-70">
+                  <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
                 写真を載せる
               </label>
-              <Link href="/dashboard" className="nook-mobile-nav-row" onClick={() => setMobileOpen(false)}>
+              <Link href="/dashboard" className="nook-mobile-nav-row" onClick={closeMobile}>
                 マイページ
               </Link>
               <button
                 type="button"
                 className="nook-mobile-nav-row"
                 onClick={() => {
-                  setMobileOpen(false);
+                  closeMobile();
                   signOut({ callbackUrl: "/" });
                 }}
               >
@@ -226,14 +264,14 @@ export default function NavbarClient({
           ) : (
             <Link
               href="/login"
-              className="btn-primary mt-1 w-full justify-center py-3 text-xs"
-              onClick={() => setMobileOpen(false)}
+              className="btn-primary mt-1 w-full justify-center py-3 text-sm sm:text-xs"
+              onClick={closeMobile}
             >
               ログインして写真を載せる
             </Link>
           )}
         </div>
-      )}
+      ) : null}
     </nav>
   );
 }

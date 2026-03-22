@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getOptionalUserId } from "@/lib/session-user";
 import { getCategoryLabel } from "@/lib/categories";
 import CategoryIcon from "@/components/category-icon";
-import PostGallery from "@/components/post-gallery";
+import PostGallery, { type GalleryPin } from "@/components/post-gallery";
 import LikeButton from "@/components/like-button";
 import BookmarkButton from "@/components/bookmark-button";
 import ShareButtons from "@/components/share-buttons";
@@ -21,10 +21,7 @@ import {
 } from "@/lib/room-context";
 import { getProductUrlHost } from "@/lib/product-url";
 import { shopExploreHref } from "@/lib/shop-path";
-
-function formatDate(date: Date) {
-  return date.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
-}
+import { formatLongDateJa } from "@/lib/format-date-ja";
 
 function truncateMetaDescription(text: string, max = 158): string {
   const t = text.replace(/\s+/g, " ").trim();
@@ -62,7 +59,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
   if (categoryLabel) descParts.push(categoryLabel);
   if (styleBits.length > 0) descParts.push(styleBits.join("・"));
-  descParts.push("部屋の写真と家具・雑貨の購入先まで｜NOOK");
+  descParts.push("家具・雑貨の商品ページまで｜NOOK");
   const description = truncateMetaDescription(descParts.join("・"));
 
   return {
@@ -88,16 +85,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-export default async function PostPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ new?: string }>;
-}) {
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { new: newPostFlag } = await searchParams;
-  const justPosted = newPostFlag === "1";
   const currentUserId = await getOptionalUserId();
 
   const post = await prisma.post.findUnique({
@@ -147,10 +136,27 @@ export default async function PostPage({
 
   const liked = currentUserId ? post.likes.length > 0 : false;
   const bookmarked = currentUserId ? post.bookmarks.length > 0 : false;
-  const galleryItems = post.medias.map((m) => ({
+  const mediaCount = post.medias.length;
+  const pinsBySlide: GalleryPin[][] = post.medias.map(() => []);
+  for (const f of post.furnitureItems) {
+    if (f.pinX == null || f.pinY == null) continue;
+    const slide =
+      mediaCount <= 0
+        ? 0
+        : Math.min(Math.max(0, f.mediaIndex ?? 0), mediaCount - 1);
+    pinsBySlide[slide]?.push({
+      id: f.id,
+      name: f.name,
+      pinX: f.pinX,
+      pinY: f.pinY,
+    });
+  }
+  const galleryItems = post.medias.map((m, i) => ({
     original: m.path,
     thumbnail: m.path,
     mood: m.mood || "",
+    ...(mediaCount > 1 ? { thumbnailLabel: String(i + 1) } : {}),
+    ...((pinsBySlide[i]?.length ?? 0) > 0 ? { pins: pinsBySlide[i] } : {}),
   }));
   const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const shareUrl = `${baseUrl}/post/${post.id}`;
@@ -164,25 +170,15 @@ export default async function PostPage({
   return (
     <div className="nook-app-canvas min-h-screen">
       {/* 幅は .nook-page と同じ max-w-2xl。ギャラリーは横パディングなし、本文ブロックのみ px */}
-      <article className="mx-auto w-full max-w-2xl pb-16">
-        <div className="post-detail-hero nook-gallery-cap nook-post-hero-surface overflow-hidden">
+      <article className="nook-safe-page-pb mx-auto w-full max-w-2xl">
+        <div
+          id="post-room-gallery"
+          className="post-detail-hero nook-gallery-cap nook-post-hero-surface scroll-mt-[var(--nav-height)] overflow-hidden"
+        >
           <PostGallery items={galleryItems} />
         </div>
 
         <div className="w-full px-4 pb-0 pt-5 sm:px-5 sm:pt-6">
-          {justPosted && currentUserId === post.user.id && (
-            <div className="nook-elevated-surface mb-5 px-3 py-3 text-[12px] leading-relaxed" role="status">
-              <span className="nook-fg-secondary">載せました。</span>
-              <Link
-                href={`/post/${post.id}/edit`}
-                className="nook-fg mx-0.5 font-semibold underline decoration-transparent transition hover:opacity-80"
-              >
-                編集
-              </Link>
-              <span className="nook-fg-secondary">で追記できます。</span>
-            </div>
-          )}
-
           <header className="post-detail-header">
             <p className="nook-section-label mb-2">部屋</p>
             <h1 className="nook-fg text-xl font-bold leading-snug tracking-[-0.02em] sm:text-[1.35rem]">
@@ -198,7 +194,7 @@ export default async function PostPage({
               <span className="mx-1 opacity-50" aria-hidden>
                 ・
               </span>
-              <time dateTime={post.createdAt.toISOString()}>{formatDate(post.createdAt)}</time>
+              <time dateTime={post.createdAt.toISOString()}>{formatLongDateJa(post.createdAt)}</time>
             </p>
 
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -236,16 +232,14 @@ export default async function PostPage({
               </p>
             ) : null}
 
-            {post.furnitureItems.some(f => f.price !== null) && (
+            {post.furnitureItems.some((f) => f.price !== null) && (
               <div className="nook-elevated-surface mt-6 flex flex-col items-start gap-1 px-4 py-3 sm:px-5">
-                <span className="nook-section-label !mb-0 text-[10px]">Total Look / 概算費用</span>
+                <span className="nook-section-label !mb-0 text-[10px]">家具・雑貨の参考合計</span>
                 <div className="flex items-baseline gap-1.5">
                   <span className="nook-fg text-[1.5rem] font-bold tracking-tighter">
                     ¥{post.furnitureItems.reduce((acc, f) => acc + (f.price ?? 0), 0).toLocaleString()}
                   </span>
-                  <span className="nook-fg-muted text-[10px] font-medium">
-                    （掲載時の参考価格）
-                  </span>
+                  <span className="nook-fg-muted text-[10px] font-medium">（掲載時のメモ）</span>
                 </div>
               </div>
             )}
@@ -264,7 +258,10 @@ export default async function PostPage({
             </div>
             <div className="flex items-center gap-2">
               {currentUserId === post.user.id && (
-                <Link href={`/post/${post.id}/edit`} className="btn-secondary min-h-9 px-3.5 text-xs">
+                <Link
+                  href={`/post/${post.id}/edit`}
+                  className="btn-secondary px-3.5 text-sm sm:min-h-9 sm:text-xs"
+                >
                   編集
                 </Link>
               )}
@@ -272,7 +269,7 @@ export default async function PostPage({
             </div>
           </div>
 
-          <div className="nook-post-toolbar-surface mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border p-4 transition-all duration-300 hover:shadow-md sm:p-5">
+          <div className="nook-post-toolbar-surface mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border p-4 sm:p-5">
             <p className="sr-only">この部屋の写真を載せた人</p>
             <Link href={`/user/${post.user.id}`} className="flex min-w-0 items-center gap-3 transition hover:opacity-85">
               <div className="nook-avatar-letter h-11 w-11 shrink-0 !text-sm">
@@ -304,7 +301,7 @@ export default async function PostPage({
                 この部屋で使っている家具・雑貨（{post.furnitureItems.length}）
               </p>
               <p className="nook-vision-subline mb-3 !mt-0 max-w-none">
-                気になった家具・雑貨は、外部ショップのページも見られます（在庫や価格は各店のページが正です）。
+                商品ページは別タブで開きます。在庫や価格は各店の表示が正です。
               </p>
               {shopHosts.length > 0 ? (
                 <p className="nook-fg-faint mb-4 text-[10px] leading-relaxed">
@@ -338,7 +335,12 @@ export default async function PostPage({
             <SameUrlRooms currentPostId={post.id} productUrls={productUrls} />
           )}
 
-          <RelatedPosts postId={post.id} category={post.category} styleTagSlugs={styleTagSlugs} />
+          <RelatedPosts
+            postId={post.id}
+            category={post.category}
+            styleTagSlugs={styleTagSlugs}
+            productUrls={productUrls}
+          />
 
           <div className="mt-10 border-t pt-6 nook-border-hairline">
             <Link

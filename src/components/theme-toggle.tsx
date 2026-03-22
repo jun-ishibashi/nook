@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { NOOK_THEME_STORAGE_KEY } from "@/lib/theme-storage";
 
 type Theme = "light" | "dark";
 
@@ -63,7 +64,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
     const next: Theme = readTheme() === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     try {
-      localStorage.setItem("nook-theme", next);
+      localStorage.setItem(NOOK_THEME_STORAGE_KEY, next);
     } catch {
       /* ignore */
     }
@@ -74,7 +75,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
     <button
       type="button"
       onClick={toggle}
-      className={`nook-hover-bg-sunken flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-transparent transition nook-fg-muted ${className}`}
+      className={`nook-hover-bg-sunken flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-transparent transition nook-fg-muted active:scale-[0.96] sm:h-9 sm:w-9 sm:active:scale-100 ${className}`}
       aria-label={theme === "dark" ? "ライトモードに切り替え" : "ダークモードに切り替え"}
       title={theme === "dark" ? "ライトモード" : "ダークモード"}
     >

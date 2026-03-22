@@ -9,6 +9,7 @@ import {
 } from "@/lib/room-context";
 import { normalizeFurnitureInputs, toFurnitureCreateManyRow } from "@/lib/furniture-input";
 import { getOptionalUserId, requireApiUser } from "@/lib/session-user";
+import { apiUserMsg } from "@/lib/api-user-messages";
 
 export async function GET(
   _request: Request,
@@ -32,7 +33,7 @@ export async function GET(
     },
   });
 
-  if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!post) return NextResponse.json({ error: apiUserMsg.notFound }, { status: 404 });
 
   const { styleTags, ...rest } = post;
   return NextResponse.json({
@@ -53,9 +54,9 @@ export async function DELETE(
   const { user } = auth;
 
   const post = await prisma.post.findUnique({ where: { id } });
-  if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!post) return NextResponse.json({ error: apiUserMsg.notFound }, { status: 404 });
   if (post.userId !== user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: apiUserMsg.forbidden }, { status: 403 });
   }
 
   await prisma.post.delete({ where: { id } });
@@ -72,8 +73,12 @@ type PatchBody = {
   furniture?: {
     name: string;
     productUrl: string;
+    brand?: string;
+    brandSlug?: string;
     note?: string;
     mediaIndex?: number;
+    pinX?: number | null;
+    pinY?: number | null;
     linkRelation?: string;
     linkVerifiedDate?: string | null;
   }[];
@@ -93,9 +98,9 @@ export async function PATCH(
     where: { id },
     include: { medias: { select: { id: true }, orderBy: { id: "asc" } } },
   });
-  if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!post) return NextResponse.json({ error: apiUserMsg.notFound }, { status: 404 });
   if (post.userId !== user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: apiUserMsg.forbidden }, { status: 403 });
   }
   const mediaCount = post.medias.length;
 
@@ -103,7 +108,7 @@ export async function PATCH(
   try {
     body = (await request.json()) as PatchBody;
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.invalidJson }, { status: 400 });
   }
 
   const validCategories = CATEGORIES.map((c) => c.value as string);
@@ -119,7 +124,7 @@ export async function PATCH(
   if (body.title !== undefined) {
     const t = typeof body.title === "string" ? body.title.trim() : "";
     if (!t) {
-      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      return NextResponse.json({ error: apiUserMsg.titleRequired }, { status: 400 });
     }
     data.title = t.slice(0, 100);
   }
@@ -148,14 +153,14 @@ export async function PATCH(
 
   const hasFurniture = Object.prototype.hasOwnProperty.call(body, "furniture");
   if (hasFurniture && !Array.isArray(body.furniture)) {
-    return NextResponse.json({ error: "furniture must be an array" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.furnitureShape }, { status: 400 });
   }
   const hasStyleTags = Object.prototype.hasOwnProperty.call(body, "styleTags");
   if (hasStyleTags && !Array.isArray(body.styleTags)) {
-    return NextResponse.json({ error: "styleTags must be an array" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.styleTagsShape }, { status: 400 });
   }
   if (Object.keys(data).length === 0 && !hasFurniture && !hasStyleTags) {
-    return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.noFieldsToUpdate }, { status: 400 });
   }
 
   await prisma.$transaction(async (tx) => {

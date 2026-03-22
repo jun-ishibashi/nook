@@ -13,6 +13,7 @@ import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
 import { postSearchOrConditions } from "@/lib/post-search";
 import { parseFurnitureJson, toFurnitureNestedCreate } from "@/lib/furniture-input";
 import { getOptionalUserId, requireApiUser } from "@/lib/session-user";
+import { apiUserMsg } from "@/lib/api-user-messages";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -130,10 +131,10 @@ export async function POST(request: Request) {
   }
 
   if (!title?.trim()) {
-    return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.titleRequired }, { status: 400 });
   }
   if (!files?.length) {
-    return NextResponse.json({ error: "At least one image is required" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.photosRequired }, { status: 400 });
   }
 
   const paths: string[] = [];

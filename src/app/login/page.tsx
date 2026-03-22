@@ -6,26 +6,15 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Logo from "@/components/logo";
-
-const ERROR_MESSAGES: Record<string, string> = {
-  OAuthSignin: "ログインの準備に失敗しました。もう一度お試しください。",
-  OAuthCallback: "認証でエラーが発生しました。もう一度お試しください。",
-  OAuthCreateAccount: "アカウントを作成できませんでした。もう一度お試しください。",
-  EmailCreateAccount: "アカウントを作成できませんでした。もう一度お試しください。",
-  Callback: "認証でエラーが発生しました。もう一度お試しください。",
-  OAuthAccountNotLinked: "このメールは、ほかのログイン方法で登録済みです。",
-  EmailSignin: "メールを送信できませんでした。もう一度お試しください。",
-  CredentialsSignin: "ログインできませんでした。もう一度お試しください。",
-  SessionRequired: "ログインが必要です。",
-  Default: "ログインできませんでした。もう一度お試しください。",
-};
+import { loginErrorMessage } from "@/lib/auth-error-messages";
+import { HOME_HERO_IMAGE_SRC } from "@/lib/site-images";
 
 function LoginForm() {
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
   const errorCode = searchParams.get("error") ?? "";
-  const error = errorCode ? (ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES.Default) : "";
+  const error = errorCode ? loginErrorMessage(errorCode) : "";
 
   return (
     <div className="login-page mx-auto flex min-h-[85vh] w-full max-w-5xl flex-col items-center justify-center px-4 py-10 sm:min-h-[80vh] sm:flex-row sm:gap-10 sm:py-14 lg:gap-16">
@@ -34,18 +23,18 @@ function LoginForm() {
       <div className="login-visual hidden w-full max-w-md flex-1 sm:block">
         <div className="relative aspect-[3/4] overflow-hidden rounded-[var(--radius-card)]">
           <Image
-            src="/hero-home.png"
+            src={HOME_HERO_IMAGE_SRC}
             alt="コンクリート壁の間接照明が灯るワンルーム"
             fill
             className="object-cover"
-            sizes="(max-width: 640px) 0px, 50vw"
+            sizes="(max-width: 639px) 0px, min(28rem, 45vw)"
             priority
-            quality={80}
+            quality={95}
           />
           <div className="login-visual-scrim absolute inset-0" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
             <p className="login-hero-caption text-[11px] font-medium leading-relaxed">
-              一人暮らしの部屋を、もう少し好きになる。
+              自分の部屋を、もう少し好きになる。
             </p>
           </div>
         </div>
@@ -65,10 +54,9 @@ function LoginForm() {
             <h1 className="nook-fg text-pretty text-xl font-bold leading-tight tracking-tighter sm:text-2xl">
               部屋にこだわってみる。
             </h1>
-          <p className="nook-fg-muted mt-3 max-w-sm text-[12px] leading-relaxed">
-            一人暮らしの部屋を見ながら、好きな雰囲気や家具・雑貨を見つけていけます。<br />
-            気になったものは、購入先もあわせて見られます。
-          </p>
+            <p className="nook-fg-muted mt-3 max-w-sm text-[12px] leading-relaxed">
+              みんなの部屋のムードから、家具・雑貨に出会えます。気になったら、商品ページまで辿れます。
+            </p>
           </header>
 
           {error ? (
@@ -109,16 +97,25 @@ function LoginForm() {
         </div>
 
         <nav
-          className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium sm:mt-10"
+          className="mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm font-medium sm:mt-10 sm:gap-x-5 sm:gap-y-2 sm:text-xs"
           aria-label="ほかのページ"
         >
-          <Link href="/" className="nook-fg-muted transition hover:opacity-70">
+          <Link
+            href="/"
+            className="nook-fg-muted inline-flex min-h-11 items-center rounded-sm px-2 transition hover:opacity-70 sm:min-h-0 sm:px-1"
+          >
             みんなの部屋へ
           </Link>
-          <Link href="/terms" className="nook-fg-faint transition hover:opacity-70">
+          <Link
+            href="/terms"
+            className="nook-fg-faint inline-flex min-h-11 items-center rounded-sm px-2 transition hover:opacity-70 sm:min-h-0 sm:px-1"
+          >
             利用規約
           </Link>
-          <Link href="/privacy" className="nook-fg-faint transition hover:opacity-70">
+          <Link
+            href="/privacy"
+            className="nook-fg-faint inline-flex min-h-11 items-center rounded-sm px-2 transition hover:opacity-70 sm:min-h-0 sm:px-1"
+          >
             プライバシー
           </Link>
         </nav>

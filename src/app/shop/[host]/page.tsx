@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
 import { getOptionalUserId } from "@/lib/session-user";
 import HomePostGrid from "@/components/home-post-grid";
 import { fetchPostsByShopHost } from "@/lib/shop-posts";
-import { isSafeShopHostParam } from "@/lib/shop-path";
+import { parseShopHostFromRouteParam } from "@/lib/shop-path";
+import PageBackLink from "@/components/page-back-link";
 
 export async function generateMetadata({
   params,
@@ -13,30 +13,20 @@ export async function generateMetadata({
   params: Promise<{ host: string }>;
 }): Promise<Metadata> {
   const { host: raw } = await params;
-  let decoded = raw;
-  try {
-    decoded = decodeURIComponent(raw);
-  } catch {
-    return { title: "ショップ | NOOK" };
+  const decoded = parseShopHostFromRouteParam(raw);
+  if (!decoded) {
+    return { title: "ショップ | NOOK", description: "ショップ別の部屋一覧｜NOOK" };
   }
-  const title = isSafeShopHostParam(decoded)
-    ? `${decoded}・ショップの投稿`
-    : "ショップ | NOOK";
   return {
-    title,
-    description: `${decoded} の購入先URLが載っている投稿一覧｜NOOK`,
+    title: `${decoded}・ショップの部屋`,
+    description: `${decoded} の商品ページURLが載っている部屋一覧｜NOOK`,
   };
 }
 
 export default async function ShopByHostPage({ params }: { params: Promise<{ host: string }> }) {
   const { host: raw } = await params;
-  let decoded: string;
-  try {
-    decoded = decodeURIComponent(raw);
-  } catch {
-    notFound();
-  }
-  if (!isSafeShopHostParam(decoded)) notFound();
+  const decoded = parseShopHostFromRouteParam(raw);
+  if (!decoded) notFound();
 
   const normalized = decoded.trim().toLowerCase();
 
@@ -69,7 +59,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
 
   return (
     <div className="nook-app-canvas min-h-screen">
-      <div className="nook-page pb-16 pt-6 sm:py-8">
+      <div className="nook-page nook-safe-page-pb pt-6 sm:pt-8">
         <header className="shop-page-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
           <p className="nook-section-label mb-2">ショップ別</p>
           <h1 className="nook-fg text-lg font-semibold tracking-tight sm:text-xl">
@@ -84,13 +74,13 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
             <span className="nook-fg text-sm font-semibold">
               {postList.length}
             </span>
-            <span>投稿</span>
+            <span>部屋</span>
           </div>
         </header>
 
         <section className="shop-page-grid-section" aria-labelledby="shop-posts-heading">
           <h2 id="shop-posts-heading" className="nook-section-label mb-1">
-            投稿
+            部屋
           </h2>
           {postList.length > 0 ? (
             <HomePostGrid posts={postList} ariaLabelledBy="shop-posts-heading" />
@@ -109,12 +99,12 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
                 </svg>
               </div>
               <p className="nook-fg text-sm font-semibold">
-                まだ投稿がありません
+                まだ部屋がありません
               </p>
               <p className="nook-fg-muted mt-1 max-w-xs px-4 text-xs leading-relaxed">
-                このショップのリンクが載った投稿が増えると表示されます。
+                このショップの商品ページが載った部屋はまだないようです。みんなの部屋から探してみてください。
               </p>
-              <Link href="/" className="btn-secondary mt-6 text-xs">
+              <Link href="/" className="btn-secondary mt-6 text-sm sm:text-xs">
                 みんなの部屋を見る
               </Link>
             </div>
@@ -122,21 +112,7 @@ export default async function ShopByHostPage({ params }: { params: Promise<{ hos
         </section>
 
         <div className="mt-10 border-t pt-6 nook-border-hairline">
-          <Link
-            href="/"
-            className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 rounded-sm text-xs font-medium transition hover:opacity-75 focus-visible:outline-offset-2"
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path
-                d="M10 12L6 8l4-4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            みんなの部屋へ
-          </Link>
+          <PageBackLink />
         </div>
       </div>
     </div>

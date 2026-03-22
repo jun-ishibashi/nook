@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "./auth";
 import { prisma } from "./prisma";
+import { apiUserMsg } from "./api-user-messages";
 
 export async function getOptionalSessionUser<S extends Prisma.UserSelect>(
   select: S,
@@ -29,7 +30,7 @@ export async function requireApiUser(): Promise<
   if (!session?.user?.email) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+      response: NextResponse.json({ error: apiUserMsg.unauthorized }, { status: 401 }),
     };
   }
   const user = await prisma.user.findUnique({
@@ -38,7 +39,7 @@ export async function requireApiUser(): Promise<
   if (!user) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "User not found" }, { status: 401 }),
+      response: NextResponse.json({ error: apiUserMsg.accountNotFound }, { status: 401 }),
     };
   }
   return { ok: true, user };
@@ -51,7 +52,7 @@ export async function requireSessionEmail(): Promise<
   if (!session?.user?.email) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+      response: NextResponse.json({ error: apiUserMsg.unauthorized }, { status: 401 }),
     };
   }
   return { ok: true, email: session.user.email };

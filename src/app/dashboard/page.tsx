@@ -7,10 +7,11 @@ import { getOptionalSessionUser } from "@/lib/session-user";
 import DashboardContent from "@/components/dashboard-content";
 import type { WishlistRow } from "@/components/dashboard-wishlist";
 import ProfileSettings from "@/components/profile-settings";
+import { formatYearMonthJa } from "@/lib/format-date-ja";
 
 export const metadata: Metadata = {
   title: "マイページ",
-  description: "自分の投稿や保存した部屋を見返しながら、部屋づくりを続けられるページです。",
+  description: "載せた部屋・保存・欲しいをまとめて見られるページです。",
 };
 
 export default async function DashboardPage() {
@@ -21,6 +22,7 @@ export default async function DashboardPage() {
     bio: true,
     profileLink: true,
     createdAt: true,
+    updatedAt: true,
     _count: { select: { followsReceived: true, followsInitiated: true } },
   });
   if (!user) redirect("/login");
@@ -45,9 +47,15 @@ export default async function DashboardPage() {
     },
   });
 
-  const wishlistItems = await prisma.itemWishlist.findMany({
+  const wishlistItemsRaw = await prisma.itemWishlist.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
+  });
+  const wishlistItems = [...wishlistItemsRaw].sort((a, b) => {
+    const ar = a.buyRank === 0 ? 1000 : a.buyRank;
+    const br = b.buyRank === 0 ? 1000 : b.buyRank;
+    if (ar !== br) return ar - br;
+    return b.createdAt.getTime() - a.createdAt.getTime();
   });
 
   const stats = {
@@ -84,11 +92,12 @@ export default async function DashboardPage() {
     productUrl: w.productUrl,
     note: w.note,
     sourcePostId: w.sourcePostId,
+    buyRank: w.buyRank,
     createdAt: w.createdAt.toISOString(),
   }));
 
   const statItems = [
-    { n: stats.postCount, l: "投稿" },
+    { n: stats.postCount, l: "部屋" },
     { n: user._count.followsReceived, l: "フォロワー" },
     { n: user._count.followsInitiated, l: "フォロー中" },
     { n: stats.totalLikes, l: "いいね" },
@@ -99,7 +108,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="nook-app-canvas min-h-screen">
-      <div className="nook-page py-8 sm:py-10">
+      <div className="nook-page nook-safe-page-pb pt-8 sm:pt-10">
         <header className="dashboard-page-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-10 sm:p-6">
           <div className="flex items-start gap-4">
             <div className="nook-avatar-letter h-16 w-16 shrink-0">
@@ -118,7 +127,7 @@ export default async function DashboardPage() {
                 </p>
               ) : null}
               <p className="nook-fg-faint mt-2 text-[10px]">
-                NOOK 利用開始 {user.createdAt.toLocaleDateString("ja-JP", { year: "numeric", month: "long" })}
+                利用開始 {formatYearMonthJa(user.createdAt)}
               </p>
             </div>
           </div>
@@ -141,19 +150,19 @@ export default async function DashboardPage() {
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <label htmlFor="post_modal" className="btn-primary cursor-pointer text-xs">
+            <label htmlFor="post_modal" className="btn-primary cursor-pointer text-sm sm:text-xs">
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
                 <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
               写真を載せる
             </label>
-            <Link href="/" className="btn-secondary text-xs">
+            <Link href="/" className="btn-secondary text-sm sm:text-xs">
               みんなの部屋
             </Link>
-            <Link href="/?feed=following" className="btn-secondary text-xs">
+            <Link href="/?feed=following" className="btn-secondary text-sm sm:text-xs">
               フォロー中
             </Link>
-            <Link href={`/user/${user.id}`} className="btn-secondary text-xs">
+            <Link href={`/user/${user.id}`} className="btn-secondary text-sm sm:text-xs">
               プロフィール
             </Link>
           </div>
@@ -169,7 +178,12 @@ export default async function DashboardPage() {
         </Suspense>
 
         <div className="mt-10 sm:mt-12">
-          <ProfileSettings initialBio={user.bio} initialProfileLink={user.profileLink} />
+          <ProfileSettings
+            key={user.updatedAt.toISOString()}
+            initialDisplayName={user.name}
+            initialBio={user.bio}
+            initialProfileLink={user.profileLink}
+          />
         </div>
       </div>
     </div>

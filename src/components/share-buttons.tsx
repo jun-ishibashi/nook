@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ShareButtons({ title, url }: { title: string; url: string }) {
   const [copied, setCopied] = useState(false);
@@ -8,10 +9,18 @@ export default function ShareButtons({ title, url }: { title: string; url: strin
   const encodedTitle = encodeURIComponent(title);
 
   async function copyLink() {
-    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* */ }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("リンクをコピーしました", { duration: 2500 });
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("コピーできませんでした");
+    }
   }
 
-  const btnClass = "flex h-8 w-8 items-center justify-center rounded-full transition";
+  const btnClass =
+    "flex min-h-11 min-w-11 items-center justify-center rounded-full transition hover:opacity-90 active:scale-[0.96] sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0 sm:active:scale-100";
 
   return (
     <div className="flex items-center gap-1">

@@ -1,10 +1,12 @@
 /**
- * スタイルタグ（[`docs/product-vision.md`](../../docs/product-vision.md) のコンセプト語彙と整合）。
- * 並びは「住まい→素材→暮らし→感性→エリア」の読みやすさ優先。
- * **slug は既存投稿と URL の正** — リネームは DB マイグレまたは互換レイヤが必要。
+ * スタイルタグ（[`docs/product-vision.md`](../../docs/product-vision.md) の語彙と概ね整合）。
+ * **slug は既存投稿・URL・DB の正** — 変更しない（非表示にするだけは `STYLE_TAGS_LEGACY` へ）。
+ *
+ * - **STYLE_TAGS_PICKER** … 投稿フォーム・ホームのスタイルチップに出すもの（ムード・暮らし・住まい寄り）
+ * - **STYLE_TAGS_LEGACY** … ピッカー非表示だが、保存済みタグの表示・検索・API 検証では有効
  */
-export const STYLE_TAGS = [
-  // —— 住まい・スケール（6.2 生活・スケール）
+export const STYLE_TAGS_PICKER = [
+  // —— 住まい・スケール
   { slug: "rental", label: "賃貸" },
   { slug: "oneroom", label: "ワンルーム" },
   { slug: "solo_living", label: "一人暮らし" },
@@ -13,7 +15,7 @@ export const STYLE_TAGS = [
   { slug: "minimal_volume", label: "物量すくなめ" },
   { slug: "minimal", label: "ミニマル" },
 
-  // —— 素材・トーン（6.2 素材・トーン／6.3 コンクリート感＝ムード）
+  // —— 素材・トーン
   { slug: "concrete", label: "コンクリ" },
   { slug: "mukishitsu", label: "無機質" },
   { slug: "gray_tone", label: "グレー階調" },
@@ -23,7 +25,7 @@ export const STYLE_TAGS = [
   { slug: "warm", label: "ウォーム" },
   { slug: "cool", label: "クール" },
 
-  // —— 生活のレイヤー（6.2 生活のレイヤー／モノ・知識感）
+  // —— 生活のレイヤー
   { slug: "coffee", label: "コーヒー" },
   { slug: "plants", label: "観葉植物" },
   { slug: "desk", label: "デスク" },
@@ -33,29 +35,19 @@ export const STYLE_TAGS = [
   { slug: "tidying", label: "掃除・整頓" },
   { slug: "gadget", label: "ガジェット・家電" },
 
-  // —— 予算・手入れ（6.2 予算・入手。ブランド名タグは付けない — 6.1 注釈と同型）
-  { slug: "budget_retail", label: "ニトリ・IKEA" },
+  // —— 予算・手入れ（ブランド名はラベルに出さない — vision §6.1 と同型）
+  { slug: "budget_retail", label: "プチプラ・量販" },
   { slug: "budget_mix", label: "予算ミックス" },
   { slug: "diy", label: "DIY" },
 
-  // —— 感性・価値観（6.2 感性・価値観）
-  { slug: "high_sense", label: "ハイセンス" },
+  // —— 感性・価値観（主観・属性に寄りすぎる語はレガシーへ）
   { slug: "kodawari", label: "こだわり" },
   { slug: "mindful", label: "丁寧に生きる" },
-  { slug: "kakkoii", label: "かっこいい" },
-  { slug: "otokorashii", label: "男らしい" },
 
-  // —— ファッション連動（6.2。モテ部屋＝俗称タグ）
-  { slug: "fashion", label: "ファッション感" },
+  // —— ファッション連動（具体語のみ）
   { slug: "furugi", label: "古着" },
-  { slug: "mens_stylish", label: "おしゃれ男子" },
-  { slug: "mote_room", label: "モテ部屋" },
 
-  // —— ライフ・属性参照（6.2。利用条件ラベルではない）
-  { slug: "tokyo_student", label: "都内大学生" },
-  { slug: "salaryman", label: "サラリーマン" },
-
-  // —— エリア・ストリート（6.2。想起・活動圏のイメージ）
+  // —— エリア・ストリート（活動圏のイメージ。細分化・俗称はレガシー）
   { slug: "ikejiri", label: "池尻大橋" },
   { slug: "nakameguro", label: "中目黒" },
   { slug: "daikanyama", label: "代官山" },
@@ -64,14 +56,33 @@ export const STYLE_TAGS = [
   { slug: "omotesando", label: "表参道" },
   { slug: "aoyama", label: "青山" },
   { slug: "yoyogi", label: "代々木" },
+  { slug: "shimokitazawa", label: "下北沢" },
+
+  // —— 世界観の補助
+  { slug: "korean", label: "韓国インテ" },
+] as const;
+
+/** ピッカーには出さないが、slug は有効のまま */
+export const STYLE_TAGS_LEGACY = [
+  { slug: "high_sense", label: "ハイセンス" },
+  { slug: "kakkoii", label: "かっこいい" },
+  { slug: "otokorashii", label: "男らしい" },
+  { slug: "mens_stylish", label: "おしゃれ男子" },
+  { slug: "mote_room", label: "モテ部屋" },
+  { slug: "fashion", label: "ファッション感" },
+  { slug: "tokyo_student", label: "都内大学生" },
+  { slug: "salaryman", label: "サラリーマン" },
   { slug: "ura_harajuku", label: "裏原宿" },
   { slug: "ura_shibuya", label: "裏渋谷" },
   { slug: "sangenjaya", label: "三軒茶屋" },
-  { slug: "shimokitazawa", label: "下北沢" },
-
-  // —— 世界観の補助（6.2 表外だが若年層ニーズ。百科化しない）
-  { slug: "korean", label: "韓国インテ" },
 ] as const;
+
+export const STYLE_TAGS = [...STYLE_TAGS_PICKER, ...STYLE_TAGS_LEGACY] as const;
+
+/** 投稿・フィルタのチップに載せる slug のみ */
+export const STYLE_TAG_PICKER_SLUG_SET = new Set<string>(
+  STYLE_TAGS_PICKER.map((t) => t.slug)
+);
 
 export type StyleTagSlug = (typeof STYLE_TAGS)[number]["slug"];
 

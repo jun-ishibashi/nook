@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import NookImage from "@/components/nook-image";
+import { formatFeedRelativeTime } from "@/lib/relative-time";
 import LikeButton from "./like-button";
 import BookmarkButton from "./bookmark-button";
 
@@ -20,20 +21,6 @@ export type HomePostGridItem = {
   totalPrice: number | null;
   createdAt: string;
 };
-
-function formatDate(dateStr: string) {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  if (diffMins < 1) return "たった今";
-  if (diffMins < 60) return `${diffMins}分`;
-  if (diffHours < 24) return `${diffHours}時間`;
-  if (diffDays < 7) return `${diffDays}日`;
-  return date.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" });
-}
 
 /**
  * アスペクト比パターン: 雑誌的リズム（フィードの視線導線）
@@ -80,7 +67,11 @@ export default function HomePostGrid({
                     alt={post.title ? `${post.title}の写真` : "部屋の写真"}
                     fill
                     className="object-cover transition duration-300 group-hover:opacity-[0.97]"
-                    sizes={isFeatured ? "100vw" : "(max-width: 640px) 50vw, 400px"}
+                    sizes={
+                      isFeatured
+                        ? "(max-width: 639px) 100vw, 672px"
+                        : "(max-width: 640px) 50vw, 400px"
+                    }
                     priority={index < 4}
                   />
                 ) : (
@@ -93,12 +84,10 @@ export default function HomePostGrid({
                   </div>
                 )}
               </Link>
-              {/* 右上：保存ボタン */}
-              <div className="absolute right-0 top-0 z-10 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="nook-overlay-action-reveal absolute right-0 top-0 z-10 p-1.5">
                 <BookmarkButton postId={post.id} initialBookmarked={post.bookmarked} size="sm" />
               </div>
-              {/* 左下：いいねボタン（写真オーバーレイ） */}
-              <div className="absolute bottom-0 left-0 z-10 p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="nook-overlay-action-reveal absolute bottom-0 left-0 z-10 p-1.5">
                 <LikeButton
                   postId={post.id}
                   initialLiked={post.liked}
@@ -111,37 +100,37 @@ export default function HomePostGrid({
 
             <div className="mt-2 px-0 sm:mt-2.5">
               <Link href={`/post/${post.id}`} className="block">
-                <p className="nook-fg text-[13px] font-semibold leading-snug line-clamp-2 transition group-hover:opacity-88">
+                <p className="nook-fg text-sm font-semibold leading-snug line-clamp-2 transition group-hover:opacity-88 sm:text-[13px]">
                   {post.title}
                 </p>
               </Link>
               <div className="mt-1 flex items-center justify-between gap-2">
                 <Link
                   href={`/user/${post.user.id}`}
-                  className="flex min-h-7 min-w-0 flex-1 items-center gap-1.5 py-0.5 transition hover:opacity-80"
+                  className="flex min-h-[var(--touch)] min-w-0 flex-1 items-center gap-1.5 py-1 transition hover:opacity-80 sm:min-h-7 sm:py-0.5"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="nook-bg-sunken nook-fg-secondary flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-semibold">
+                  <div className="nook-bg-sunken nook-fg-secondary flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold sm:h-4 sm:w-4 sm:text-[8px]">
                     {(post.user.name && post.user.name.trim()[0]) || "?"}
                   </div>
-                  <span className="nook-fg-muted truncate text-[10px] font-medium">
+                  <span className="nook-fg-muted truncate text-xs font-medium sm:text-[10px]">
                     {post.user.name}
                   </span>
                 </Link>
                 <div className="flex shrink-0 items-center gap-1">
                   {post.itemCount > 0 ? (
                     <span
-                      className="nook-fg-faint text-[9px] font-medium tabular-nums"
-                      title="家具・雑貨（購入リンクの行）"
+                      className="nook-fg-faint text-[10px] font-medium tabular-nums sm:text-[9px]"
+                      title="家具・雑貨（商品ページの行）"
                     >
                       {post.itemCount}
                     </span>
                   ) : null}
                   <time
                     dateTime={post.createdAt}
-                    className="nook-fg-faint inline-flex items-center justify-end tabular-nums text-[9px]"
+                    className="nook-fg-faint inline-flex items-center justify-end tabular-nums text-[10px] sm:text-[9px]"
                   >
-                    {formatDate(post.createdAt)}
+                    {formatFeedRelativeTime(post.createdAt)}
                   </time>
                 </div>
               </div>

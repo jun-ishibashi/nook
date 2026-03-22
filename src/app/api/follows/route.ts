@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiUser } from "@/lib/session-user";
+import { apiUserMsg } from "@/lib/api-user-messages";
 
 export async function POST(request: Request) {
   const auth = await requireApiUser();
@@ -9,10 +10,10 @@ export async function POST(request: Request) {
 
   const { userId: targetUserId } = (await request.json()) as { userId?: string };
   if (!targetUserId) {
-    return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.userIdRequired }, { status: 400 });
   }
   if (targetUserId === me.id) {
-    return NextResponse.json({ error: "Cannot follow yourself" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.cannotFollowSelf }, { status: 400 });
   }
 
   const target = await prisma.user.findUnique({
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
     select: { id: true },
   });
   if (!target) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: apiUserMsg.userNotFound }, { status: 404 });
   }
 
   const existing = await prisma.follow.findUnique({

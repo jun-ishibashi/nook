@@ -38,6 +38,8 @@
 npm install
 cp .env.example .env   # 編集: DATABASE_URL（Neon 等の postgresql://…）、NEXTAUTH_*、GOOGLE_*
 npm run db:push         # 初回のみ（リモート DB にスキーマ反映）
+# 任意: サンプル部屋・フォロー・いいね等を入れる（開発 DB のみ。既存 User はすべて削除されます）
+# npm run db:seed
 npm run dev
 ```
 
@@ -61,6 +63,7 @@ Git で無視するファイル・DB の扱いは [`docs/git-and-local-data.md`]
 | `npm run start` | 本番サーバー |
 | `npm run lint` | ESLint（Flat Config: [`eslint.config.mjs`](eslint.config.mjs)） |
 | `npm run db:push` | DB スキーマ反映 |
+| `npm run db:seed` | 開発用シード（**全ユーザーを削除**してから投入。[`prisma/seed.ts`](prisma/seed.ts)） |
 
 ## 技術スタック（主要パッケージ）
 
@@ -81,6 +84,7 @@ Git で無視するファイル・DB の扱いは [`docs/git-and-local-data.md`]
 
 - 接続文字列は **[`prisma.config.ts`](prisma.config.ts)** の `datasource.url`（`env("DATABASE_URL")`）と **同一の** `.env` の `DATABASE_URL` をアプリが参照
 - アプリは [`src/lib/prisma.ts`](src/lib/prisma.ts) で **`new PrismaNeon({ connectionString })`**（アダプタが内部で Pool を生成）。`DATABASE_URL` は **`postgres://` または `postgresql://` で始まる必要**あり（未設定・`file:` の SQLite URL は不可）
+- シードコマンドは [`prisma.config.ts`](prisma.config.ts) の **`migrations.seed`**（`npx prisma db seed`）で実行
 
 ## 本番デプロイ
 

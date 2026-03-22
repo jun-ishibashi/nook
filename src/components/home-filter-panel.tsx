@@ -22,7 +22,9 @@ export default function HomeFilterPanel() {
   }, [searchParams]);
 
   const [expanded, setExpanded] = useState(false);
-  const open = hasActive || expanded;
+  const filtersOpen = hasActive || expanded;
+  const showCollapsedHint = !hasActive && !expanded;
+  const showFilterBody = filtersOpen;
 
   return (
     <section
@@ -31,7 +33,7 @@ export default function HomeFilterPanel() {
       aria-describedby="home-filters-help"
     >
       <p id="home-filters-help" className="sr-only">
-        カテゴリ・スタイル・予算でムードを絞り込みできます。
+        カテゴリ・スタイル・予算の条件で、部屋の一覧を絞り込めます。
       </p>
       <div className="home-filter-panel__bar">
         <h2 id="home-filters-heading" className="home-filter-panel__title">
@@ -41,12 +43,12 @@ export default function HomeFilterPanel() {
           <button
             type="button"
             className="home-filter-panel__toggle"
-            aria-expanded={open}
+            aria-expanded={filtersOpen}
             aria-controls="home-filters-body"
-            aria-label={open ? "絞り込みを閉じる" : "ムードで絞る"}
+            aria-label={filtersOpen ? "絞り込みを閉じる" : "ムードで絞る"}
             onClick={() => setExpanded((v) => !v)}
           >
-            <span>{open ? "閉じる" : "開く"}</span>
+            <span>{filtersOpen ? "閉じる" : "開く"}</span>
             <svg
               className="home-filter-panel__chevron"
               width="11"
@@ -70,12 +72,12 @@ export default function HomeFilterPanel() {
           </span>
         )}
       </div>
-      {!open && !hasActive ? (
+      {showCollapsedHint ? (
         <p className="home-filter-panel__collapsed-hint nook-fg-muted mt-1.5 text-[11px] leading-snug sm:mt-2">
-          カテゴリ・スタイル・予算で、好みのムードに近づけます。
+          カテゴリ・スタイル・予算で、好みのムードに近づけられます。
         </p>
       ) : null}
-      {!open && !hasActive ? null : open ? (
+      {showFilterBody ? (
         <div id="home-filters-body" className="home-filter-sheet mt-3 sm:mt-3.5">
           <CategoryFilter />
           <StyleTagFilter />

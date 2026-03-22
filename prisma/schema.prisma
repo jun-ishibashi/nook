@@ -86,6 +86,10 @@ model FurnitureItem {
   id         String @id @default(cuid())
   postId     String
   post       Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  /// ブランド名・店名など（任意・短文）
+  brand      String @default("")
+  /// ブランドマスタ照合時の内部キー（空＝自由入力のみ）
+  brandSlug  String @default("")
   name       String
   productUrl String
   /// 購入URLから正規化したホスト（www. なし・小文字）。ショップ別一覧用
@@ -94,6 +98,10 @@ model FurnitureItem {
   sortOrder  Int    @default(0)
   /// 写っている写真の並び（0 = 1枚目）。投稿の枚数を超えないよう UI で制限
   mediaIndex Int    @default(0)
+  /// 写真上のポイント（左から 0〜1、未設定は null）
+  pinX       Float?
+  /// 写真上のポイント（上から 0〜1、未設定は null）
+  pinY       Float?
   /// 価格（概算・任意）
   price      Int?
   /// 通貨（既定: JPY）
@@ -105,6 +113,7 @@ model FurnitureItem {
 
   @@index([productUrl])
   @@index([productHost])
+  @@index([brandSlug])
 }
 
 /// 家具アイテム単位の「欲しいリスト」（URLスナップショットで保持）
@@ -119,6 +128,8 @@ model ItemWishlist {
   /// 保存時の価格スナップショット
   price        Int?
   currency     String   @default("JPY")
+  /// 買う順（1 が先。0 は未設定として並びの末尾）
+  buyRank      Int      @default(0)
   createdAt    DateTime @default(now())
 
   @@unique([userId, productUrl])

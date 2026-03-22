@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
+import { SITE_TITLE_DEFAULT } from "@/lib/site-meta";
 
-export const alt = "NOOK — 部屋にこだわってみる";
+export const alt = SITE_TITLE_DEFAULT;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

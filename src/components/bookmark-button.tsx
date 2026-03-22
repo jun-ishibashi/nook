@@ -2,25 +2,40 @@
 
 import { useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { loginCallbackHref } from "@/lib/login-href";
 
 export default function BookmarkButton({ postId, initialBookmarked, size = "md" }: {
   postId: string; initialBookmarked: boolean; size?: "sm" | "md";
 }) {
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [isPending, startTransition] = useTransition();
 
   async function toggleBookmark(e: React.MouseEvent) {
-    e.preventDefault(); e.stopPropagation();
-    if (!session) { router.push("/login"); return; }
+    e.preventDefault();
+    e.stopPropagation();
+    if (!session) {
+      router.push(loginCallbackHref(pathname));
+      return;
+    }
     setBookmarked((prev) => !prev);
     startTransition(async () => {
       try {
-        const res = await fetch("/api/bookmarks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId }) });
-        if (res.ok) { const data = await res.json(); setBookmarked(data.bookmarked); }
-      } catch { setBookmarked((prev) => !prev); }
+        const res = await fetch("/api/bookmarks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId }),
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { bookmarked?: boolean };
+          if (typeof data.bookmarked === "boolean") setBookmarked(data.bookmarked);
+        }
+      } catch {
+        setBookmarked((prev) => !prev);
+      }
     });
   }
 
@@ -31,7 +46,7 @@ export default function BookmarkButton({ postId, initialBookmarked, size = "md" 
       onClick={toggleBookmark}
       disabled={isPending}
       aria-busy={isPending}
-      className={`group inline-flex items-center justify-center transition active:scale-[0.96] ${bookmarked ? "nook-fg" : "nook-fg-muted"} ${size === "sm" ? "min-h-9 min-w-9 rounded-md p-1" : "px-2 py-1.5"}`}
+      className={`group inline-flex items-center justify-center transition active:scale-[0.96] ${bookmarked ? "nook-fg" : "nook-fg-muted"} ${size === "sm" ? "min-h-11 min-w-11 rounded-md p-1 sm:min-h-9 sm:min-w-9" : "min-h-11 min-w-11 px-2 py-2 sm:min-h-0 sm:min-w-0 sm:px-2 sm:py-1.5"}`}
       aria-label={bookmarked ? "保存を取り消す" : "保存する"} aria-pressed={bookmarked}
     >
       <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" aria-hidden>
