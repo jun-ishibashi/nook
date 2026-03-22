@@ -9,6 +9,7 @@ import CreatePost from "@/components/create-post";
 import Footer from "@/components/footer";
 import BackToTop from "@/components/back-to-top";
 import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT } from "@/lib/site-meta";
+import { isSiteNoIndex } from "@/lib/site-indexing";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 const siteUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3001";
+const noIndexSite = isSiteNoIndex();
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -56,6 +58,15 @@ export const metadata: Metadata = {
     title: SITE_TITLE_DEFAULT,
     description: SITE_DESCRIPTION,
   },
+  ...(noIndexSite
+    ? {
+        robots: {
+          index: false,
+          follow: false,
+          googleBot: { index: false, follow: false },
+        },
+      }
+    : {}),
 };
 
 const POST_MODAL_ID = "post_modal";
