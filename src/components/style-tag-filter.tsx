@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useTransition } from "react";
-import { STYLE_TAGS } from "@/lib/style-tags";
+import { STYLE_TAGS_PICKER } from "@/lib/style-tags";
 import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
 import { buildHomeHref } from "@/lib/home-href";
 
@@ -47,12 +47,15 @@ export default function StyleTagFilter() {
   }
 
   return (
-    <div className="flex flex-col gap-1" aria-busy={isPending}>
+    <div
+      className={`flex flex-col gap-1 ${isPending ? "pointer-events-none" : ""}`}
+      aria-busy={isPending}
+    >
       <p id="style-filter-hint" className="sr-only">
         スタイルを複数選ぶと、選んだタグがすべて付いた部屋だけが表示されます。
       </p>
       <p className="nook-overline nook-overline--sentence mb-0">スタイル</p>
-      <p className="nook-fg-faint mb-1 text-[10px] leading-snug">
+      <p className="nook-fg-faint mb-1 nook-caption-sm">
         複数選ぶと、すべてに合う部屋だけ
       </p>
       <div
@@ -65,11 +68,11 @@ export default function StyleTagFilter() {
           type="button"
           aria-pressed={selected.size === 0}
           onClick={() => clearAll()}
-          className="filter-chip text-[11px]"
+          className="filter-chip"
         >
           すべて
         </button>
-        {STYLE_TAGS.map((t) => {
+        {STYLE_TAGS_PICKER.map((t) => {
           const on = selected.has(t.slug);
           return (
             <button
@@ -77,7 +80,7 @@ export default function StyleTagFilter() {
               type="button"
               aria-pressed={on}
               onClick={() => toggle(t.slug)}
-              className="filter-chip text-[11px]"
+              className="filter-chip"
             >
               {t.label}
             </button>

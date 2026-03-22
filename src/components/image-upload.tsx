@@ -1,8 +1,47 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { getMoodFilter } from "@/lib/image-mood";
+
+/** blob URL は親で Map 管理（子ごとの useMemo + revoke が Strict Mode と競合しやすい） */
+function FilePreviewThumb({
+  src,
+  mood,
+  index,
+  onRemove,
+}: {
+  src: string;
+  mood?: string;
+  index: number;
+  onRemove?: (index: number) => void;
+}) {
+  return (
+    <div
+      className="nook-bg-sunken group relative h-[5.25rem] w-[5.25rem] overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)] sm:h-28 sm:w-28"
+      role="listitem"
+    >
+      <img
+        src={src}
+        alt={`写真 ${index + 1}`}
+        className="h-full w-full object-cover transition-all"
+        style={{ filter: getMoodFilter(mood) }}
+      />
+      {onRemove ? (
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          className="nook-image-remove-btn nook-overlay-action-reveal absolute right-0.5 top-0.5 flex h-8 w-8 items-center justify-center rounded-full text-white shadow-sm sm:h-6 sm:w-6"
+          aria-label={`写真 ${index + 1} を削除`}
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+            <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
 export default function ImageUpload({ files, onFiles, onRemove, mood }: {
   files: File[];
@@ -10,6 +49,40 @@ export default function ImageUpload({ files, onFiles, onRemove, mood }: {
   onRemove?: (index: number) => void;
   mood?: string;
 }) {
+  const previewByFileRef = useRef<Map<File, string>>(new Map());
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+
+  useLayoutEffect(() => {
+    const map = previewByFileRef.current;
+    const keep = new Set(files);
+    for (const [f, url] of [...map.entries()]) {
+      if (!keep.has(f)) {
+        URL.revokeObjectURL(url);
+        map.delete(f);
+      }
+    }
+    setPreviewUrls(
+      files.map((f) => {
+        let u = map.get(f);
+        if (!u) {
+          u = URL.createObjectURL(f);
+          map.set(f, u);
+        }
+        return u;
+      })
+    );
+  }, [files]);
+
+  useEffect(() => {
+    const map = previewByFileRef.current;
+    return () => {
+      for (const url of map.values()) {
+        URL.revokeObjectURL(url);
+      }
+      map.clear();
+    };
+  }, []);
+
   const onDrop = useCallback((accepted: File[]) => { onFiles([...files, ...accepted]); }, [files, onFiles]);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { "image/*": [] }, maxFiles: 10 });
 
@@ -31,37 +104,20 @@ export default function ImageUpload({ files, onFiles, onRemove, mood }: {
         <p className="nook-fg-secondary text-xs font-medium">
           {isDragActive ? "ここにドロップ" : "写真を足す"}
         </p>
-        <p className="nook-fg-faint mt-0.5 text-center text-[10px] leading-snug">
+        <p className="nook-fg-faint mt-0.5 text-center nook-caption-sm">
           最大10枚・タップで選択
         </p>
       </div>
-      {files.length > 0 && (
+      {files.length > 0 && previewUrls.length === files.length && (
         <div className="mt-3 flex flex-wrap gap-2" role="list">
-          {files.map((file, i) => (
-            <div
-              key={i}
-              className="nook-bg-sunken group relative h-[4.25rem] w-[4.25rem] overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)]"
-              role="listitem"
-            >
-              <img
-                src={URL.createObjectURL(file)}
-                alt={`写真 ${i + 1}`}
-                className="h-full w-full object-cover transition-all"
-                style={{ filter: getMoodFilter(mood) }}
-              />
-              {onRemove && (
-                <button
-                  type="button"
-                  onClick={() => onRemove(i)}
-                  className="nook-image-remove-btn absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center rounded-full text-white opacity-0 shadow-sm transition group-hover:opacity-100 group-focus-within:opacity-100"
-                  aria-label={`写真 ${i + 1} を削除`}
-                >
-                  <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden>
-                    <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </button>
-              )}
-            </div>
+          {files.map((_, i) => (
+            <FilePreviewThumb
+              key={previewUrls[i]}
+              src={previewUrls[i]!}
+              mood={mood}
+              index={i}
+              onRemove={onRemove}
+            />
           ))}
         </div>
       )}

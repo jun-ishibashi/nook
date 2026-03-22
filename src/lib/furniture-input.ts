@@ -1,25 +1,35 @@
+import { normalizeBrandForDb } from "./brand-master";
 import { getProductUrlHost } from "./product-url";
 import {
   normalizeFurnitureLinkRelation,
   parseLinkVerifiedDate,
 } from "./furniture-link-meta";
+import { parsePinCoordPair } from "./furniture-pin-coords";
 
 export type ParsedFurnitureForDb = {
+  brand: string;
+  brandSlug: string;
   name: string;
   productUrl: string;
   note: string;
   price: number | null;
   mediaIndex: number;
+  pinX: number | null;
+  pinY: number | null;
   linkRelation: string;
   linkVerifiedAt: Date | null;
 };
 
 type RawFurniture = {
+  brand?: unknown;
+  brandSlug?: unknown;
   name?: unknown;
   productUrl?: unknown;
   note?: unknown;
   price?: unknown;
   mediaIndex?: unknown;
+  pinX?: unknown;
+  pinY?: unknown;
   linkRelation?: unknown;
   linkVerifiedDate?: unknown;
 };
@@ -35,7 +45,12 @@ export function normalizeFurnitureInputs(parsed: unknown): ParsedFurnitureForDb[
     .filter((f) => typeof f.name === "string" && isHttpProductUrl(f.productUrl))
     .map((f) => {
       const productUrl = (f.productUrl as string).trim();
+      const brandRaw = typeof f.brand === "string" ? f.brand.trim().slice(0, 80) : "";
+      const { brand, brandSlug } = normalizeBrandForDb(brandRaw, f.brandSlug);
+      const pins = parsePinCoordPair(f.pinX, f.pinY);
       return {
+        brand,
+        brandSlug,
         name: f.name as string,
         productUrl,
         note: typeof f.note === "string" ? f.note.trim().slice(0, 500) : "",
@@ -47,6 +62,8 @@ export function normalizeFurnitureInputs(parsed: unknown): ParsedFurnitureForDb[
           typeof f.mediaIndex === "number" && Number.isFinite(f.mediaIndex)
             ? Math.max(0, Math.floor(f.mediaIndex))
             : 0,
+        pinX: pins.pinX,
+        pinY: pins.pinY,
         linkRelation: normalizeFurnitureLinkRelation(f.linkRelation),
         linkVerifiedAt: parseLinkVerifiedDate(f.linkVerifiedDate),
       };
@@ -74,12 +91,16 @@ function furnitureWriteBase(
 ) {
   const url = f.productUrl.trim().slice(0, 2000);
   return {
+    brand: f.brand.trim().slice(0, 80),
+    brandSlug: f.brandSlug.trim().slice(0, 64),
     name: f.name.trim().slice(0, 200),
     productUrl: url,
     productHost: getProductUrlHost(url),
     note: f.note.slice(0, 500),
     sortOrder,
     mediaIndex: clampMediaIndexToCount(f.mediaIndex, mediaCount),
+    pinX: f.pinX,
+    pinY: f.pinY,
     price: f.price,
     linkRelation: f.linkRelation,
     linkVerifiedAt: f.linkVerifiedAt,

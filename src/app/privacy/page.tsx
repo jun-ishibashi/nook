@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import PageBackLink from "@/components/page-back-link";
 
 export const metadata: Metadata = {
   title: "プライバシーポリシー",
@@ -9,22 +9,14 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="nook-app-canvas min-h-screen">
-      <div className="nook-page pb-16 pt-8 sm:py-12">
-        <Link
-          href="/"
-          className="nook-fg-muted inline-flex min-h-[var(--touch)] items-center gap-2 text-xs font-medium transition hover:opacity-75"
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-            <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          みんなの部屋へ
-        </Link>
+      <div className="nook-page nook-safe-page-pb pt-8 sm:pt-12">
+        <PageBackLink />
         <div className="nook-elevated-surface mt-6 space-y-4 overflow-hidden p-5 sm:p-6">
           <div>
             <p className="nook-section-label mb-2">法務（サンプル）</p>
             <h1 className="nook-fg text-xl font-semibold tracking-tight">プライバシーポリシー</h1>
             <p className="nook-fg-secondary mt-3 text-sm leading-relaxed">
-              NOOK は、一人暮らしの部屋を見ながら、気になる家具・雑貨も探していけるサービスです。取得するデータと使い方をまとめたページです（サンプル文面）。本文は正確さを優先し、公開前に法務確認してください。
+              NOOK は、部屋の雰囲気と家具・雑貨の購入先ヒントをまとめて楽しめるサービスです。このページでは取得するデータと利用目的の例を示します（サンプル文面）。公開前に法務確認を。本文は正確さを優先してください。
             </p>
             <p className="nook-fg-muted mt-2 text-xs">
               最終更新: 2025年3月19日

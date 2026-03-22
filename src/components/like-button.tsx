@@ -2,27 +2,44 @@
 
 import { useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { loginCallbackHref } from "@/lib/login-href";
 
 export default function LikeButton({ postId, initialLiked, initialCount, size = "md", showCount = true }: {
   postId: string; initialLiked: boolean; initialCount: number; size?: "sm" | "md"; showCount?: boolean;
 }) {
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [isPending, startTransition] = useTransition();
 
   async function toggleLike(e: React.MouseEvent) {
-    e.preventDefault(); e.stopPropagation();
-    if (!session) { router.push("/login"); return; }
+    e.preventDefault();
+    e.stopPropagation();
+    if (!session) {
+      router.push(loginCallbackHref(pathname));
+      return;
+    }
     setLiked((prev) => !prev);
     setCount((prev) => (liked ? prev - 1 : prev + 1));
     startTransition(async () => {
       try {
-        const res = await fetch("/api/likes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId }) });
-        if (res.ok) { const data = await res.json(); setLiked(data.liked); setCount(data.likeCount); }
-      } catch { setLiked((prev) => !prev); setCount((prev) => (liked ? prev + 1 : prev - 1)); }
+        const res = await fetch("/api/likes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId }),
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { liked?: boolean; likeCount?: number };
+          if (typeof data.liked === "boolean") setLiked(data.liked);
+          if (typeof data.likeCount === "number") setCount(data.likeCount);
+        }
+      } catch {
+        setLiked((prev) => !prev);
+        setCount((prev) => (liked ? prev + 1 : prev - 1));
+      }
     });
   }
 
@@ -33,7 +50,7 @@ export default function LikeButton({ postId, initialLiked, initialCount, size = 
       onClick={toggleLike}
       disabled={isPending}
       aria-busy={isPending}
-      className={`group inline-flex items-center justify-center gap-1 transition active:scale-[0.96] ${liked ? "nook-like-fg-on" : "nook-fg-muted"} ${size === "sm" ? "min-h-9 min-w-9 rounded-md px-1 py-1 text-[11px]" : "px-2 py-1.5 text-xs"}`}
+      className={`group inline-flex items-center justify-center gap-1 transition active:scale-[0.96] ${liked ? "nook-like-fg-on" : "nook-fg-muted"} ${size === "sm" ? "min-h-11 min-w-11 rounded-md px-1 py-1 text-xs sm:min-h-9 sm:min-w-9 sm:text-[11px]" : "min-h-11 px-3 py-2 text-xs sm:min-h-0 sm:px-2 sm:py-1.5"}`}
       aria-label={liked ? "いいねを取り消す" : "いいねする"} aria-pressed={liked}
     >
       <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" aria-hidden>

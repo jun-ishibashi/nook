@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Inter, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
@@ -8,6 +8,7 @@ import Modal from "@/components/modal";
 import CreatePost from "@/components/create-post";
 import Footer from "@/components/footer";
 import BackToTop from "@/components/back-to-top";
+import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT } from "@/lib/site-meta";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,14 +23,23 @@ const notoSansJP = Noto_Sans_JP({
 
 const siteUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3001";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f3f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#131211" },
+  ],
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "NOOK — 部屋にこだわってみる",
+    default: SITE_TITLE_DEFAULT,
     template: "%s | NOOK",
   },
-  description:
-    "一人暮らしの部屋を見ながら、気になる家具・雑貨も探していけます。",
+  description: SITE_DESCRIPTION,
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon",
@@ -38,15 +48,13 @@ export const metadata: Metadata = {
     siteName: "NOOK",
     locale: "ja_JP",
     type: "website",
-    title: "NOOK — 部屋にこだわってみる",
-    description:
-      "一人暮らしの部屋を見ながら、気になる家具・雑貨も探していけます。",
+    title: SITE_TITLE_DEFAULT,
+    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "NOOK — 部屋にこだわってみる",
-    description:
-      "一人暮らしの部屋を見ながら、気になる家具・雑貨も探していけます。",
+    title: SITE_TITLE_DEFAULT,
+    description: SITE_DESCRIPTION,
   },
 };
 

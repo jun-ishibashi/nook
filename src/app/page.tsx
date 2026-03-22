@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense, createElement } from "react";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { fetchHomeFeedPosts, toHomePostGridItem } from "@/lib/home-feed";
@@ -12,7 +12,8 @@ import WelcomeBanner from "@/components/welcome-banner";
 import HomeFeedTabs from "@/components/home-feed-tabs";
 import { parseStyleSlugsFromSearchParams } from "@/lib/feed-styles";
 import { postSearchOrConditions } from "@/lib/post-search";
-import { breakConsecutiveSameAuthor } from "@/lib/feed-mix";
+import { mixHomeFeedPosts } from "@/lib/feed-mix";
+import { loginCallbackHref } from "@/lib/login-href";
 import HomeRevisitStrip from "@/components/home-revisit-strip";
 import HomeTrendingStyles from "@/components/home-trending-styles";
 import HomeFilterPanel from "@/components/home-filter-panel";
@@ -46,13 +47,12 @@ export default async function HomePage({
 
   const currentUser = await getOptionalSessionUser({
     id: true,
-    name: true,
     _count: { select: { posts: true, followsInitiated: true } },
   });
   const currentUserId = currentUser?.id;
 
   if (followingFeed && !currentUserId) {
-    redirect("/login?callbackUrl=" + encodeURIComponent("/?feed=following"));
+    redirect(loginCallbackHref("/?feed=following"));
   }
 
   const where: Prisma.PostWhereInput = {};
@@ -94,9 +94,7 @@ export default async function HomePage({
   const postsRaw = await fetchHomeFeedPosts(where, currentUserId);
 
   const posts =
-    !isFiltered && !followingFeed
-      ? breakConsecutiveSameAuthor(postsRaw)
-      : postsRaw;
+    !isFiltered && !followingFeed ? mixHomeFeedPosts(postsRaw) : postsRaw;
 
   let bookmarkCount = 0;
   let wishlistCount = 0;
@@ -112,18 +110,18 @@ export default async function HomePage({
   const showWelcome = !currentUserId && !isFiltered && !followingFeed;
   const showLoggedInOverview = Boolean(currentUser) && !isFiltered && !followingFeed;
   /** ページに既に h1（ヒーロー or ログイン後概要）があるときはフィード見出しを h2 に */
-  const feedHeadingTag = showWelcome || showLoggedInOverview ? "h2" : "h1";
   const feedSectionTitle = followingFeed
-    ? "フォロー中の投稿"
+    ? "フォロー中の部屋"
     : isFiltered
-      ? "該当する投稿"
+      ? "該当する部屋"
       : "みんなの部屋";
 
   return (
     <div className="nook-app-canvas home-canvas min-h-screen">
-      {/* 操作層: sticky top-14 は Navbar の h-14 と一致（html scroll-padding-top と連動） */}
+      {/* 操作層: top は globals の --nav-height（ノッチ＋ナビ行）と一致 */}
       <div
-        className="home-sticky-feed home-sticky-feed-surface sticky top-14 z-30 backdrop-blur-md"
+        className="home-sticky-feed home-sticky-feed-surface sticky z-30 backdrop-blur-md"
+        style={{ top: "var(--nav-height)" }}
       >
         <div className="nook-page">
           <div className="py-1.5 sm:py-2">
@@ -183,7 +181,6 @@ export default async function HomePage({
 
         {currentUser && showLoggedInOverview ? (
           <HomeLoggedInOverview
-            userName={currentUser.name ?? ""}
             postCount={currentUser._count.posts}
             followingCount={currentUser._count.followsInitiated}
             bookmarkCount={bookmarkCount}
@@ -193,7 +190,7 @@ export default async function HomePage({
 
         <div
           id="home-feed-anchor"
-          className="home-feed-stack scroll-mt-24 sm:scroll-mt-28"
+          className="home-feed-stack"
         >
         <Suspense
           fallback={
@@ -212,13 +209,14 @@ export default async function HomePage({
         {postList.length > 0 ? (
           <header className="home-feed-ledge">
             <div className="flex min-h-[1.25rem] items-center justify-between gap-3">
-              {createElement(
-                feedHeadingTag,
-                {
-                  className: "home-feed-ledge__title",
-                  id: "home-feed-heading",
-                },
-                feedSectionTitle
+              {showWelcome || showLoggedInOverview ? (
+                <h2 className="home-feed-ledge__title" id="home-feed-heading">
+                  {feedSectionTitle}
+                </h2>
+              ) : (
+                <h1 className="home-feed-ledge__title" id="home-feed-heading">
+                  {feedSectionTitle}
+                </h1>
               )}
               {isFiltered ? (
                 <span className="home-feed-count-pill shrink-0" aria-label={`${postList.length}件`}>
@@ -253,33 +251,33 @@ export default async function HomePage({
             </div>
             <p className="nook-fg text-[15px] font-semibold tracking-tight">
               {followingFeed
-                ? "フォロー中の投稿は、まだありません"
+                ? "フォロー中の部屋は、まだありません"
                 : isFiltered
-                  ? "該当する投稿は、まだ見つからないようです"
-                  : "まだ投稿がありません"}
+                  ? "該当する部屋は、まだ見つからないようです"
+                  : "まだ部屋がありません"}
             </p>
             <p className="nook-fg-muted mt-2 text-[13px] leading-relaxed">
               {followingFeed
-                ? "まずは「みんなの部屋」から、好みのムードを探してみませんか。"
+                ? "みんなの部屋から、ムードを探してみてください。"
                 : isFiltered
-                  ? "ムードや予算の条件を変えると、別の投稿に出会えるかもしれません。"
+                  ? "条件を変えると、別の部屋に出会えるかもしれません。"
                   : "一枚からで大丈夫です。写真を載せると、ここに残せます。"}
             </p>
             {followingFeed ? (
-              <Link href="/" scroll={false} className="btn-primary mt-7 text-xs">
+              <Link href="/" scroll={false} className="btn-primary mt-7 text-sm sm:text-xs">
                 みんなの部屋へ
               </Link>
             ) : isFiltered ? (
-              <Link href="/" scroll={false} className="btn-secondary mt-7 text-xs">
+              <Link href="/" scroll={false} className="btn-secondary mt-7 text-sm sm:text-xs">
                 条件をすべてクリア
               </Link>
             ) : currentUserId ? (
-              <label htmlFor="post_modal" className="btn-primary mt-7 cursor-pointer text-xs">
+              <label htmlFor="post_modal" className="btn-primary mt-7 cursor-pointer text-sm sm:text-xs">
                 写真を載せる
               </label>
             ) : (
-              <Link href="/login" className="btn-primary mt-7 text-xs">
-                ログインして始める
+              <Link href="/login" className="btn-primary mt-7 text-sm sm:text-xs">
+                ログインして写真を載せる
               </Link>
             )}
           </div>

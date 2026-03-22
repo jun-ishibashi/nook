@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    /** next/image の quality プロップで使う値（未指定時は 75） */
+    qualities: [75, 95],
     remotePatterns: [
       {
         protocol: "https",

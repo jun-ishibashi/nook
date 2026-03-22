@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiUser } from "@/lib/session-user";
+import { apiUserMsg } from "@/lib/api-user-messages";
 
 export async function GET() {
   const auth = await requireApiUser();
@@ -19,9 +20,47 @@ export async function GET() {
       productUrl: i.productUrl,
       note: i.note,
       sourcePostId: i.sourcePostId,
+      buyRank: i.buyRank,
       createdAt: i.createdAt.toISOString(),
     }))
   );
+}
+
+/** 欲しいリストの買う順だけ更新（自分用） */
+export async function PATCH(request: Request) {
+  const auth = await requireApiUser();
+  if (!auth.ok) return auth.response;
+  const { user } = auth;
+
+  let body: { id?: unknown; buyRank?: unknown };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return NextResponse.json({ error: apiUserMsg.invalidJson }, { status: 400 });
+  }
+
+  const id = typeof body.id === "string" ? body.id.trim() : "";
+  if (!id) {
+    return NextResponse.json({ error: apiUserMsg.idRequired }, { status: 400 });
+  }
+  const rawRank = body.buyRank;
+  if (typeof rawRank !== "number" || !Number.isFinite(rawRank)) {
+    return NextResponse.json({ error: apiUserMsg.buyRankInvalid }, { status: 400 });
+  }
+  const buyRank = Math.max(0, Math.min(99, Math.floor(rawRank)));
+
+  const row = await prisma.itemWishlist.findFirst({
+    where: { id, userId: user.id },
+    select: { id: true },
+  });
+  if (!row) return NextResponse.json({ error: apiUserMsg.notFound }, { status: 404 });
+
+  await prisma.itemWishlist.update({
+    where: { id },
+    data: { buyRank },
+  });
+
+  return NextResponse.json({ ok: true, buyRank });
 }
 
 /** トグル: 同じ URL があれば削除、なければ追加 */
@@ -34,12 +73,12 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as typeof body;
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.invalidJson }, { status: 400 });
   }
 
   const url = typeof body.productUrl === "string" ? body.productUrl.trim() : "";
   if (!url.startsWith("http")) {
-    return NextResponse.json({ error: "Invalid productUrl" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.invalidProductUrl }, { status: 400 });
   }
   const safeUrl = url.slice(0, 2000);
   const name =
@@ -82,13 +121,13 @@ export async function DELETE(request: NextRequest) {
 
   const id = request.nextUrl.searchParams.get("id");
   if (!id) {
-    return NextResponse.json({ error: "id required" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.idRequired }, { status: 400 });
   }
 
   const row = await prisma.itemWishlist.findFirst({
     where: { id, userId: user.id },
   });
-  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!row) return NextResponse.json({ error: apiUserMsg.notFound }, { status: 404 });
 
   await prisma.itemWishlist.delete({ where: { id } });
   return NextResponse.json({ ok: true });

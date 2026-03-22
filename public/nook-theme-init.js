@@ -1,3 +1,4 @@
+/* localStorage キーは src/lib/theme-storage.ts の NOOK_THEME_STORAGE_KEY と一致させる */
 (function () {
   try {
     var k = "nook-theme";

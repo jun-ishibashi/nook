@@ -30,7 +30,7 @@ export default function HomeRecentRooms() {
                   alt={post.title}
                   fill
                   className="object-cover transition duration-300 group-hover:scale-[1.03]"
-                  sizes="96px"
+                  sizes="(max-width: 639px) 5.5rem, 6rem"
                 />
               ) : (
                 <div className="nook-fg-faint flex h-full items-center justify-center">
@@ -40,7 +40,7 @@ export default function HomeRecentRooms() {
                 </div>
               )}
             </div>
-            <p className="nook-fg-muted truncate text-[10px] font-medium leading-snug">
+            <p className="nook-fg-muted truncate nook-caption-sm font-medium">
               {post.title}
             </p>
           </Link>

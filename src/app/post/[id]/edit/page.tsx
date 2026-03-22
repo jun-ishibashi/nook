@@ -5,23 +5,24 @@ import { prisma } from "@/lib/prisma";
 import { getOptionalSessionUser } from "@/lib/session-user";
 import EditPostForm from "@/components/edit-post-form";
 import { linkVerifiedAtToDateInputValue } from "@/lib/furniture-link-meta";
+import { loginCallbackHref } from "@/lib/login-href";
 
 export const metadata: Metadata = {
   title: "部屋を編集",
-  description: "部屋の写真に添える文言や家具・雑貨の購入先を更新",
+  description: "部屋の写真に添える文言や家具・雑貨の商品ページURLを更新",
 };
 
 export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getOptionalSessionUser({ id: true });
   if (!user) {
-    redirect(`/login?callbackUrl=${encodeURIComponent(`/post/${id}/edit`)}`);
+    redirect(loginCallbackHref(`/post/${id}/edit`));
   }
 
   const post = await prisma.post.findUnique({
     where: { id },
     include: {
-      medias: { select: { id: true } },
+      medias: { select: { id: true, path: true }, orderBy: { id: "asc" } },
       furnitureItems: { orderBy: { sortOrder: "asc" } },
       styleTags: { select: { tagSlug: true } },
     },
@@ -39,12 +40,17 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
     roomContextNote: post.roomContextNote ?? "",
     styleTags: post.styleTags.map((t) => t.tagSlug),
     mediaCount: post.medias.length,
+    medias: post.medias.map((m) => ({ path: m.path })),
     furnitureItems: post.furnitureItems.map((f) => ({
       id: f.id,
       name: f.name,
+      brand: f.brand ?? "",
+      brandSlug: f.brandSlug ?? "",
       productUrl: f.productUrl,
       note: f.note ?? "",
       mediaIndex: f.mediaIndex ?? 0,
+      pinX: f.pinX ?? null,
+      pinY: f.pinY ?? null,
       linkRelation: f.linkRelation ?? "",
       linkVerifiedDate: linkVerifiedAtToDateInputValue(f.linkVerifiedAt),
     })),
@@ -52,7 +58,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="nook-app-canvas min-h-screen">
-      <div className="nook-page pb-16 pt-6 sm:py-10">
+      <div className="nook-page nook-safe-page-pb pt-6 sm:pt-10">
         <div className="nook-elevated-surface overflow-hidden p-5 sm:p-6">
           <Link
             href={`/post/${id}`}
@@ -72,7 +78,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
           <p className="nook-section-label mb-1 mt-5">編集</p>
           <h1 className="nook-fg text-lg font-semibold tracking-tight">部屋を編集</h1>
           <p className="nook-vision-subline max-w-md !mt-1">
-            写真に添える文言や、家具・雑貨の購入先URLをあとから整えられます。
+            写真に添える文言や、家具・雑貨の商品ページURLをあとから整えられます。
           </p>
           <div className="mt-6 border-t pt-6 nook-border-hairline">
             <EditPostForm initial={initial} />

@@ -24,7 +24,10 @@ export default function CategoryFilter() {
   }
 
   return (
-    <div className={`flex flex-col gap-1 ${isPending ? "opacity-60" : ""}`} aria-busy={isPending}>
+    <div
+      className={`flex flex-col gap-1 ${isPending ? "pointer-events-none opacity-60" : ""}`}
+      aria-busy={isPending}
+    >
       <p className="nook-overline nook-overline--sentence mb-0">カテゴリ</p>
       <div className="flex gap-0 overflow-x-auto scrollbar-hide" role="tablist" aria-label="カテゴリ">
       <button

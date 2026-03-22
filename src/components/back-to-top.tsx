@@ -1,22 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
+import { prefersReducedMotion } from "@/lib/motion-prefs";
 
 export default function BackToTop() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setShow(window.scrollY > 500);
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   if (!show) return null;
 
   const scrollTop = () => {
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   };
 
   return (

@@ -1,3 +1,4 @@
+import { brandSlugsMatchingSearch } from "@/lib/brand-master";
 import { CATEGORIES } from "@/lib/categories";
 import { HOUSING_TYPES, LAYOUT_TYPES } from "@/lib/room-context";
 import { STYLE_TAGS, STYLE_TAG_SEARCH_ALIASES } from "@/lib/style-tags";
@@ -57,5 +58,18 @@ export function postSearchOrConditions(q: string): Record<string, unknown>[] {
   if (layoutMatches.length > 0) {
     or.push({ layoutType: { in: layoutMatches } });
   }
+
+  const brandSlugs = brandSlugsMatchingSearch(trimmed);
+  if (brandSlugs.length > 0) {
+    or.push({
+      furnitureItems: { some: { brandSlug: { in: brandSlugs } } },
+    });
+  }
+  or.push({
+    furnitureItems: {
+      some: { brand: { contains: trimmed, mode: "insensitive" } },
+    },
+  });
+
   return or;
 }

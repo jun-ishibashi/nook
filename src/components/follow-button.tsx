@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { loginCallbackHref } from "@/lib/login-href";
 
 export default function FollowButton({
   userId,
@@ -19,6 +20,7 @@ export default function FollowButton({
 }) {
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [following, setFollowing] = useState(initialFollowing);
   const [followerCount, setFollowerCount] = useState(initialFollowerCount);
   const [isPending, startTransition] = useTransition();
@@ -27,7 +29,7 @@ export default function FollowButton({
     e.preventDefault();
     e.stopPropagation();
     if (!session) {
-      router.push("/login");
+      router.push(loginCallbackHref(pathname));
       return;
     }
     const next = !following;
@@ -53,7 +55,10 @@ export default function FollowButton({
     });
   }
 
-  const pad = size === "sm" ? "px-3 py-1 text-[11px]" : "px-4 py-1.5 text-xs";
+  const pad =
+    size === "sm"
+      ? "min-h-11 px-3 py-2 text-xs sm:min-h-0 sm:py-1 sm:text-[11px]"
+      : "min-h-11 px-4 py-2 text-xs sm:min-h-0 sm:py-1.5";
 
   return (
     <button

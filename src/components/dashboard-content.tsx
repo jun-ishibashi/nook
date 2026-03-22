@@ -20,7 +20,7 @@ type MyPost = {
 type BookmarkedPost = { id: string; title: string; thumbnail: string | null; userName: string; itemCount: number; likeCount: number; createdAt: string };
 
 const TABS = [
-  { id: "posts" as const, label: "投稿", countKey: "posts" as const },
+  { id: "posts" as const, label: "部屋", countKey: "posts" as const },
   { id: "bookmarks" as const, label: "保存", countKey: "bookmarks" as const },
   { id: "wishlist" as const, label: "欲しい", countKey: "wishlist" as const },
 ];
@@ -57,9 +57,9 @@ export default function DashboardContent({
 
   return (
     <section className="dashboard-main-section" aria-labelledby="dashboard-main-heading">
-      <p id="dashboard-main-heading" className="nook-section-label mb-3">
-        投稿・保存・欲しい
-      </p>
+      <h2 id="dashboard-main-heading" className="nook-section-label mb-3 mt-0">
+        部屋・保存・欲しい
+      </h2>
 
       <div className="flex border-b nook-border-hairline" role="tablist" aria-label="マイページのタブ">
         {TABS.map((t) => {
@@ -91,14 +91,14 @@ export default function DashboardContent({
         {tab === "posts" && posts.length > 0 && (
           <div className="mb-4 space-y-3">
             <label className="block">
-              <span className="nook-overline normal-case tracking-[0.12em]">タイトルでさがす</span>
+              <span className="nook-overline normal-case tracking-[0.12em]">タイトルで探す</span>
               <input
                 type="search"
                 value={postQuery}
                 onChange={(e) => setPostQuery(e.target.value)}
-                placeholder="タイトルの一部…"
+                placeholder="キーワード"
                 className="nook-input-line"
-                aria-label="自分の投稿をタイトルでさがす"
+                aria-label="載せた部屋をタイトルで絞り込む"
               />
             </label>
             <div>
@@ -109,7 +109,7 @@ export default function DashboardContent({
                   role="tab"
                   aria-selected={postCategory === ""}
                   onClick={() => setPostCategory("")}
-                  className="filter-chip text-[11px]"
+                  className="filter-chip"
                 >
                   すべて
                 </button>
@@ -120,7 +120,7 @@ export default function DashboardContent({
                     role="tab"
                     aria-selected={postCategory === c.value}
                     onClick={() => setPostCategory(c.value)}
-                    className="filter-chip flex items-center gap-1 text-[11px]"
+                    className="filter-chip flex items-center gap-1"
                   >
                     <CategoryIcon value={c.value} size={12} />
                     {c.label}
@@ -129,8 +129,9 @@ export default function DashboardContent({
               </div>
             </div>
             {(postQuery || postCategory) && (
-              <p className="nook-fg-muted text-[11px]">
-                表示 {filteredPosts.length}・全 {posts.length}
+              <p className="nook-fg-muted text-xs sm:text-[11px]">
+                {filteredPosts.length}件を表示
+                <span className="nook-fg-faint">（全{posts.length}件）</span>
               </p>
             )}
           </div>
@@ -141,11 +142,11 @@ export default function DashboardContent({
               <DashboardPosts posts={filteredPosts} />
             ) : (
               <p className="nook-fg-muted py-12 text-center text-sm">
-                該当する投稿がありません
+                該当する部屋がありません
               </p>
             )
           ) : (
-            <EmptyState icon="camera" title="まだ投稿がありません" description="一枚からで大丈夫です。写真を載せると、ここに並びます。" />
+            <EmptyState icon="camera" title="まだ部屋がありません" description="一枚からで大丈夫です。写真を載せると、ここに並びます。" />
           )
         )}
         {tab === "bookmarks" && (
@@ -155,6 +156,7 @@ export default function DashboardContent({
                 <Link
                   key={bm.id}
                   href={`/post/${bm.id}`}
+                  aria-label={bm.title ? `保存：${bm.title}` : "保存した部屋を開く"}
                   className="nook-bg-sunken relative aspect-square overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--home-tile-shadow)]"
                 >
                   {bm.thumbnail ? (
@@ -175,14 +177,22 @@ export default function DashboardContent({
               ))}
             </div>
           ) : (
-            <EmptyState icon="bookmark" title="保存した部屋はまだありません" description="気になった部屋を保存しておくと、あとから見返せます。" />
+            <EmptyState
+              icon="bookmark"
+              title="保存した部屋はまだありません"
+              description="気になった部屋を保存しておくと、あとからすぐに開けます。"
+            />
           )
         )}
         {tab === "wishlist" && (
           wishlist.length > 0 ? (
             <DashboardWishlist items={wishlist} />
           ) : (
-            <EmptyState icon="wish" title="欲しいはまだありません" description="気になった家具・雑貨を入れておくと、あとからゆっくり見返せます。" />
+            <EmptyState
+              icon="wish"
+              title="欲しいに、まだありません。"
+              description="気になった家具・雑貨を入れておくと、あとからまとめて見返せます。"
+            />
           )
         )}
       </div>
@@ -235,10 +245,14 @@ function EmptyState({
         {description}
       </p>
       {icon === "camera" ? (
-        <label htmlFor="post_modal" className="btn-primary mt-6 cursor-pointer text-xs">
+        <label htmlFor="post_modal" className="btn-primary mt-6 cursor-pointer text-sm sm:text-xs">
           写真を載せる
         </label>
-      ) : null}
+      ) : (
+        <Link href="/" className="btn-secondary mt-6 text-sm sm:text-xs">
+          みんなの部屋を見る
+        </Link>
+      )}
     </div>
   );
 }

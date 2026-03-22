@@ -2,17 +2,25 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import NookImage from "@/components/nook-image";
 
+const MAX_RELATED = 6;
+const CANDIDATE_POOL = 28;
+/** 同じ購入 URL が重なるほど関連度を上げる（上限あり） */
+const SCORE_PER_SHARED_URL = 4;
+const MAX_URL_SCORE = 14;
+
 /**
- * 同じカテゴリまたはスタイルが重なる部屋を、**タグの重なり優先**で並べ替え（最大6件）
+ * 同じカテゴリ・スタイルに加え、**同じ商品ページ URL** が重なる部屋を優先（最大6件）
  */
 export default async function RelatedPosts({
   postId,
   category,
   styleTagSlugs,
+  productUrls,
 }: {
   postId: string;
   category: string;
   styleTagSlugs: string[];
+  productUrls?: string[];
 }) {
   const or: { category?: string; styleTags?: { some: { tagSlug: string } } }[] = [];
   if (category && category !== "other") {
@@ -23,16 +31,21 @@ export default async function RelatedPosts({
   }
   if (or.length === 0) return null;
 
+  const urlSet = new Set(
+    (productUrls ?? []).map((u) => u.trim()).filter(Boolean)
+  );
+
   const candidates = await prisma.post.findMany({
     where: {
       id: { not: postId },
       OR: or,
     },
     orderBy: { createdAt: "desc" },
-    take: 24,
+    take: CANDIDATE_POOL,
     include: {
       medias: { take: 1, orderBy: { id: "asc" } },
       styleTags: { select: { tagSlug: true } },
+      furnitureItems: { select: { productUrl: true } },
     },
   });
 
@@ -45,13 +58,20 @@ export default async function RelatedPosts({
     for (const t of p.styleTags) {
       if (tagSet.has(t.tagSlug)) score += 3;
     }
+    if (urlSet.size > 0) {
+      let shared = 0;
+      for (const fi of p.furnitureItems) {
+        if (urlSet.has(fi.productUrl.trim())) shared += 1;
+      }
+      score += Math.min(shared * SCORE_PER_SHARED_URL, MAX_URL_SCORE);
+    }
     return { p, score };
   });
   scored.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return b.p.createdAt.getTime() - a.p.createdAt.getTime();
   });
-  const related = scored.slice(0, 6).map((x) => x.p);
+  const related = scored.slice(0, MAX_RELATED).map((x) => x.p);
 
   return (
     <section className="mt-10 border-t pt-6 nook-border-hairline" aria-labelledby="related-heading">

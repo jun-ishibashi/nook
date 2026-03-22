@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { getStyleTagLabel, type StyleTagSlug } from "@/lib/style-tags";
+import { HOME_HERO_IMAGE_SRC } from "@/lib/site-images";
 
 /** ヒーロー下のムード近道（`style-tags` の slug と整合） */
 const WELCOME_MOOD_SHORTCUTS: readonly StyleTagSlug[] = [
@@ -26,14 +27,15 @@ export default function WelcomeBanner() {
     <header className="home-hero">
       {/* 背景写真 */}
       <div className="home-hero__media" aria-hidden>
+        {/* 表示幅に対して元画像が小さいと拡大で荒れる。差し替え時は幅 1280px 以上を推奨 */}
         <Image
-          src="/hero-home.png"
+          src={HOME_HERO_IMAGE_SRC}
           alt=""
           fill
           className="object-cover"
-          sizes="100vw"
+          sizes="(max-width: 639px) 100vw, 672px"
           priority
-          quality={85}
+          quality={95}
         />
         <div className="home-hero__overlay" />
       </div>
@@ -45,12 +47,12 @@ export default function WelcomeBanner() {
             部屋にこだわってみる。
           </h1>
           <p className="home-hero__lede">
-            一人暮らしの部屋を見ながら、好きな雰囲気を見つけていけます。
+            みんなの部屋のムードから、家具・雑貨に出会えます。気になったら、商品ページまで辿れます。
           </p>
         </div>
         <div className="home-hero__actions">
-          <Link href="/login" className="btn-primary home-hero__cta text-xs">
-            写真を載せる
+          <Link href="/login" className="btn-primary home-hero__cta text-sm sm:text-xs">
+            ログインして写真を載せる
           </Link>
           <Link
             href="#home-feed-anchor"

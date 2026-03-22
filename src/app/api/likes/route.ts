@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiUser } from "@/lib/session-user";
+import { apiUserMsg } from "@/lib/api-user-messages";
 
 export async function POST(request: Request) {
   const auth = await requireApiUser();
@@ -9,7 +10,7 @@ export async function POST(request: Request) {
 
   const { postId } = (await request.json()) as { postId: string };
   if (!postId) {
-    return NextResponse.json({ error: "postId is required" }, { status: 400 });
+    return NextResponse.json({ error: apiUserMsg.postIdRequired }, { status: 400 });
   }
 
   const existing = await prisma.like.findUnique({

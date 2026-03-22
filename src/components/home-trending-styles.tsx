@@ -25,7 +25,7 @@ export default async function HomeTrendingStyles() {
   return (
     <section className="home-tail-discover" aria-labelledby="trending-styles-heading">
       <h2 id="trending-styles-heading" className="home-browse-label mb-2">
-        ムードからさがす
+        いま人気のムード
       </h2>
       <div className="flex flex-wrap gap-2">
         {rows.map((r) => (

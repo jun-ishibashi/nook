@@ -7,6 +7,7 @@ import FollowButton from "@/components/follow-button";
 import HomePostGrid from "@/components/home-post-grid";
 import { getCategoryLabel } from "@/lib/categories";
 import { getStyleTagLabel } from "@/lib/style-tags";
+import { formatYearMonthJa } from "@/lib/format-date-ja";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!user) return { title: "プロフィールが見つかりません | NOOK" };
   const desc = user.bio?.trim()
     ? `${user.bio.trim()}・${user.name} | NOOK`
-    : `${user.name} の投稿・プロフィール | NOOK`;
+    : `${user.name} の部屋・プロフィール | NOOK`;
   return { title: `${user.name}・プロフィール`, description: desc };
 }
 
@@ -105,7 +106,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
 
   return (
     <div className="nook-app-canvas min-h-screen">
-      <div className="nook-page pb-16 pt-6 sm:pt-8">
+      <div className="nook-page nook-safe-page-pb pt-6 sm:pt-8">
         <header className="user-profile-header nook-elevated-surface mb-8 overflow-hidden p-5 sm:mb-9 sm:p-6">
           <p className="nook-section-label mb-2">プロフィール</p>
 
@@ -119,7 +120,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                   {user.name}
                 </h1>
                 <p className="nook-fg-muted mt-1.5 text-[11px] leading-relaxed">
-                  NOOK 利用開始 {user.createdAt.toLocaleDateString("ja-JP", { year: "numeric", month: "long" })}
+                  利用開始 {formatYearMonthJa(user.createdAt)}
                 </p>
                 {user.bio?.trim() ? (
                   <p className="nook-fg-secondary mt-3 max-w-md text-sm leading-relaxed">
@@ -131,9 +132,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                     href={user.profileLink.trim()}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="nook-fg-muted mt-3 inline-flex items-center gap-1 text-xs font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-85"
+                    className="nook-fg-muted mt-3 inline-flex min-h-11 items-center gap-1 rounded-md px-1 py-2 text-xs font-semibold underline decoration-transparent underline-offset-2 transition hover:opacity-85 sm:min-h-0 sm:px-0 sm:py-0"
                   >
-                    プロフィールのリンク
+                    リンクを開く
                     <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden>
                       <path d="M5 2h7v7M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -150,7 +151,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                 />
               )}
               {isOwn && (
-                <Link href="/dashboard" className="btn-secondary text-xs">
+                <Link href="/dashboard" className="btn-secondary text-sm sm:text-xs">
                   マイページ
                 </Link>
               )}
@@ -232,26 +233,26 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
 
         <section className="mt-6 border-t pt-6 nook-border-hairline sm:mt-8" aria-labelledby="user-posts-heading">
           <h2 id="user-posts-heading" className="nook-section-label mb-3">
-            投稿
+            部屋
           </h2>
           {postList.length > 0 ? (
             <HomePostGrid posts={postList} ariaLabelledBy="user-posts-heading" />
           ) : (
             <div className="nook-elevated-surface flex flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-14">
-            <p className="nook-fg text-base font-semibold tracking-tight">
-              まだ投稿はありません
-            </p>
-            <p className="nook-fg-muted mt-2 max-w-xs px-4 text-[13px] leading-relaxed">
-              {isOwn
-                ? "一枚からで大丈夫です。写真を載せると、ここに並びます。"
-                : "これから、ムードの近い部屋が並ぶかもしれません。"}
-            </p>
+              <p className="nook-fg text-base font-semibold tracking-tight">
+                まだ部屋はありません
+              </p>
+              <p className="nook-fg-muted mt-2 max-w-xs px-4 text-[13px] leading-relaxed">
+                {isOwn
+                  ? "一枚からで大丈夫です。写真を載せると、ここに並びます。"
+                  : "公開された部屋は、またあとでチェックしてみてください。"}
+              </p>
               {isOwn ? (
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                  <label htmlFor="post_modal" className="btn-primary cursor-pointer text-xs">
+                  <label htmlFor="post_modal" className="btn-primary cursor-pointer text-sm sm:text-xs">
                     写真を載せる
                   </label>
-                  <Link href="/dashboard" className="btn-secondary text-xs">
+                  <Link href="/dashboard" className="btn-secondary text-sm sm:text-xs">
                     マイページ
                   </Link>
                 </div>

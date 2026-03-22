@@ -15,7 +15,7 @@ import {
   subscribeRecentSearches,
 } from "@/lib/search-recent";
 
-function ClearFiltersButton({ compact }: { compact?: boolean }) {
+function ClearFiltersButton() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -42,13 +42,9 @@ function ClearFiltersButton({ compact }: { compact?: boolean }) {
       onClick={clear}
       disabled={isPending}
       aria-busy={isPending}
-      className={
-        compact
-          ? "home-sticky-search-clear shrink-0"
-          : "home-top-search-clear shrink-0"
-      }
+      className="home-sticky-search-clear shrink-0"
     >
-      {compact ? "すべてクリア" : "条件をすべてクリア"}
+      すべてクリア
     </button>
   );
 }
@@ -201,6 +197,7 @@ function KeywordSearch({ urlQuery, helpId }: { urlQuery: string; helpId: string 
         </span>
         <input
           type="search"
+          inputMode="search"
           enterKeyHint="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -305,9 +302,9 @@ export default function HomeTopSearch() {
       <p id="home-search-label" className="sr-only">
         キーワードで部屋を探す
       </p>
-      <div className="flex items-start gap-2 sm:items-center sm:gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <KeywordSearch key={urlQ} urlQuery={urlQ} helpId="home-search-help" />
-        {hasFilter ? <ClearFiltersButton compact /> : null}
+        {hasFilter ? <ClearFiltersButton /> : null}
       </div>
       <ActiveFilterChips />
     </section>

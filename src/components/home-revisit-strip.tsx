@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/** 保存・欲しいリストからの再訪導線（短文・通知なし） */
+/** 保存・欲しいからの再訪導線（短文・通知なし） */
 export default function HomeRevisitStrip({
   bookmarkCount,
   wishlistCount,
@@ -20,15 +20,17 @@ export default function HomeRevisitStrip({
 
   return (
     <div className={`home-revisit-strip ${className ?? "pb-1.5 pt-0.5"}`}>
-      <p className="nook-fg-faint text-[10px] leading-snug">
+      <p className="nook-fg-faint nook-caption-sm">
         {!hasItems && showEmptyHint ? (
           <>
+            保存した部屋や欲しいは
             <Link
               href="/dashboard"
-              className="nook-fg-muted font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
+              className="nook-fg-muted mx-0.5 inline-flex min-h-10 items-center font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90 active:opacity-80 sm:min-h-0"
             >
               マイページ
             </Link>
+            から。
           </>
         ) : (
           <>
@@ -42,7 +44,7 @@ export default function HomeRevisitStrip({
                 </span>
                 <Link
                   href="/dashboard?tab=bookmarks"
-                  className="nook-fg-muted font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
+                  className="nook-fg-muted inline-flex min-h-10 items-center font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90 active:opacity-80 sm:min-h-0"
                 >
                   保存
                   <span className="tabular-nums opacity-80">（{bookmarkCount}）</span>
@@ -56,7 +58,7 @@ export default function HomeRevisitStrip({
                 </span>
                 <Link
                   href="/dashboard?tab=wishlist"
-                  className="nook-fg-muted font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90"
+                  className="nook-fg-muted inline-flex min-h-10 items-center font-medium underline decoration-transparent underline-offset-2 transition hover:opacity-90 active:opacity-80 sm:min-h-0"
                 >
                   欲しい
                   <span className="tabular-nums opacity-80">（{wishlistCount}）</span>
