@@ -42,9 +42,9 @@ export function postSearchOrConditions(q: string): Record<string, unknown>[] {
   ).map((l) => l.value);
 
   const or: Record<string, unknown>[] = [
-    { title: { contains: trimmed } },
-    { description: { contains: trimmed } },
-    { roomContextNote: { contains: trimmed } },
+    { title: { contains: trimmed, mode: "insensitive" } },
+    { description: { contains: trimmed, mode: "insensitive" } },
+    { roomContextNote: { contains: trimmed, mode: "insensitive" } },
   ];
   if (categoryMatches.length > 0) {
     or.push({ category: { in: categoryMatches } });
