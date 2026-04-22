@@ -33,6 +33,8 @@ jobs:
 
       - name: Run Claude Code Review
         id: claude-review
+        # Advisory only: OAuth quota / API errors must not block merges (human review remains on GitHub).
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
